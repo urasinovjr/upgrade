@@ -1,0 +1,47 @@
+math-field {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--ug-line-strong);
+  border-radius: var(--ug-radius-md);
+  background: var(--ug-surface);
+  color: var(--ug-ink);
+  font-size: var(--ug-fs-h2);
+  --caret-color: var(--ug-blue);
+  --selection-background-color: var(--ug-blue-soft);
+  scroll-margin-block: 32px
+    calc(var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px);
+}
+math-field:focus-within {
+  outline: 2px solid var(--ug-blue);
+  outline-offset: 2px;
+}
+math-field::part(container) {
+  padding: 7px 8px;
+  pointer-events: auto;
+}
+math-field[disabled] {
+  background: var(--ug-bg);
+}
+math-field::part(virtual-keyboard-toggle),
+math-field::part(menu-toggle) {
+  min-width: 36px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  scroll-margin-block: 32px
+    calc(var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px);
+}
+.formula {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  vertical-align: middle;
+}
+@media (max-width: 700px) {
+  math-field::part(virtual-keyboard-toggle),
+  math-field::part(menu-toggle) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

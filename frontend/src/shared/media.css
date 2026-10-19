@@ -1,0 +1,183 @@
+.media-viewer {
+  min-width: 0;
+  background: var(--ug-soft);
+}
+.media-viewer :is(.media-controls, .media-tools, .page-controls) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ug-space-1);
+  min-height: 40px;
+  padding: var(--ug-space-1) var(--ug-space-2) var(--ug-space-1) var(--ug-space-4);
+  border-bottom: 1px solid var(--ug-line);
+  background: var(--ug-surface);
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+}
+.media-viewer :is(.media-controls, .page-controls) select {
+  flex: 1 1 140px;
+  width: auto;
+  min-height: var(--ug-control-sm);
+  padding-block: 0;
+  font-size: var(--ug-fs-caption);
+}
+.media-viewer .media-controls {
+  gap: var(--ug-space-1) var(--ug-space-3);
+}
+.media-controls > .media-name {
+  flex: 1 1 130px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ug-muted);
+}
+.media-controls > .media-zoom {
+  width: 36px;
+  flex-shrink: 0;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.media-viewer .media-controls > .media-name + .icon-button,
+.media-viewer .media-controls > select + .icon-button {
+  margin-left: auto;
+}
+.media-viewer .media-controls > select {
+  flex: 0 1 220px;
+}
+.dp-app .media-viewer :is(.media-controls, .page-controls) button {
+  width: var(--ug-control-sm);
+  min-width: var(--ug-control-sm);
+  min-height: var(--ug-control-sm);
+  padding: var(--ug-space-1);
+  border-color: transparent;
+  background: transparent;
+}
+.dp-app .media-viewer :is(.media-controls, .page-controls) button:hover,
+.dp-app .media-viewer .media-tools button:hover {
+  background: var(--ug-hover);
+}
+.media-viewer .page-controls label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--ug-space-2);
+  font-size: var(--ug-fs-caption);
+  font-weight: 400;
+}
+.dp-app .media-viewer .media-tools button {
+  min-height: var(--ug-control-sm);
+  padding: 0 var(--ug-space-2);
+  gap: var(--ug-space-1);
+  border: 0;
+  background: transparent;
+  font-size: var(--ug-fs-caption);
+  font-weight: 400;
+  color: var(--ug-muted);
+}
+.dp-app .media-viewer .media-tools button[aria-expanded="true"] {
+  background: var(--ug-soft);
+  color: var(--ug-ink);
+}
+.media-viewer .media-tools button:last-child {
+  margin-left: auto;
+}
+.media-viewer .crop-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ug-space-2) var(--ug-space-3);
+  padding: var(--ug-space-3) var(--ug-space-4);
+  border-bottom: 1px solid var(--ug-line);
+  background: var(--ug-surface);
+}
+.media-viewer .crop-controls p {
+  grid-column: 1 / -1;
+  font-size: var(--ug-fs-caption);
+}
+.media-viewer .crop-controls label {
+  gap: var(--ug-space-1);
+  font-size: var(--ug-fs-caption);
+}
+.media-viewer .crop-controls input {
+  min-height: var(--ug-control-sm);
+  padding: 0 var(--ug-space-2);
+}
+.dp-app .media-viewer .crop-controls button {
+  grid-column: span 2;
+  min-height: var(--ug-control-sm);
+}
+.media-viewer > .dp-callout {
+  margin: var(--ug-space-3) var(--ug-space-4) 0;
+}
+.media-canvas {
+  min-height: 280px;
+  height: clamp(280px, calc(100dvh - 300px), 620px);
+  overflow: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  background: var(--ug-soft);
+}
+.media-canvas :is(img, canvas) {
+  background: var(--ug-surface);
+  border-radius: var(--ug-radius-sm);
+}
+.source-image {
+  width: 100%;
+  display: block;
+}
+.media-caption {
+  padding: var(--ug-space-2) var(--ug-space-4);
+  border-top: 1px solid var(--ug-line);
+  background: var(--ug-surface);
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+  overflow-wrap: anywhere;
+}
+.media-placeholder,
+.media-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ug-space-4);
+  min-height: 280px;
+  padding: var(--ug-space-6);
+  color: var(--ug-muted);
+  text-align: center;
+}
+.media-empty > svg {
+  color: var(--ug-faint);
+}
+.media-skeleton {
+  width: min(220px, 70%);
+  aspect-ratio: 3 / 4;
+}
+@media (max-width: 700px) {
+  .media-viewer :is(.media-controls, .media-tools, .page-controls) {
+    padding: var(--ug-space-1) var(--ug-space-2);
+  }
+  .media-viewer :is(.media-controls, .page-controls) select {
+    min-height: 44px;
+  }
+  .media-viewer .media-name {
+    display: none;
+  }
+  .dp-app .media-viewer :is(.media-controls, .page-controls) button {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .dp-app .media-viewer :is(.media-tools, .crop-controls) button {
+    min-height: 44px;
+  }
+  .media-viewer .crop-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--ug-space-3);
+  }
+  .media-viewer .crop-controls input {
+    min-height: 44px;
+  }
+  .media-canvas {
+    height: clamp(280px, 55dvh, 480px);
+  }
+}

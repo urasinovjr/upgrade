@@ -1,0 +1,58 @@
+.dp-states {
+  display: grid;
+  gap: var(--ug-space-5);
+}
+.dp-states-head {
+  display: grid;
+  gap: var(--ug-space-1);
+}
+.dp-states-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: var(--ug-space-5);
+}
+.dp-states-card {
+  display: grid;
+  gap: var(--ug-space-3);
+  align-content: start;
+  min-width: 0;
+  padding: var(--ug-space-5);
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg);
+  background: var(--ug-surface);
+  box-shadow: var(--ug-shadow-sm);
+}
+.dp-states-strips {
+  overflow: hidden;
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-md);
+}
+.dp-states-strips > .dp-callout:last-child {
+  border-bottom: 0;
+}
+.dp-states-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ug-space-2) var(--ug-space-4);
+  align-items: center;
+}
+.dp-states-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+}
+.dp-states-panel {
+  display: grid;
+  gap: var(--ug-space-3);
+  padding: var(--ug-space-5);
+}
+.dp-states-restore {
+  justify-self: start;
+}
+.dp-states-preview > .dp-state-page {
+  width: 100%;
+  padding: 0;
+}
+.dp-states-preview .dp-empty {
+  margin-top: var(--ug-space-4);
+}

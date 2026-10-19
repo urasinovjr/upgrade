@@ -1,0 +1,116 @@
+:where(:root, .dp-app, .dp-dialog) {
+  --ug-ink: #20263b;
+  --ug-text: #43506a;
+  --ug-muted: #5d6679;
+  --ug-faint: #8b94a7;
+  --ug-line: #e5e7ee;
+  --ug-line-strong: #d6dce8;
+  --ug-bg: #f7f8fb;
+  --ug-surface: #fff;
+  --ug-soft: #f1f3f8;
+  --ug-hover: #f4f6fb;
+  --ug-scrim: rgb(32 38 59 / 40%);
+
+  --ug-blue: #315efb;
+  --ug-on-blue: #fff;
+  --ug-blue-soft: #edf2ff;
+  --ug-blue-strong: #2448d8;
+  --ug-blue-line: #ccd8fd;
+  --ug-violet: #7c3aed;
+  --ug-violet-soft: #f5f1ff;
+  --ug-violet-strong: #6a2fd0;
+  --ug-violet-line: #e4d9fb;
+  --ug-brand-gradient: linear-gradient(135deg, var(--ug-blue), var(--ug-violet));
+
+  --ug-chart-created: var(--ug-blue);
+  --ug-chart-confirmed: #9b6cf0;
+  --ug-chart-grid: #edf0f6;
+  --ug-chart-ready: var(--ug-blue);
+  --ug-chart-danger: var(--ug-danger);
+  --ug-chart-warning: #b7791f;
+  --ug-chart-success: #2f8a5b;
+  --ug-chart-neutral: var(--ug-faint);
+
+  --ug-success: #23704c;
+  --ug-success-soft: #ebf7f0;
+  --ug-success-line: #cfe8da;
+  --ug-warning: #8a5a12;
+  --ug-warning-soft: #fff4e2;
+  --ug-warning-line: #f0debb;
+  --ug-danger: #ad3d36;
+  --ug-danger-soft: #fdeeec;
+  --ug-danger-line: #efd5d1;
+  --ug-neutral: #4f5b72;
+  --ug-neutral-soft: #f1f3f8;
+
+  --ug-font: "Inter", sans-serif;
+  --ug-fs-caption: 12px;
+  --ug-fs-body: 14px;
+  --ug-fs-lead: 16px;
+  --ug-fs-h2: 20px;
+  --ug-fs-h1: 28px;
+  --ug-lh-caption: 1.5;
+  --ug-lh-body: 1.55;
+  --ug-lh-lead: 1.5;
+  --ug-lh-h2: 1.4;
+  --ug-lh-h1: 1.25;
+
+  --ug-space-1: 4px;
+  --ug-space-2: 8px;
+  --ug-space-3: 12px;
+  --ug-space-4: 16px;
+  --ug-space-5: 20px;
+  --ug-space-6: 24px;
+  --ug-space-7: 32px;
+  --ug-space-8: 40px;
+
+  --ug-control-sm: 28px;
+  --ug-control: 32px;
+  --ug-touch: 44px;
+
+  --ug-radius-sm: 6px;
+  --ug-radius-md: 8px;
+  --ug-radius-lg: 12px;
+  --ug-radius-pill: 999px;
+
+  --ug-shadow-sm: 0 1px 3px rgb(23 37 68 / 4%);
+  --ug-shadow-md: 0 4px 20px rgb(23 37 68 / 6%);
+  --ug-shadow-overlay: 0 20px 70px rgb(32 38 59 / 19%);
+
+  --ug-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ug-dur-fast: 140ms;
+  --ug-dur: 200ms;
+  --ug-dur-panel: 300ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(:root, .dp-app, .dp-dialog) {
+    --ug-dur-fast: 0ms;
+    --ug-dur: 0ms;
+    --ug-dur-panel: 0ms;
+  }
+}
+
+.dp-tone-blue {
+  --ug-tone: var(--ug-blue-strong);
+  --ug-tone-soft: var(--ug-blue-soft);
+}
+.dp-tone-violet {
+  --ug-tone: var(--ug-violet-strong);
+  --ug-tone-soft: var(--ug-violet-soft);
+}
+.dp-tone-success {
+  --ug-tone: var(--ug-success);
+  --ug-tone-soft: var(--ug-success-soft);
+}
+.dp-tone-warning {
+  --ug-tone: var(--ug-warning);
+  --ug-tone-soft: var(--ug-warning-soft);
+}
+.dp-tone-danger {
+  --ug-tone: var(--ug-danger);
+  --ug-tone-soft: var(--ug-danger-soft);
+}
+.dp-tone-neutral {
+  --ug-tone: var(--ug-neutral);
+  --ug-tone-soft: var(--ug-neutral-soft);
+}

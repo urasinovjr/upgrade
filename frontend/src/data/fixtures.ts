@@ -1,0 +1,199 @@
+import type { StoreState, Task, Topic, Upload, Work } from "../domain/models";
+import { publishWork } from "../domain/review";
+
+export const topics: Topic[] = [
+  {
+    id: "fractions",
+    name: "Дроби",
+    description: "Общий знаменатель и действия с дробями.",
+    prerequisites: [],
+  },
+  {
+    id: "powers",
+    name: "Степени",
+    shortName: "Степ.",
+    description: "Свойства степеней и преобразование выражений.",
+    prerequisites: [],
+  },
+  {
+    id: "domain",
+    name: "Область допустимых значений",
+    shortName: "ОДЗ",
+    description: "Ограничения знаменателя, корня и логарифма.",
+    prerequisites: ["fractions", "powers"],
+  },
+  {
+    id: "equations",
+    name: "Квадратные уравнения",
+    shortName: "Кв. ур.",
+    description: "Разложение на множители и проверка корней.",
+    prerequisites: ["powers"],
+  },
+  {
+    id: "roots",
+    name: "Иррациональные уравнения",
+    shortName: "Ирр.",
+    description: "Возведение в квадрат и проверка посторонних корней.",
+    prerequisites: ["domain", "equations"],
+  },
+  {
+    id: "inequalities",
+    name: "Неравенства",
+    shortName: "Нер-ва",
+    description: "Знак выражения и метод интервалов.",
+    prerequisites: ["domain", "equations"],
+  },
+  {
+    id: "logs",
+    name: "Логарифмы",
+    shortName: "Лог.",
+    description: "Свойства логарифмов с учётом ограничений.",
+    prerequisites: ["powers", "domain"],
+  },
+];
+
+function tasks(reviewed = false): Task[] {
+  return [
+    {
+      id: "t1",
+      title: "Задача 1",
+      condition: "Решите квадратное уравнение.",
+      formula: "x^2-5x+6=0",
+      reference: "x=2,\\;x=3",
+      topicId: "equations",
+      reviewed,
+      omitted: false,
+      feedback: "Разложение на множители выполнено верно.",
+      steps: [
+        {
+          id: "s1",
+          latex: "(x-2)(x-3)=0",
+          verdict: "correct",
+          explanation: "Произведение равно нулю, если один из множителей равен нулю.",
+        },
+        {
+          id: "s2",
+          latex: "x=2\\;\\text{или}\\;x=3",
+          verdict: "correct",
+          explanation: "Оба значения удовлетворяют исходному уравнению.",
+        },
+      ],
+    },
+    {
+      id: "t2",
+      title: "Задача 2",
+      condition: "Упростите выражение и укажите допустимые значения x.",
+      formula: "\\frac{x^2-9}{x-3}",
+      reference: "x+3,\\;x\\ne3",
+      topicId: "domain",
+      reviewed,
+      omitted: false,
+      feedback:
+        "Преобразование верное, но исходный знаменатель не может быть равен нулю. Добавьте ограничение x ≠ 3.",
+      steps: [
+        {
+          id: "s3",
+          latex: "\\frac{(x-3)(x+3)}{x-3}=x+3",
+          verdict: "correct",
+          explanation: "Сокращение допустимо при x ≠ 3.",
+        },
+        {
+          id: "s4",
+          latex: "x\\in\\mathbb{R}",
+          verdict: "error",
+          explanation: "При x = 3 исходное выражение не определено.",
+        },
+      ],
+      gap: {
+        topicId: "domain",
+        reason: "Повторить ограничения знаменателя и сохранение ОДЗ при сокращении дробей.",
+        decision: reviewed ? "confirmed" : "hypothesis",
+      },
+    },
+  ];
+}
+
+export function seedState(): StoreState {
+  const students = [
+    {
+      id: "anna",
+      name: "Анна Соколова",
+      grade: 10,
+      goal: "Подготовка к профильному ЕГЭ",
+      color: "teal",
+    },
+    {
+      id: "mikhail",
+      name: "Михаил Орлов",
+      grade: 9,
+      goal: "Уверенно решать задания ОГЭ",
+      color: "sand",
+    },
+    {
+      id: "polina",
+      name: "Полина Волкова",
+      grade: 11,
+      goal: "Разобраться с логарифмами",
+      color: "lilac",
+    },
+    {
+      id: "ivan",
+      name: "Иван Лебедев",
+      grade: 10,
+      goal: "Закрыть пробелы по алгебре",
+      color: "blue",
+    },
+  ];
+  const config: Array<[string, string, string, Work["status"]]> = [
+    ["demo-ready", "anna", "Уравнения и преобразования", "ready"],
+    ["demo-confirmed", "anna", "Самостоятельная · рациональные дроби", "confirmed"],
+    ["demo-input", "mikhail", "Алгебра · повторение", "needs_input"],
+    ["demo-failed", "polina", "Практика · преобразования", "failed"],
+    ["demo-preparation", "ivan", "Домашняя работа · уравнения", "preparation"],
+  ];
+  const works = config.map(([id, studentId, title, status], index): Work => {
+    const draft = {
+      revision: 1,
+      inputRevision: 0,
+      analysedInputRevision: status === "needs_input" ? -1 : 0,
+      tasks: tasks(status === "confirmed"),
+      feedback:
+        "Начните с ограничений исходного выражения. Затем выполните преобразования и проверьте ответ.",
+    };
+    let work: Work = {
+      id,
+      studentId,
+      title,
+      status: status === "confirmed" ? "ready" : status,
+      createdAt: new Date(Date.now() - index * 86400000).toISOString(),
+      demo: true,
+      manual: false,
+      editing: true,
+      attachments: [
+        {
+          id: "sheet-" + id,
+          name: "Учебный пример.svg",
+          type: "image/svg+xml",
+          size: 1500,
+          pages: 1,
+          pageOrder: [1],
+          crops: {},
+        },
+      ],
+      draft,
+      published: [],
+      initialAnalysis: structuredClone(draft),
+    };
+    if (status === "confirmed") work = publishWork(work);
+    return work;
+  });
+  return { students, works, closures: [] };
+}
+
+export function fixtureUploads(state: StoreState): Upload[] {
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="820" height="1100"><defs><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 L 0 0 0 28" fill="none" stroke="#dce7ea" stroke-width="1"/></pattern></defs><rect width="820" height="1100" fill="#fffefb"/><rect width="820" height="1100" fill="url(#grid)"/><path d="M85 0V1100" stroke="#e6c4bc"/><g fill="#374b64" font-family="Georgia,serif" font-style="italic"><text x="116" y="95" font-size="22">Учебный пример · алгебра</text><text x="116" y="190" font-size="32">1. x² − 5x + 6 = 0</text><text x="140" y="260" font-size="30">(x − 2)(x − 3) = 0</text><text x="140" y="330" font-size="30">x = 2 или x = 3</text><text x="116" y="470" font-size="32">2. Упростить (x² − 9) / (x − 3)</text><text x="140" y="550" font-size="29">(x − 3)(x + 3) / (x − 3) = x + 3</text><text x="140" y="630" font-size="30">x ∈ ℝ</text></g><text x="116" y="990" font-family="sans-serif" font-size="17" fill="#83928e">Вымышленная работа для знакомства с интерфейсом</text></svg>';
+  return state.works.flatMap((work) =>
+    work.attachments.map((file) => ({ ...file, blob: new Blob([svg], { type: "image/svg+xml" }) })),
+  );
+}

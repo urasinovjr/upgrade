@@ -1,0 +1,269 @@
+.dp-page.dp-report-page {
+  padding: var(--ug-space-4) var(--ug-space-6) var(--ug-space-6);
+}
+.dp-report-archived {
+  flex-shrink: 0;
+  padding: 0 var(--ug-space-2);
+  border-radius: var(--ug-radius-sm);
+  background: var(--ug-warning-soft);
+  color: var(--ug-warning);
+  font-size: var(--ug-fs-caption);
+  font-weight: 500;
+  line-height: 20px;
+}
+.dp-report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ug-space-1) var(--ug-space-3);
+  min-height: 40px;
+  padding: var(--ug-space-1) var(--ug-space-4);
+  border-bottom: 1px solid var(--ug-line);
+}
+.dp-report-canvas {
+  padding: var(--ug-space-7) var(--ug-space-6) var(--ug-space-8);
+  background: var(--ug-soft);
+}
+.dp-report-window[data-mode="expanded"] .dp-report-canvas {
+  min-height: 100%;
+}
+.dp-report-sheet {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--ug-space-8) var(--ug-space-8) var(--ug-space-7);
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg);
+  background: var(--ug-surface);
+  box-shadow: var(--ug-shadow-md);
+}
+.dp-report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ug-space-3);
+  margin-bottom: var(--ug-space-7);
+}
+.dp-report-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  font-weight: 600;
+}
+.dp-report-sheet > h2 {
+  font-size: var(--ug-fs-h1);
+  line-height: var(--ug-lh-h1);
+  letter-spacing: -0.9px;
+}
+.dp-report-student {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  margin-top: var(--ug-space-3);
+  color: var(--ug-text);
+}
+.dp-report-approval {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  margin-top: var(--ug-space-2);
+  font-size: var(--ug-fs-caption);
+}
+.dp-report-approval svg {
+  color: var(--ug-success);
+}
+
+.dp-report-task {
+  display: grid;
+  gap: var(--ug-space-3);
+  min-width: 0;
+  margin-top: var(--ug-space-7);
+  padding-top: var(--ug-space-6);
+  border-top: 1px solid var(--ug-line);
+}
+.dp-report-task h3 {
+  font-size: var(--ug-fs-lead);
+  line-height: var(--ug-lh-lead);
+}
+.dp-report-condition-text {
+  color: var(--ug-ink);
+}
+.dp-report-condition {
+  min-width: 0;
+  padding: var(--ug-space-3) var(--ug-space-4);
+  border-radius: var(--ug-radius-md);
+  background: var(--ug-bg);
+  font-size: var(--ug-fs-h2);
+}
+.dp-report-attachments {
+  overflow: hidden;
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-md);
+}
+.dp-report-attachments .media-canvas {
+  height: clamp(240px, 50dvh, 520px);
+}
+
+.dp-report-steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dp-report-step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-areas:
+    "number verdict"
+    ". formula"
+    ". text";
+  column-gap: var(--ug-space-3);
+  row-gap: var(--ug-space-1);
+  min-width: 0;
+  padding: var(--ug-space-3) var(--ug-space-1);
+  border-bottom: 1px solid var(--ug-line);
+}
+.dp-report-step:not(.is-correct) {
+  margin: var(--ug-space-2) 0;
+  padding: var(--ug-space-3) var(--ug-space-3) var(--ug-space-3) var(--ug-space-4);
+  border: 1px solid color-mix(in oklab, var(--ug-tone) 22%, var(--ug-surface));
+  border-left: 3px solid var(--ug-tone);
+  border-radius: var(--ug-radius-md);
+  background: var(--ug-tone-soft);
+}
+.dp-report-step-number {
+  grid-area: number;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ug-radius-sm);
+  background: var(--ug-soft);
+  font-size: var(--ug-fs-caption);
+  font-weight: 500;
+  color: var(--ug-muted);
+  font-variant-numeric: tabular-nums;
+}
+.dp-report-step:not(.is-correct) .dp-report-step-number {
+  background: var(--ug-surface);
+}
+.dp-report-verdict {
+  grid-area: verdict;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ug-space-1);
+  font-size: var(--ug-fs-caption);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--ug-tone);
+}
+.dp-report-formula {
+  grid-area: formula;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: var(--ug-space-1);
+  font-size: var(--ug-fs-h2);
+}
+.dp-report-step > p {
+  grid-area: text;
+  color: var(--ug-text);
+}
+
+.dp-report-feedback,
+.dp-report-recommendation,
+.dp-report-note {
+  padding: var(--ug-space-3) var(--ug-space-4);
+  border-radius: var(--ug-radius-md);
+}
+.dp-report-feedback {
+  background: var(--ug-bg);
+}
+.dp-report-feedback h4,
+.dp-report-recommendation h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  font-size: var(--ug-fs-body);
+  font-weight: 600;
+  color: var(--ug-ink);
+}
+.dp-report-feedback p,
+.dp-report-recommendation p {
+  margin-top: var(--ug-space-1);
+  color: var(--ug-text);
+}
+.dp-report-recommendation {
+  border: 1px solid var(--ug-violet-line);
+  background: var(--ug-violet-soft);
+}
+.dp-app .dp-report-recommendation h4 {
+  color: var(--ug-violet-strong);
+}
+.dp-report-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ug-space-2);
+  background: var(--ug-tone-soft);
+  color: var(--ug-tone);
+}
+.dp-report-note svg {
+  margin-top: 3px;
+}
+.dp-report-note p {
+  color: var(--ug-tone);
+}
+.dp-report-next {
+  display: grid;
+  gap: var(--ug-space-2);
+  margin-top: var(--ug-space-7);
+  padding-top: var(--ug-space-6);
+  border-top: 1px solid var(--ug-line);
+}
+.dp-report-next h3 {
+  font-size: var(--ug-fs-lead);
+  line-height: var(--ug-lh-lead);
+}
+.dp-report-next p {
+  color: var(--ug-text);
+}
+.dp-report-sheet > footer {
+  margin-top: var(--ug-space-8);
+  padding-top: var(--ug-space-4);
+  border-top: 1px solid var(--ug-line);
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+}
+
+.manual-copy-text {
+  min-height: 260px;
+  max-height: 50dvh;
+  font-size: var(--ug-fs-caption);
+}
+
+@media (max-width: 700px) {
+  .dp-page.dp-report-page {
+    padding: var(--ug-space-4);
+  }
+  .dp-report-canvas {
+    padding: var(--ug-space-3);
+  }
+  .dp-report-sheet {
+    padding: var(--ug-space-6) var(--ug-space-4);
+    box-shadow: none;
+  }
+  .dp-report-sheet > h2 {
+    font-size: var(--ug-fs-h2);
+    line-height: var(--ug-lh-h2);
+    letter-spacing: -0.6px;
+  }
+  .dp-report-toolbar {
+    padding-inline: var(--ug-space-3);
+  }
+  .dp-app .dp-report-toolbar .dp-text {
+    min-height: 44px;
+  }
+  .dp-report-step {
+    column-gap: var(--ug-space-2);
+  }
+}

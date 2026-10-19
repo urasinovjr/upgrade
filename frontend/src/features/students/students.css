@@ -1,0 +1,55 @@
+.dp-students-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ug-space-2) var(--ug-space-3);
+  min-height: 44px;
+  margin-bottom: var(--ug-space-2);
+}
+.dp-app .dp-students-bar h1 {
+  font-size: var(--ug-fs-body);
+  line-height: var(--ug-lh-body);
+  letter-spacing: 0;
+}
+.dp-students-bar .dp-count {
+  margin-left: calc(-1 * var(--ug-space-1));
+}
+.dp-students .dp-roster-list,
+.dp-students-empty {
+  margin: 0 calc(-1 * var(--ug-space-2));
+}
+.dp-students-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  min-height: 48px;
+  padding: var(--ug-space-2);
+  border-block: 1px solid var(--ug-line);
+  color: var(--ug-muted);
+}
+.dp-students-empty > span {
+  display: grid;
+  min-width: 0;
+}
+.dp-students-empty strong {
+  color: var(--ug-ink);
+  font-weight: 500;
+}
+.dp-students-empty .dp-text {
+  margin-left: auto;
+}
+@media (max-width: 700px) {
+  .dp-students-empty {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .dp-students-empty > svg {
+    margin-top: 3px;
+  }
+  .dp-students-empty > span {
+    flex: 1 1 calc(100% - var(--ug-space-6));
+  }
+  .dp-students-empty .dp-text {
+    margin-left: var(--ug-space-6);
+  }
+}

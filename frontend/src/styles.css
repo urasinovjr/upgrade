@@ -1,0 +1,42 @@
+@import "./ui/styles/reset.css";
+@import "./ui/styles/tokens.css";
+@import "./ui/styles/base.css";
+@import "./ui/styles/panel.css";
+@import "./ui/styles/math.css";
+@import "./ui/styles/shell.css";
+
+:root {
+  font-family: var(--ug-font);
+  color: var(--ug-ink);
+  background: var(--ug-surface);
+  font-synthesis: none;
+  --keyboard-height: 0px;
+  --review-actions-height: 0px;
+}
+body {
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+html {
+  scrollbar-gutter: stable;
+  scroll-padding-top: calc(var(--ug-topbar-h) + 24px);
+  scroll-padding-bottom: calc(
+    var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+  *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

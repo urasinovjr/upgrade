@@ -1,0 +1,191 @@
+:root {
+  --ug-window-light-close: #ff6058;
+  --ug-window-light-close-ink: #83261f;
+  --ug-window-light-collapse: #febc2e;
+  --ug-window-light-collapse-ink: #765313;
+  --ug-window-light-expand: #28c840;
+  --ug-window-light-expand-ink: #105f21;
+}
+
+.dp-window {
+  min-width: 0;
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg);
+  background: var(--ug-surface);
+  box-shadow: var(--ug-shadow-sm);
+  transform-origin: top left;
+}
+.dp-window-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-3);
+  min-height: 44px;
+  padding: var(--ug-space-1) var(--ug-space-4) var(--ug-space-1) var(--ug-space-2);
+  border-bottom: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg) var(--ug-radius-lg) 0 0;
+  background: var(--ug-bg);
+}
+.dp-window-title {
+  display: flex;
+  align-items: center;
+  gap: var(--ug-space-1) var(--ug-space-3);
+  min-width: 0;
+  flex: 1;
+}
+.dp-window-title strong {
+  font-weight: 600;
+}
+.dp-window-title h1 {
+  min-width: 0;
+  font-size: var(--ug-fs-body);
+  line-height: var(--ug-lh-body);
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.dp-window-meta {
+  flex-shrink: 0;
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+  white-space: nowrap;
+}
+a.dp-window-meta:hover {
+  color: var(--ug-ink);
+}
+.dp-window-title .dp-badge {
+  flex-shrink: 0;
+}
+.dp-window-title > span:not(.dp-badge),
+.dp-window-hint {
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+}
+.dp-window-hint {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.dp-window-controls {
+  display: flex;
+  flex-shrink: 0;
+}
+.dp-app .dp-window-controls button {
+  width: 24px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ug-radius-sm);
+  background: transparent;
+}
+.dp-app .dp-window-controls button:first-child {
+  justify-content: flex-end;
+  padding-right: 2px;
+}
+.dp-app .dp-window-controls button:last-child {
+  justify-content: flex-start;
+  padding-left: 2px;
+}
+.dp-window-controls button > span {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--ug-radius-pill);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 12%);
+}
+.dp-window-controls svg {
+  opacity: 0;
+  stroke-width: 3;
+  transition: opacity var(--ug-dur-fast);
+}
+.dp-window-controls:hover svg,
+.dp-window-controls:has(:focus-visible) svg {
+  opacity: 1;
+}
+.dp-app .dp-window-controls button:focus-visible {
+  outline-offset: -2px;
+  outline-width: 2px;
+}
+.dp-window-close > span {
+  background: var(--ug-window-light-close);
+  color: var(--ug-window-light-close-ink);
+}
+.dp-window-collapse > span {
+  background: var(--ug-window-light-collapse);
+  color: var(--ug-window-light-collapse-ink);
+}
+.dp-window-expand > span {
+  background: var(--ug-window-light-expand);
+  color: var(--ug-window-light-expand-ink);
+}
+
+.dp-window-reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--ug-dur-panel) var(--ug-ease),
+    opacity var(--ug-dur);
+}
+.dp-window-content {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 0 0 var(--ug-radius-lg) var(--ug-radius-lg);
+}
+.dp-window[data-mode="collapsed"] .dp-window-reveal {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.dp-window[data-mode="collapsed"] .dp-window-header {
+  border-bottom-color: transparent;
+  border-radius: var(--ug-radius-lg);
+}
+.dp-window[data-mode="expanded"] {
+  position: fixed;
+  inset: var(--ug-space-3);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--ug-shadow-overlay);
+}
+.dp-window[data-mode="expanded"] .dp-window-header {
+  flex-shrink: 0;
+}
+.dp-window[data-mode="expanded"] .dp-window-reveal {
+  flex: 1;
+  min-height: 0;
+}
+.dp-window[data-mode="expanded"] .dp-window-content {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 700px) {
+  .dp-window-header {
+    gap: var(--ug-space-2);
+    padding: 0 var(--ug-space-3) 0 0;
+  }
+  .dp-app .dp-window-controls button,
+  .dp-app .dp-window-controls button:first-child,
+  .dp-app .dp-window-controls button:last-child {
+    width: var(--ug-touch);
+    min-height: var(--ug-touch);
+    padding: 0 0 0 var(--ug-space-3);
+    justify-content: flex-start;
+  }
+  .dp-window-title {
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding: var(--ug-space-1) 0;
+  }
+  .dp-window-hint {
+    display: none;
+  }
+  .dp-window[data-mode="expanded"] {
+    inset: 0;
+    border-radius: 0;
+  }
+  .dp-window[data-mode="expanded"] .dp-window-header {
+    padding-top: env(safe-area-inset-top);
+    border-radius: 0;
+  }
+}
