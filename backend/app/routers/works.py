@@ -1,0 +1,44 @@
+from typing import Annotated
+from uuid import UUID
+
+from fastapi import APIRouter, Header, status
+
+from app.dependencies import ProviderDep, SessionDep, SettingsDep
+from app.errors import DomainError
+from app.models import Job
+from app.provider import ProviderError
+from app.schemas import JobOut, ResultOut, WorkCreate
+from app.services.intake import accept_work, process_now
+
+router = APIRouter(tags=["works"])
+
+UploadKey = Annotated[str, Header(min_length=1, max_length=64)]
+
+
+@router.post("/works", status_code=status.HTTP_202_ACCEPTED)
+async def create_work(data: WorkCreate, session: SessionDep, idempotency_key: UploadKey) -> JobOut:
+    job = await accept_work(session, data, idempotency_key)
+    return JobOut.model_validate(job)
+
+
+@router.post("/sync/works")
+async def create_work_sync(
+    data: WorkCreate,
+    session: SessionDep,
+    provider: ProviderDep,
+    settings: SettingsDep,
+    x_upload_id: UploadKey,
+) -> ResultOut:
+    try:
+        result = await process_now(session, provider, settings, data, x_upload_id)
+    except ProviderError as error:
+        raise DomainError(error.code) from error
+    return ResultOut.model_validate(result)
+
+
+@router.get("/jobs/{job_id}")
+async def read_job(job_id: UUID, session: SessionDep) -> JobOut:
+    job = await session.get(Job, job_id)
+    if job is None:
+        raise DomainError("job_not_found")
+    return JobOut.model_validate(job)

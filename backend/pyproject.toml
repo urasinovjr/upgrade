@@ -1,0 +1,42 @@
+[project]
+name = "upgrade-backend"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.0,<2",
+    "asyncpg>=0.32.0,<1",
+    "fastapi>=0.150.0,<1",
+    "httpx>=0.28.1,<1",
+    "pydantic-settings>=2.16.0,<3",
+    "sqlalchemy[asyncio]>=2.1.5,<3",
+    "uvicorn>=0.54.0,<1",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "SIM105"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "loadgen", "tests"]
+known-third-party = ["alembic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

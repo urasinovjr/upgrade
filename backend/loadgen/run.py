@@ -1,0 +1,116 @@
+import argparse
+import asyncio
+import csv
+import json
+import time
+from pathlib import Path
+
+import httpx
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+from loadgen.client import send_upload
+from loadgen.scenario import TIME_SCALE, build_uploads
+from loadgen.stand import (
+    clock_offset,
+    collect_outcomes,
+    configure_provider,
+    crash_processing,
+    ensure_running,
+    provider_stats,
+    reset_database,
+    wait_until_settled,
+)
+
+RESULTS_DIR = Path(__file__).resolve().parent / "results" / "runs"
+DATABASE_URL = "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
+API_URL = "http://localhost:8010"
+SIM_URL = "http://localhost:8011"
+PROCESSING_SERVICE = {"sync": "api", "async": "worker"}
+
+
+def run_name(mode: str, profile: str, level: int, seed: int) -> str:
+    return f"{mode}-{profile}-x{level}-s{seed}"
+
+
+def merge_row(client_row: dict, outcome: dict | None, offset: float) -> dict:
+    outcome = outcome or {"works": 0, "results": 0, "first_result_at": None, "failed": False}
+    ready_s = None
+    if outcome["first_result_at"] is not None:
+        ready_s = float(outcome["first_result_at"]) - offset - client_row["first_send"]
+    return {
+        **client_row,
+        "works": outcome["works"],
+        "results": outcome["results"],
+        "failed": outcome["failed"],
+        "job_attempts": outcome.get("job_attempts", 0),
+        "ready_s": ready_s,
+    }
+
+
+async def run_once(
+    engine: AsyncEngine, mode: str, profile: str, level: int, seed: int, crashes: bool
+) -> Path:
+    await ensure_running()
+    await reset_database(engine)
+    await configure_provider(SIM_URL, profile, seed, TIME_SCALE)
+    offset = await clock_offset(engine)
+    uploads = build_uploads(level, seed)
+
+    limits = httpx.Limits(max_connections=2000, max_keepalive_connections=200)
+    async with httpx.AsyncClient(base_url=API_URL, limits=limits, trust_env=False) as http:
+        started = time.time() + 1.0
+        crash = None
+        if crashes:
+            crash = asyncio.create_task(crash_processing(PROCESSING_SERVICE[mode], started))
+        client_rows = await asyncio.gather(
+            *(send_upload(http, mode, upload, started) for upload in uploads)
+        )
+        if crash:
+            await crash
+    await ensure_running()
+    await wait_until_settled(engine)
+
+    outcomes = await collect_outcomes(engine)
+    rows = [merge_row(row, outcomes.get(row["upload_id"]), offset) for row in client_rows]
+    name = run_name(mode, profile, level, seed)
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    csv_path = RESULTS_DIR / f"{name}.csv"
+    with csv_path.open("w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    meta = {
+        "mode": mode,
+        "profile": profile,
+        "level": level,
+        "seed": seed,
+        "crashes": crashes,
+        "time_scale": TIME_SCALE,
+        "uploads": len(uploads),
+        "clock_offset": offset,
+        "provider": await provider_stats(SIM_URL),
+    }
+    (RESULTS_DIR / f"{name}.json").write_text(json.dumps(meta, indent=2))
+    return csv_path
+
+
+async def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["sync", "async"], required=True)
+    parser.add_argument("--profile", choices=["normal", "degraded"], default="normal")
+    parser.add_argument("--level", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--no-crashes", action="store_true")
+    args = parser.parse_args()
+    engine = create_async_engine(DATABASE_URL)
+    try:
+        path = await run_once(
+            engine, args.mode, args.profile, args.level, args.seed, not args.no_crashes
+        )
+    finally:
+        await engine.dispose()
+    print(path)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
