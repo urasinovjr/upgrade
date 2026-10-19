@@ -25,3 +25,7 @@ class ResultOut(BaseModel):
     work_id: UUID
     text: str
     analysis: dict
+
+
+class ErrorOut(BaseModel):
+    detail: str
