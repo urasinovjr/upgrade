@@ -1,3 +1,5 @@
+from sqlalchemy.orm import configure_mappers
+
 from app.access.models import (
     AuthSession,
     Consent,
@@ -36,4 +38,10 @@ __all__ = [
     "Work",
     "WorkFile",
     "WorkRevision",
+    "configure_models",
 ]
+
+
+def configure_models() -> list[str]:
+    configure_mappers()
+    return [table.name for table in Base.metadata.sorted_tables]

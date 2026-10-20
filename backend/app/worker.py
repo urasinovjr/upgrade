@@ -2,10 +2,12 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 
+from app.analysis import WORK_ANALYSIS_JOB, handle_work_analysis, mark_analysis_failed
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
 from app.mail import SEND_EMAIL_JOB, SmtpMailer, forget_email_token, handle_send_email
+from app.models import configure_models
 from app.provider import Provider
 from app.queue import (
     Job,
@@ -26,9 +28,11 @@ HANDLERS: dict[str, JobHandler] = {
     STAND_JOB: handle_stand_job,
     SEND_EMAIL_JOB: handle_send_email,
     DELETE_FILES_JOB: handle_delete_files,
+    WORK_ANALYSIS_JOB: handle_work_analysis,
 }
 FAILURE_HOOKS: dict[str, JobHandler] = {
     SEND_EMAIL_JOB: forget_email_token,
+    WORK_ANALYSIS_JOB: mark_analysis_failed,
 }
 
 
@@ -95,13 +99,14 @@ async def run_worker(context: WorkerContext) -> None:
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+    tables = configure_models()
     settings = Settings()
     engine = make_engine(settings.database_url, settings.db_pool_size)
     provider = Provider(settings.provider_url, settings.provider_timeout)
     storage = await S3Storage.connect(settings)
     mailer = SmtpMailer(settings)
     context = WorkerContext(make_session_factory(engine), provider, settings, storage, mailer)
-    logger.info("worker_started concurrency=%s", settings.worker_concurrency)
+    logger.info("worker_started concurrency=%s tables=%s", settings.worker_concurrency, len(tables))
     try:
         await run_worker(context)
     finally:

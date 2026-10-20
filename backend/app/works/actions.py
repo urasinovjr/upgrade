@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.analysis import start_analysis
 from app.config import Settings
 from app.errors import DomainError
 from app.students import StudentOut, owned_student
@@ -144,7 +145,9 @@ def mark_manual(work: Work) -> None:
     work.status = "ready"
 
 
-async def run_action(session: AsyncSession, teacher_id: UUID, work_id: UUID, action: str) -> Work:
+async def run_action(
+    session: AsyncSession, settings: Settings, teacher_id: UUID, work_id: UUID, action: str
+) -> Work:
     work = await owned_work(session, teacher_id, work_id, lock=True)
     if action == "confirm":
         await confirm(session, work)
@@ -157,7 +160,8 @@ async def run_action(session: AsyncSession, teacher_id: UUID, work_id: UUID, act
     elif action == "manual":
         mark_manual(work)
     else:
-        raise DomainError("analysis_unavailable")
+        require_editable(work)
+        await start_analysis(session, settings, work)
     await session.commit()
     return work
 

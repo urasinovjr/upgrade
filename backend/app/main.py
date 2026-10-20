@@ -13,6 +13,7 @@ from app.errors import DomainError, domain_error_handler
 from app.files import S3Storage, Storage
 from app.knowledge.router import router as knowledge_router
 from app.mail import Mailer, SmtpMailer
+from app.models import configure_models
 from app.provider import Provider
 from app.snapshot import router as snapshot_router
 from app.stand.router import router as stand_router
@@ -28,6 +29,7 @@ def create_app(
     oauth: OAuthClient | None = None,
 ) -> FastAPI:
     app_settings = settings or Settings()
+    configure_models()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

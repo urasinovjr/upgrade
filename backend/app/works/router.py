@@ -100,9 +100,13 @@ async def put_attachments(
 
 @router.post("/works/{work_id}/actions/{action}", response_model_exclude_none=True)
 async def post_action(
-    work_id: UUID, action: WorkAction, current: WritableAccountDep, session: SessionDep
+    work_id: UUID,
+    action: WorkAction,
+    current: WritableAccountDep,
+    session: SessionDep,
+    settings: SettingsDep,
 ) -> WorkOut:
-    work = await run_action(session, current.user.id, work_id, action)
+    work = await run_action(session, settings, current.user.id, work_id, action)
     return await describe_work(session, work)
 
 
