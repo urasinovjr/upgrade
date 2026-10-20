@@ -1,6 +1,7 @@
 export { Avatar } from "./Avatar";
 export { Badge } from "./Badge";
 export { Callout, type CalloutTone } from "./Callout";
+export { ConfirmDelete } from "./ConfirmDelete";
 export { Disclosure } from "./Disclosure";
 export { ErrorMessage } from "./ErrorMessage";
 export { Modal } from "./Modal";

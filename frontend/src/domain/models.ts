@@ -9,6 +9,7 @@ export interface Student {
   grade: number;
   goal: string;
   color: string;
+  archivedAt?: string;
 }
 export interface Step {
   id: string;

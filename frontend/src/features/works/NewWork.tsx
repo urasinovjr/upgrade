@@ -220,11 +220,13 @@ export default function NewWork() {
                   onChange={(event) => setStudentId(event.target.value)}
                 >
                   <option value="">Выберите ученика</option>
-                  {query.data.students.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.name} · {student.grade} класс
-                    </option>
-                  ))}
+                  {query.data.students
+                    .filter((student) => !student.archivedAt || student.id === studentId)
+                    .map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.name} · {student.grade} класс
+                      </option>
+                    ))}
                 </select>
                 <button className="dp-compact-action" onClick={() => setStudentModal(true)}>
                   <UserPlus size={16} aria-hidden="true" />

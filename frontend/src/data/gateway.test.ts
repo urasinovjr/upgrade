@@ -124,6 +124,35 @@ describe("demo persistence", () => {
     expect(await (await restored.asset(work.attachments[0].id)).text()).toContain("<svg");
     db.close();
   });
+  it("archives a student and deletes works with their files", async () => {
+    const work = customWork();
+    const fileId = crypto.randomUUID();
+    const blob = new Blob(["to delete"], { type: "image/png" });
+    work.attachments = [
+      {
+        id: fileId,
+        name: "x.png",
+        type: "image/png",
+        size: 9,
+        pages: 1,
+        pageOrder: [1],
+        crops: {},
+      },
+    ];
+    await gateway.create(work, [{ ...work.attachments[0], blob }]);
+    await gateway.archiveStudent(work.studentId, true);
+    let state = await gateway.read();
+    expect(state.students.find((item) => item.id === work.studentId)?.archivedAt).toBeTruthy();
+    await gateway.removeWork(work.id);
+    state = await gateway.read();
+    expect(state.works.some((item) => item.id === work.id)).toBe(false);
+    await expect(gateway.asset(fileId)).rejects.toThrow("Файл не найден");
+    await gateway.archiveStudent(work.studentId, false);
+    await gateway.removeStudent(work.studentId);
+    state = await gateway.read();
+    expect(state.students.some((item) => item.id === work.studentId)).toBe(false);
+    expect(state.works.some((item) => item.studentId === work.studentId)).toBe(false);
+  });
   it("keeps the overview layout apart from the work data", async () => {
     expect(await gateway.layout()).toEqual(defaultLayout());
     const layout = addWidget(removeWidget(defaultLayout(), "focus"), "hypotheses", 0);

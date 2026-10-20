@@ -118,6 +118,16 @@ function updateWork(state: StoreState, id: string, change: (work: Work) => Work)
   if (!state.works.some((work) => work.id === id)) throw new Error("Работа не найдена.");
   return { ...state, works: state.works.map((work) => (work.id === id ? change(work) : work)) };
 }
+async function removeFiles(works: Work[]) {
+  const ids = works.flatMap((work) => [
+    ...work.attachments.map((file) => file.id),
+    ...work.published.flatMap((revision) => revision.attachments.map((file) => file.id)),
+  ]);
+  const db = await openDatabase();
+  const tx = db.transaction("files", "readwrite");
+  await Promise.all([...new Set(ids)].map((fileId) => tx.store.delete(fileId)));
+  await tx.done;
+}
 export const localGateway: Gateway = {
   async read() {
     await initialize();
@@ -243,6 +253,34 @@ export const localGateway: Gateway = {
         };
       }),
     );
+  },
+  async archiveStudent(id, archived) {
+    await mutate((state) => ({
+      ...state,
+      students: state.students.map((student) =>
+        student.id === id
+          ? { ...student, archivedAt: archived ? new Date().toISOString() : undefined }
+          : student,
+      ),
+    }));
+  },
+  async removeStudent(id) {
+    const state = await this.read();
+    const works = state.works.filter((work) => work.studentId === id);
+    await removeFiles(works);
+    await mutate((current) => ({
+      students: current.students.filter((student) => student.id !== id),
+      works: current.works.filter((work) => work.studentId !== id),
+      closures: current.closures.filter((closure) => closure.studentId !== id),
+    }));
+  },
+  async removeWork(id) {
+    const state = await this.read();
+    await removeFiles(state.works.filter((work) => work.id === id));
+    await mutate((current) => ({
+      ...current,
+      works: current.works.filter((work) => work.id !== id),
+    }));
   },
   async layout() {
     const stored = await (await openDatabase()).get("preferences", layoutKey);

@@ -69,6 +69,16 @@ export const httpGateway: Gateway = {
     const layout = attachments.map(({ id, pageOrder, crops }) => ({ id, pageOrder, crops }));
     await workRequest("/works/" + id + "/attachments", "PUT", layout);
   },
+  async archiveStudent(id: string, archived: boolean) {
+    await request("/students/" + id + "/archive", { method: "POST", json: { archived } });
+  },
+  async removeStudent(id: string) {
+    await request("/students/" + id, { method: "DELETE" });
+  },
+  async removeWork(id: string) {
+    await request("/works/" + id, { method: "DELETE" });
+    serverRevisions.delete(id);
+  },
   async layout() {
     const stored = await request<unknown>(layoutPath);
     return stored === null ? defaultLayout() : normalizeLayout(stored);

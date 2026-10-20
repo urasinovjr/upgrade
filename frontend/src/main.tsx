@@ -147,7 +147,7 @@ function Shell() {
   const [actions, setActions] = useState<HTMLElement | null>(null);
   const section = sectionOf(path);
   const exact = section !== undefined && path === sections[section].path;
-  const students = store.data?.students ?? [];
+  const students = (store.data?.students ?? []).filter((student) => !student.archivedAt);
   const attention = store.data?.works.filter(needsAttention).length ?? 0;
   const studentGroup = useRef<HTMLDivElement>(null);
   useEffect(() => {

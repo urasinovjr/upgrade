@@ -43,6 +43,7 @@ import {
 } from "./knowledge";
 import { studentTabs, useStudentView, type StudentTab } from "./useStudentView";
 import "./knowledge.css";
+import { StudentActions } from "../students/StudentActions";
 
 const recentLimit = 6;
 
@@ -294,14 +295,17 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
       <PageBar
         trail={<span>{student.name}</span>}
         actions={
-          <button
-            className="dp-compact-action"
-            aria-label="Редактировать ученика"
-            onClick={() => setEditing(true)}
-          >
-            <Pencil size={14} aria-hidden="true" />
-            <span>Редактировать</span>
-          </button>
+          <>
+            <button
+              className="dp-compact-action"
+              aria-label="Редактировать ученика"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil size={14} aria-hidden="true" />
+              <span>Редактировать</span>
+            </button>
+            <StudentActions student={student} />
+          </>
         }
       />
       <header className="dp-student-head student-header">

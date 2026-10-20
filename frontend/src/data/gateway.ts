@@ -17,6 +17,9 @@ export interface Gateway {
   closure(closure: Closure): Promise<void>;
   report(id: string, revisionId?: string): Promise<Report>;
   attachments(id: string, attachments: Work["attachments"]): Promise<void>;
+  archiveStudent(id: string, archived: boolean): Promise<void>;
+  removeStudent(id: string): Promise<void>;
+  removeWork(id: string): Promise<void>;
   layout(): Promise<DashboardLayout>;
   saveLayout(layout: DashboardLayout): Promise<void>;
 }

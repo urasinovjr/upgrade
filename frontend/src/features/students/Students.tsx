@@ -20,6 +20,7 @@ export default function Students() {
       void navigate(location.pathname + location.search, { replace: true, state: null });
   }, [requested, navigate, location.pathname, location.search]);
   const writeAccess = useWriteAccess();
+  const [showArchive, setShowArchive] = useState(false);
   const add = () => setOpen(true);
   const bar = (
     <PageBar
@@ -48,7 +49,9 @@ export default function Students() {
     return <PageState title="Ученики" error={query.error} retry={() => void query.refetch()} />;
   const state = query.data;
   const term = search.trim().toLowerCase();
-  const visible = state.students.filter((student) =>
+  const archivedCount = state.students.filter((student) => student.archivedAt).length;
+  const pool = state.students.filter((student) => Boolean(student.archivedAt) === showArchive);
+  const visible = pool.filter((student) =>
     (student.name + " " + student.goal).toLowerCase().includes(term),
   );
   return (
@@ -57,7 +60,16 @@ export default function Students() {
       <div className="dp-page dp-students">
         <div className="dp-students-bar">
           <h1 id="students-title">Ученики</h1>
-          <span className="dp-count">{state.students.length}</span>
+          <span className="dp-count">{pool.length}</span>
+          {(archivedCount > 0 || showArchive) && (
+            <button
+              className="dp-text"
+              aria-pressed={showArchive}
+              onClick={() => setShowArchive(!showArchive)}
+            >
+              {showArchive ? "Активные ученики" : "Архив · " + archivedCount}
+            </button>
+          )}
           {state.students.length > 0 && (
             <label className="dp-search">
               <Search size={14} aria-hidden="true" />

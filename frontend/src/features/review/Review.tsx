@@ -38,6 +38,7 @@ import { MediaViewer } from "../../shared/MediaViewer";
 import { errorText, wordForCount } from "../../shared/text";
 import { usePinnedActions } from "../../shared/layout";
 import { useReviewDraft, type SaveState } from "./useReviewDraft";
+import { DeleteWork } from "./DeleteWork";
 import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
 import { useMediaQuery } from "../../shared/useMediaQuery";
@@ -782,12 +783,15 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           )
         }
         actions={
-          !work.editing && (
-            <button disabled={busy} onClick={() => void action("edit")}>
-              <Pencil size={14} aria-hidden="true" />
-              Новая редакция
-            </button>
-          )
+          <>
+            {!work.editing && (
+              <button disabled={busy} onClick={() => void action("edit")}>
+                <Pencil size={14} aria-hidden="true" />
+                Новая редакция
+              </button>
+            )}
+            <DeleteWork work={work} />
+          </>
         }
       />
       <Panel

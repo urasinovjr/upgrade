@@ -18,7 +18,7 @@ const stripStatuses = ["gap", "closed", "path", "none"] as const;
 
 export function Roster({
   state,
-  students = state.students,
+  students = state.students.filter((student) => !student.archivedAt),
   full = false,
   labelledBy = "roster-title",
   empty,
