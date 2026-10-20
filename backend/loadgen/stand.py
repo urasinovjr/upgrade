@@ -4,12 +4,14 @@ from pathlib import Path
 
 import httpx
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from loadgen.scenario import CRASH_AT_SECONDS, CRASH_DOWN_SECONDS
 
 COMPOSE_FILE = Path(__file__).resolve().parent.parent / "docker-compose.yml"
-SETTLE_LIMIT_SECONDS = 120.0
+SETTLE_LIMIT_SECONDS = 600.0
+RESET_ATTEMPTS = 5
 SETTLE_QUIET_CHECKS = 3
 
 OUTCOMES = text(
@@ -41,13 +43,20 @@ async def compose(*args: str) -> None:
     await process.wait()
 
 
-async def ensure_running() -> None:
-    await compose("up", "-d", "--wait")
+async def ensure_running(workers: int = 1) -> None:
+    await compose("up", "-d", "--wait", "--scale", f"worker={workers}")
 
 
 async def reset_database(engine: AsyncEngine) -> None:
-    async with engine.begin() as connection:
-        await connection.execute(text("TRUNCATE results, jobs, works"))
+    for attempt in range(1, RESET_ATTEMPTS + 1):
+        try:
+            async with engine.begin() as connection:
+                await connection.execute(text("TRUNCATE results, jobs, works"))
+            return
+        except DBAPIError:
+            if attempt == RESET_ATTEMPTS:
+                raise
+            await asyncio.sleep(2.0)
 
 
 async def configure_provider(sim_url: str, profile: str, seed: int, time_scale: float) -> None:

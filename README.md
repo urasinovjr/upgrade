@@ -48,7 +48,8 @@ uv run pytest
 ```sh
 uv run python -m loadgen.run --mode async --level 1 --seed 1
 uv run python -m loadgen.matrix --skip-done
+uv run python -m loadgen.matrix --scaling --skip-done
 uv run python -m loadgen.analyze
 ```
 
-Время на стенде сжато в 10 раз (`TIME_SCALE = 0.1`): одна секунда стенда соответствует десяти секундам реальной работы провайдера. Сырые данные прогонов лежат в `backend/loadgen/results/runs`, сводка — в `backend/loadgen/results/summary.csv`.
+Время на стенде сжато в 10 раз (`TIME_SCALE = 0.1`): одна секунда стенда соответствует десяти секундам реальной работы провайдера. Флаг `--scaling` повторяет асинхронные прогоны на нагрузке ×5 и ×10 с четырьмя экземплярами worker'а. Сырые данные прогонов лежат в `backend/loadgen/results/runs`, сводка — в `backend/loadgen/results/summary.csv`.

@@ -28,8 +28,9 @@ SIM_URL = "http://localhost:8011"
 PROCESSING_SERVICE = {"sync": "api", "async": "worker"}
 
 
-def run_name(mode: str, profile: str, level: int, seed: int) -> str:
-    return f"{mode}-{profile}-x{level}-s{seed}"
+def run_name(mode: str, profile: str, level: int, seed: int, workers: int = 1) -> str:
+    name = f"{mode}-{profile}-x{level}-s{seed}"
+    return name if workers == 1 else f"{name}-w{workers}"
 
 
 def merge_row(client_row: dict, outcome: dict | None, offset: float) -> dict:
@@ -48,9 +49,15 @@ def merge_row(client_row: dict, outcome: dict | None, offset: float) -> dict:
 
 
 async def run_once(
-    engine: AsyncEngine, mode: str, profile: str, level: int, seed: int, crashes: bool
+    engine: AsyncEngine,
+    mode: str,
+    profile: str,
+    level: int,
+    seed: int,
+    crashes: bool,
+    workers: int = 1,
 ) -> Path:
-    await ensure_running()
+    await ensure_running(workers)
     await reset_database(engine)
     await configure_provider(SIM_URL, profile, seed, TIME_SCALE)
     offset = await clock_offset(engine)
@@ -67,12 +74,12 @@ async def run_once(
         )
         if crash:
             await crash
-    await ensure_running()
+    await ensure_running(workers)
     await wait_until_settled(engine)
 
     outcomes = await collect_outcomes(engine)
     rows = [merge_row(row, outcomes.get(row["upload_id"]), offset) for row in client_rows]
-    name = run_name(mode, profile, level, seed)
+    name = run_name(mode, profile, level, seed, workers)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     csv_path = RESULTS_DIR / f"{name}.csv"
     with csv_path.open("w", newline="") as file:
@@ -85,6 +92,7 @@ async def run_once(
         "level": level,
         "seed": seed,
         "crashes": crashes,
+        "workers": workers,
         "time_scale": TIME_SCALE,
         "uploads": len(uploads),
         "clock_offset": offset,
@@ -101,11 +109,18 @@ async def main() -> None:
     parser.add_argument("--level", type=int, default=1)
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--no-crashes", action="store_true")
+    parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
     engine = create_async_engine(DATABASE_URL)
     try:
         path = await run_once(
-            engine, args.mode, args.profile, args.level, args.seed, not args.no_crashes
+            engine,
+            args.mode,
+            args.profile,
+            args.level,
+            args.seed,
+            not args.no_crashes,
+            args.workers,
         )
     finally:
         await engine.dispose()

@@ -1,0 +1,23 @@
+{
+  "mode": "async",
+  "profile": "normal",
+  "level": 5,
+  "seed": 4,
+  "crashes": true,
+  "workers": 4,
+  "time_scale": 0.1,
+  "uploads": 400,
+  "clock_offset": -0.0006361007690429688,
+  "provider": {
+    "ocr_calls": 507,
+    "ocr_ok": 466,
+    "analyze_calls": 448,
+    "ocr_errors": 22,
+    "analyze_ok": 413,
+    "analyze_errors": 15,
+    "analyze_hangs": 11,
+    "ocr_hangs": 9,
+    "ocr_rate_limited": 10,
+    "analyze_rate_limited": 9
+  }
+}

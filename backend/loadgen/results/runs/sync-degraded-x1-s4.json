@@ -1,0 +1,22 @@
+{
+  "mode": "sync",
+  "profile": "degraded",
+  "level": 1,
+  "seed": 4,
+  "crashes": true,
+  "time_scale": 0.1,
+  "uploads": 80,
+  "clock_offset": 0.0007758140563964844,
+  "provider": {
+    "ocr_calls": 148,
+    "ocr_ok": 126,
+    "analyze_calls": 108,
+    "ocr_errors": 8,
+    "analyze_ok": 89,
+    "ocr_hangs": 10,
+    "ocr_rate_limited": 4,
+    "analyze_rate_limited": 3,
+    "analyze_errors": 8,
+    "analyze_hangs": 6
+  }
+}
