@@ -2,6 +2,22 @@
 
 Сервис для репетиторов: загрузка решений учеников, разбор по шагам, подтверждение преподавателем и отчёты.
 
+## Запуск всего стека
+
+Нужен Docker. Из корня репозитория:
+
+```sh
+docker compose up -d --build --wait
+```
+
+| Адрес | Что открыто |
+| --- | --- |
+| http://127.0.0.1:8080 | приложение (nginx со сборкой `build:server` и прокси `/api`) |
+| http://127.0.0.1:8025 | Mailpit: письма с подтверждением и сбросом пароля |
+| http://127.0.0.1:8010/docs | схема API |
+
+Остановить: `docker compose down`. Данные PostgreSQL и файлов сохраняются в томах `db_data` и `s3_data`; `docker compose down -v` удаляет и их. После изменения кода пересобрать: `docker compose up -d --build --wait`.
+
 ## Frontend
 
 React 19, TypeScript, Vite. Два режима одного приложения:
@@ -15,7 +31,7 @@ npm install
 npm run dev
 ```
 
-Серверный режим нужен вместе с backend из `docker compose`. Vite проксирует `/api` на `http://127.0.0.1:8010` (адрес меняет `API_PROXY_TARGET`):
+Для разработки интерфейса с горячей перезагрузкой серверный режим можно запустить через Vite поверх стека из `docker compose`. Vite проксирует `/api` на `http://127.0.0.1:8010` (адрес меняет `API_PROXY_TARGET`):
 
 ```sh
 npm run dev:server
@@ -32,9 +48,10 @@ npm run build
 npx playwright install chromium webkit
 npm run e2e
 npm run e2e:server
+npm run e2e:docker
 ```
 
-`npm run e2e:server` проходит регистрацию, письмо в Mailpit, загрузку, разбор, подтверждение, режим только чтения и удаление на поднятом стеке. Он сам запускает `dev:server`, поэтому порт 5173 должен быть свободен.
+`npm run e2e:server` и `npm run e2e:docker` проходят регистрацию, письмо в Mailpit, загрузку, разбор, подтверждение, режим только чтения и удаление на поднятом стеке. Первый сам запускает `dev:server` (порт 5173 должен быть свободен), второй проверяет контейнер `frontend` на порту 8080.
 
 Переносимая сборка в один HTML-файл: `npm run build:standalone`.
 
@@ -42,10 +59,11 @@ npm run e2e:server
 
 FastAPI, SQLAlchemy 2 (asyncpg), PostgreSQL, Alembic. Модульный монолит: пакеты `access`, `billing`, `students`, `knowledge`, `works`, `analysis`, `files`, `mail`, общая очередь `queue` и стенд `stand`.
 
-Сервисы `docker compose`:
+Сервисы `compose.yaml` в корне репозитория:
 
 | Сервис | Назначение |
 | --- | --- |
+| `frontend` | nginx со сборкой интерфейса, порт 8080 |
 | `db` | PostgreSQL, порт 5433 |
 | `api` | API на порту 8010, при старте применяет миграции |
 | `worker` | тот же образ: обработка работ, письма, очистка файлов, задачи стенда |
@@ -54,9 +72,9 @@ FastAPI, SQLAlchemy 2 (asyncpg), PostgreSQL, Alembic. Модульный мон�
 | `provider-sim` | имитатор OCR и LLM |
 
 ```sh
+docker compose up -d --build --wait
 cd backend
 uv sync
-docker compose up -d --build --wait
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest

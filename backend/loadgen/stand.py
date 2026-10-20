@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from loadgen.scenario import CRASH_AT_SECONDS, CRASH_DOWN_SECONDS
 
-COMPOSE_FILE = Path(__file__).resolve().parent.parent / "docker-compose.yml"
+COMPOSE_FILE = Path(__file__).resolve().parents[2] / "compose.yaml"
 SETTLE_LIMIT_SECONDS = 600.0
 RESET_ATTEMPTS = 5
 SETTLE_QUIET_CHECKS = 3

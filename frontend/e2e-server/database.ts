@@ -10,7 +10,7 @@ export function endSubscription(email: string) {
   execFileSync("docker", [
     "compose",
     "-f",
-    "../backend/docker-compose.yml",
+    "../compose.yaml",
     "exec",
     "-T",
     "db",

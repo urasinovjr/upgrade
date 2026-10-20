@@ -1,3 +1,5 @@
+name: upgrade
+
 services:
   db:
     image: postgres:17-alpine
@@ -8,6 +10,8 @@ services:
       POSTGRES_DB: upgrade
     ports:
       - "127.0.0.1:5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U upgrade -d upgrade"]
       interval: 2s
@@ -15,7 +19,7 @@ services:
       retries: 30
 
   provider-sim:
-    build: ./provider_sim
+    build: ./backend/provider_sim
     ports:
       - "127.0.0.1:8011:8001"
     healthcheck:
@@ -49,15 +53,21 @@ services:
       retries: 30
 
   api:
-    build: .
+    build: ./backend
     image: upgrade-backend
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: >-
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
+      --proxy-headers --forwarded-allow-ips='*'"
     environment: &backend-environment
       DATABASE_URL: postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade
       PROVIDER_URL: http://provider-sim:8001
       S3_ENDPOINT_URL: http://s3:8333
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"
+      PUBLIC_URL: http://127.0.0.1:8080
+      ALLOWED_ORIGINS: '["http://127.0.0.1:8080", "http://localhost:8080", "http://127.0.0.1:5173", "http://localhost:5173"]'
+      TERMS_URL: http://127.0.0.1:8080/legal/terms
+      PERSONAL_DATA_URL: http://127.0.0.1:8080/legal/personal-data
     ports:
       - "127.0.0.1:8010:8000"
     depends_on:
@@ -83,5 +93,20 @@ services:
       api:
         condition: service_healthy
 
+  frontend:
+    build: ./frontend
+    image: upgrade-frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
 volumes:
+  db_data:
   s3_data:
