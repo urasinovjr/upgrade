@@ -1,0 +1,58 @@
+.dp-auth {
+  display: grid;
+  place-items: center;
+  padding: var(--ug-space-6) var(--ug-space-4);
+}
+.dp-auth-card {
+  width: min(100%, 420px);
+  display: grid;
+  gap: var(--ug-space-5);
+  padding: var(--ug-space-7) var(--ug-space-6);
+  background: var(--ug-surface);
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg);
+  box-shadow: var(--ug-shadow-md);
+}
+.dp-auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ug-space-2);
+  font-weight: 700;
+  color: var(--ug-ink);
+  text-decoration: none;
+}
+.dp-auth-card form {
+  display: grid;
+  gap: var(--ug-space-4);
+}
+.dp-auth-card .dp-primary {
+  width: 100%;
+}
+.dp-auth-check {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  font-weight: 400;
+}
+.dp-auth-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+.dp-auth-providers {
+  display: grid;
+  gap: var(--ug-space-2);
+  padding-top: var(--ug-space-4);
+  border-top: 1px solid var(--ug-line);
+}
+.dp-auth-providers button {
+  width: 100%;
+}
+.dp-auth-footer {
+  color: var(--ug-muted);
+  font-size: var(--ug-fs-caption);
+}
+@media (max-width: 480px) {
+  .dp-auth-card {
+    padding: var(--ug-space-6) var(--ug-space-4);
+  }
+}

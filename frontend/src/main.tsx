@@ -17,6 +17,7 @@ import { RouterProvider } from "react-router/dom";
 import {
   ArrowUpRight,
   Files,
+  LogOut,
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
@@ -39,6 +40,11 @@ import { wordForCount } from "./shared/text";
 import { studentTone } from "./shared/status";
 import { needsAttention } from "./domain/analytics";
 import { useMediaQuery } from "./shared/useMediaQuery";
+import { account } from "./data/account";
+import { onAuthLost } from "./data/api";
+import { serverMode } from "./data/gateway";
+import { sessionKey, useSession, useSetSession } from "./shared/session";
+import { RequireSession } from "./features/auth/RequireSession";
 
 const Works = lazy(() => import("./features/works/Works"));
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
@@ -48,6 +54,12 @@ const Students = lazy(() => import("./features/students/Students"));
 const StudentDetail = lazy(() => import("./features/knowledge/StudentDetail"));
 const Report = lazy(() => import("./features/reports/Report"));
 const States = lazy(() => import("./features/States"));
+const Login = lazy(() => import("./features/auth/Login"));
+const Register = lazy(() => import("./features/auth/Register"));
+const ConfirmEmail = lazy(() => import("./features/auth/ConfirmEmail"));
+const ResetRequest = lazy(() => import("./features/auth/ResetRequest"));
+const ResetPassword = lazy(() => import("./features/auth/ResetPassword"));
+const ProviderCallback = lazy(() => import("./features/auth/ProviderCallback"));
 
 const railQuery = "(min-width: 701px) and (max-width: 1199px)";
 
@@ -121,6 +133,9 @@ function Shell() {
   const navigate = useNavigate();
   const path = location.pathname;
   const store = useStore();
+  const session = useSession();
+  const setSession = useSetSession();
+  const displayName = session.data?.account.displayName ?? "Преподаватель";
   const railByDefault = useMediaQuery(railQuery);
   const [collapsedChoice, setCollapsedChoice] = useState<boolean | null>(null);
   const collapsed = collapsedChoice ?? railByDefault;
@@ -258,12 +273,22 @@ function Shell() {
         )}
         <div className="dp-sidebar-bottom">
           <span className="dp-sidebar-avatar" aria-hidden="true">
-            П
+            {displayName[0]}
           </span>
           <span className="dp-sidebar-person">
-            <span className="dp-nav-text">Преподаватель</span>
+            <span className="dp-nav-text">{displayName}</span>
             <span className="dp-nav-text dp-sidebar-meta">Математика · 9–11 класс</span>
           </span>
+          {serverMode && (
+            <button
+              className="dp-icon dp-sidebar-tool"
+              onClick={() => void account.logout().finally(() => setSession(null))}
+              aria-label="Выйти"
+              title="Выйти"
+            >
+              <LogOut size={16} />
+            </button>
+          )}
         </div>
       </aside>
       <div className="dp-workspace-main">
@@ -320,9 +345,37 @@ function ShellError() {
   );
 }
 const createRouter = import.meta.env.MODE === "standalone" ? createHashRouter : createBrowserRouter;
+const authPages = [
+  { path: "login", Page: Login },
+  { path: "register", Page: Register },
+  { path: "auth/confirm", Page: ConfirmEmail },
+  { path: "auth/reset", Page: ResetRequest },
+  { path: "auth/reset/confirm", Page: ResetPassword },
+  { path: "auth/callback/:provider", Page: ProviderCallback },
+];
+const authRoutes = serverMode
+  ? authPages.map(({ path, Page }) => ({
+      path,
+      errorElement: <ShellError />,
+      element: (
+        <Suspense fallback={null}>
+          <Page />
+        </Suspense>
+      ),
+    }))
+  : [];
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+});
+onAuthLost(() => queryClient.setQueryData(sessionKey, null));
 const router = createRouter([
+  ...authRoutes,
   {
-    element: <Shell />,
+    element: (
+      <RequireSession>
+        <Shell />
+      </RequireSession>
+    ),
     errorElement: <ShellError />,
     children: [
       {
@@ -358,11 +411,7 @@ const router = createRouter([
 ]);
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider
-      client={
-        new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } })
-      }
-    >
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
   </React.StrictMode>,

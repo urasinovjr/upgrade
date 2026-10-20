@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_env: Literal["development", "test", "production"] = "development"
-    public_url: str = "http://localhost:5173"
+    public_url: str = "http://127.0.0.1:5173"
     database_url: str = "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
     db_pool_size: int = 20
     provider_url: str = "http://localhost:8011"
@@ -32,9 +32,9 @@ class Settings(BaseSettings):
     email_cooldown_seconds: int = 60
     confirm_token_hours: int = 24
     reset_token_minutes: int = 60
-    terms_url: str = "http://localhost:5173/legal/terms"
+    terms_url: str = "http://127.0.0.1:5173/legal/terms"
     terms_version: str = "2026-10-21"
-    personal_data_url: str = "http://localhost:5173/legal/personal-data"
+    personal_data_url: str = "http://127.0.0.1:5173/legal/personal-data"
     personal_data_version: str = "2026-10-21"
 
     trial_days: int = 14

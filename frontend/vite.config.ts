@@ -48,6 +48,10 @@ export default defineConfig(({ mode }) => ({
           ]
         : [],
   },
-  server: { port: 5173, strictPort: true },
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: { "/api": process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8010" },
+  },
   build: { target: "es2022" },
 }));

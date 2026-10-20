@@ -1,5 +1,6 @@
 import type { Closure, Draft, Report, StoreState, Student, Upload, Work } from "../domain/models";
 import type { DashboardLayout } from "../domain/dashboardLayout";
+import { httpGateway } from "./httpGateway";
 import { localGateway } from "./localGateway";
 
 export interface Gateway {
@@ -20,5 +21,5 @@ export interface Gateway {
   saveLayout(layout: DashboardLayout): Promise<void>;
 }
 
-export const serverMode = false;
-export const gateway: Gateway = localGateway;
+export const serverMode = Boolean(import.meta.env.VITE_API_URL);
+export const gateway: Gateway = serverMode ? httpGateway : localGateway;

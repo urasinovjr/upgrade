@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { gateway } from "../data/gateway";
+import { gateway, serverMode } from "../data/gateway";
 import type { DashboardLayout } from "../domain/dashboardLayout";
 
 export function useStore() {
   return useQuery({
     queryKey: ["store"],
     queryFn: () => gateway.read(),
-    refetchInterval: (query) => (query.state.data?.works.some((work) => work.job) ? 500 : false),
+    refetchInterval: (query) =>
+      query.state.data?.works.some((work) => work.job) ? (serverMode ? 2000 : 500) : false,
   });
 }
 export function useCommand() {

@@ -4,11 +4,12 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const root = path.resolve(import.meta.dirname, "..");
-const folders = ["src", "e2e", "scripts"];
+const folders = ["src", "e2e", "e2e-server", "scripts"];
 const configFiles = [
   "vite.config.ts",
   "vitest.config.ts",
   "playwright.config.ts",
+  "playwright.server.config.ts",
   "eslint.config.js",
 ];
 const extensions = [".ts", ".tsx", ".js", ".mjs", ".css"];

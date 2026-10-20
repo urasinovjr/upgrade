@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { topics } from "../../data/fixtures";
+import { serverMode } from "../../data/gateway";
 import type { GapDecision, GapProposal, Step, Student, Task, Work } from "../../domain/models";
 import { blankTask, currentRevision, reviewBlockers } from "../../domain/review";
 import { needsAttention, sortQueue } from "../../domain/analytics";
@@ -425,10 +426,10 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       Отчёт · v{published.number}
     </Link>
   );
-  const reanalyse = work.demo && (
+  const reanalyse = (work.demo || serverMode) && (
     <button disabled={busy} onClick={() => void action("analyse")}>
       <RefreshCw size={14} aria-hidden="true" />
-      Повторить разбор
+      {work.demo ? "Повторить разбор" : "Запустить разбор"}
     </button>
   );
   const finishSync = (
