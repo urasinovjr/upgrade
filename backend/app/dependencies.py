@@ -5,6 +5,7 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access import CurrentAccount, check_origin, load_current_account
+from app.access.oauth_client import OAuthClient
 from app.config import Settings
 from app.files import Storage
 from app.provider import Provider
@@ -27,10 +28,15 @@ def get_storage(request: Request) -> Storage:
     return request.app.state.storage
 
 
+def get_oauth(request: Request) -> OAuthClient:
+    return request.app.state.oauth
+
+
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 ProviderDep = Annotated[Provider, Depends(get_provider)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 StorageDep = Annotated[Storage, Depends(get_storage)]
+OAuthDep = Annotated[OAuthClient, Depends(get_oauth)]
 
 
 def verify_origin(request: Request, settings: SettingsDep) -> None:

@@ -73,3 +73,37 @@ class RateLimit(Base):
     bucket: Mapped[str] = mapped_column(String(200), primary_key=True)
     window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     hits: Mapped[int]
+
+
+class OAuthIdentity(Base):
+    __tablename__ = "oauth_identities"
+    __table_args__ = (
+        UniqueConstraint("provider", "subject"),
+        UniqueConstraint("user_id", "provider"),
+        CheckConstraint("provider IN ('yandex', 'vk')", name="ck_oauth_identities_provider"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = user_column()
+    provider: Mapped[str] = mapped_column(String(16))
+    subject: Mapped[str] = mapped_column(String(128))
+    email: Mapped[str | None] = mapped_column(String(320))
+    created_at: Mapped[datetime] = now_column()
+
+
+class OAuthState(Base):
+    __tablename__ = "oauth_states"
+    __table_args__ = (
+        CheckConstraint("purpose IN ('login', 'link')", name="ck_oauth_states_purpose"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    state_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    provider: Mapped[str] = mapped_column(String(16))
+    purpose: Mapped[str] = mapped_column(String(8))
+    code_verifier: Mapped[str] = mapped_column(String(128))
+    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    terms_version: Mapped[str | None] = mapped_column(String(32))
+    personal_data_version: Mapped[str | None] = mapped_column(String(32))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = now_column()

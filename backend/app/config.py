@@ -37,6 +37,19 @@ class Settings(BaseSettings):
     personal_data_url: str = "http://localhost:5173/legal/personal-data"
     personal_data_version: str = "2026-10-21"
 
+    oauth_cookie_name: str = "upgrade_oauth"
+    oauth_state_minutes: int = 10
+    oauth_timeout: float = 10.0
+    yandex_client_id: str = ""
+    yandex_client_secret: SecretStr = SecretStr("")
+    yandex_authorize_url: str = "https://oauth.yandex.ru/authorize"
+    yandex_token_url: str = "https://oauth.yandex.ru/token"
+    yandex_info_url: str = "https://login.yandex.ru/info"
+    vk_client_id: str = ""
+    vk_authorize_url: str = "https://id.vk.ru/authorize"
+    vk_token_url: str = "https://id.vk.ru/oauth2/auth"
+    vk_info_url: str = "https://id.vk.ru/oauth2/user_info"
+
     mail_from: str = "UpGrade <no-reply@upgrade.local>"
     smtp_host: str = "localhost"
     smtp_port: int = 1025

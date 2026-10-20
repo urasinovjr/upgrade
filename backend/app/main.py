@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI
 
+from app.access.account_router import router as account_router
+from app.access.oauth_client import HttpOAuthClient, OAuthClient
 from app.access.router import router as auth_router
 from app.config import Settings
 from app.database import make_engine, make_session_factory
@@ -18,6 +20,7 @@ def create_app(
     provider: Provider | None = None,
     storage: Storage | None = None,
     mailer: Mailer | None = None,
+    oauth: OAuthClient | None = None,
 ) -> FastAPI:
     app_settings = settings or Settings()
 
@@ -31,6 +34,7 @@ def create_app(
         )
         app.state.storage = storage or await S3Storage.connect(app_settings)
         app.state.mailer = mailer or SmtpMailer(app_settings)
+        app.state.oauth = oauth or HttpOAuthClient(app_settings)
         yield
         await app.state.storage.close()
         await app.state.provider.close()
@@ -40,6 +44,7 @@ def create_app(
     app.add_exception_handler(DomainError, domain_error_handler)
     api = APIRouter(prefix="/api", dependencies=[Depends(verify_origin)])
     api.include_router(auth_router)
+    api.include_router(account_router)
     app.include_router(api)
     if app_settings.stand_enabled:
         app.include_router(stand_router)

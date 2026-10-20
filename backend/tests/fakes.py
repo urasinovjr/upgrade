@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterator
 from email.message import EmailMessage
 
+from app.access.oauth_client import OAuthError, OAuthProfile
 from app.files import StorageError
 from app.mail import MailError
 
@@ -49,3 +50,23 @@ class MemoryMailer:
             self.failures -= 1
             raise MailError("mail_failed")
         self.sent.append(message)
+
+
+class FakeOAuth:
+    def __init__(self):
+        self.profiles: dict[str, OAuthProfile] = {}
+        self.requests: list[tuple[str, str, str, str | None]] = []
+
+    def enabled_providers(self) -> list[str]:
+        return ["yandex", "vk"]
+
+    def authorize_url(self, provider: str, state: str, verifier: str, redirect: str) -> str:
+        return f"https://{provider}.test/authorize?state={state}&redirect_uri={redirect}"
+
+    async def fetch_profile(
+        self, provider: str, code: str, verifier: str, redirect: str, device_id: str | None
+    ) -> OAuthProfile:
+        self.requests.append((provider, code, verifier, device_id))
+        if code not in self.profiles:
+            raise OAuthError(provider)
+        return self.profiles[code]

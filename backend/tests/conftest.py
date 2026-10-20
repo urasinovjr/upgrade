@@ -13,7 +13,7 @@ from app.models import Base
 from app.provider import Provider, ProviderError
 from app.queue import WorkerContext
 from app.stand import WorkCreate
-from tests.fakes import MemoryMailer, MemoryStorage
+from tests.fakes import FakeOAuth, MemoryMailer, MemoryStorage
 
 ROOT = Path(__file__).resolve().parent.parent
 ADMIN_URL = os.environ.get(
@@ -113,8 +113,8 @@ def worker_context(
     )
 
 
-async def make_client(settings: Settings, provider: Provider):
-    app = create_app(settings, provider, MemoryStorage(), MemoryMailer())
+async def make_client(settings: Settings, provider: Provider, oauth: FakeOAuth | None = None):
+    app = create_app(settings, provider, MemoryStorage(), MemoryMailer(), oauth or FakeOAuth())
     async with app.router.lifespan_context(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -130,4 +130,15 @@ async def client(sessions, test_settings):
 @pytest.fixture
 async def failing_client(sessions, test_settings):
     async for http in make_client(test_settings, FakeProvider(failures=10)):
+        yield http
+
+
+@pytest.fixture
+def oauth() -> FakeOAuth:
+    return FakeOAuth()
+
+
+@pytest.fixture
+async def oauth_client(sessions, test_settings, oauth):
+    async for http in make_client(test_settings, FakeProvider(), oauth):
         yield http

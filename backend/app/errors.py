@@ -16,6 +16,14 @@ REGISTRY: dict[str, int] = {
     "token_invalid": status.HTTP_400_BAD_REQUEST,
     "consent_required": status.HTTP_400_BAD_REQUEST,
     "password_too_weak": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "oauth_provider_unknown": status.HTTP_404_NOT_FOUND,
+    "oauth_identity_not_found": status.HTTP_404_NOT_FOUND,
+    "oauth_state_invalid": status.HTTP_400_BAD_REQUEST,
+    "oauth_signup_requires_consent": status.HTTP_400_BAD_REQUEST,
+    "oauth_email_taken": status.HTTP_409_CONFLICT,
+    "oauth_identity_taken": status.HTTP_409_CONFLICT,
+    "last_login_method": status.HTTP_409_CONFLICT,
+    "oauth_failed": status.HTTP_502_BAD_GATEWAY,
 }
 
 

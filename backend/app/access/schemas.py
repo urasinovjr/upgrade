@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -52,3 +54,39 @@ class AccountOut(ApiModel):
 class SessionOut(ApiModel):
     account: AccountOut
     csrf_token: str
+
+
+class OAuthStartIn(ApiModel):
+    accept_terms: bool = False
+    accept_personal_data: bool = False
+    terms_version: str | None = Field(default=None, max_length=32)
+    personal_data_version: str | None = Field(default=None, max_length=32)
+
+
+class OAuthStartOut(ApiModel):
+    authorize_url: str
+
+
+class OAuthCallbackIn(ApiModel):
+    code: str = Field(min_length=1, max_length=512)
+    state: str = Field(min_length=1, max_length=128)
+    device_id: str | None = Field(default=None, max_length=256)
+
+
+class OAuthResultOut(ApiModel):
+    result: Literal["session", "linked"]
+    session: SessionOut | None = None
+
+
+class IdentityOut(ApiModel):
+    provider: str
+    email: str | None
+    created_at: datetime
+
+
+class AccountDetailsOut(ApiModel):
+    id: UUID
+    email: str | None
+    display_name: str
+    has_password: bool
+    identities: list[IdentityOut]
