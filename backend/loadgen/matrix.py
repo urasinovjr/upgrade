@@ -10,14 +10,14 @@ MODES = ["sync", "async"]
 PROFILES = ["normal", "degraded"]
 LEVELS = [1, 5, 10]
 SEEDS = [1, 2, 3, 4, 5]
-SCALING_WORKERS = 4
-SCALING_LEVELS = [5, 10]
 
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-done", action="store_true")
     parser.add_argument("--scaling", action="store_true")
+    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--levels", type=int, nargs="+", default=[5, 10])
     args = parser.parse_args()
     engine = create_async_engine(DATABASE_URL)
     plan = [
@@ -29,8 +29,8 @@ async def main() -> None:
     ]
     if args.scaling:
         plan = [
-            ("async", "normal", level, seed, SCALING_WORKERS)
-            for level in SCALING_LEVELS
+            ("async", "normal", level, seed, args.workers)
+            for level in args.levels
             for seed in SEEDS
         ]
     try:
