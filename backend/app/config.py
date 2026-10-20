@@ -22,6 +22,21 @@ class Settings(BaseSettings):
     poll_seconds: float = 0.2
     stand_enabled: bool = True
 
+    allowed_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    session_cookie_name: str = "upgrade_session"
+    session_days: int = 30
+    cookie_secure: bool = False
+    login_lock_threshold: int = 5
+    login_lock_max_minutes: int = 15
+    auth_rate_per_minute: int = 20
+    email_cooldown_seconds: int = 60
+    confirm_token_hours: int = 24
+    reset_token_minutes: int = 60
+    terms_url: str = "http://localhost:5173/legal/terms"
+    terms_version: str = "2026-10-21"
+    personal_data_url: str = "http://localhost:5173/legal/personal-data"
+    personal_data_version: str = "2026-10-21"
+
     mail_from: str = "UpGrade <no-reply@upgrade.local>"
     smtp_host: str = "localhost"
     smtp_port: int = 1025

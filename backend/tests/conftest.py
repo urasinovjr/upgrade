@@ -87,7 +87,14 @@ async def sessions(engine):
 
 @pytest.fixture
 def test_settings() -> Settings:
-    return Settings(database_url=TEST_DATABASE_URL, retry_delay=0.01, db_pool_size=10)
+    return Settings(
+        app_env="test",
+        database_url=TEST_DATABASE_URL,
+        retry_delay=0.01,
+        db_pool_size=10,
+        auth_rate_per_minute=1000,
+        email_cooldown_seconds=0,
+    )
 
 
 def worker_context(

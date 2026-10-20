@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 
+from app.access.router import router as auth_router
 from app.config import Settings
 from app.database import make_engine, make_session_factory
+from app.dependencies import verify_origin
 from app.errors import DomainError, domain_error_handler
 from app.files import S3Storage, Storage
 from app.mail import Mailer, SmtpMailer
@@ -36,6 +38,9 @@ def create_app(
 
     app = FastAPI(title="UpGrade", lifespan=lifespan)
     app.add_exception_handler(DomainError, domain_error_handler)
+    api = APIRouter(prefix="/api", dependencies=[Depends(verify_origin)])
+    api.include_router(auth_router)
+    app.include_router(api)
     if app_settings.stand_enabled:
         app.include_router(stand_router)
 
