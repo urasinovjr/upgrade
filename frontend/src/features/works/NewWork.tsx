@@ -30,12 +30,14 @@ import { StudentForm } from "../students/StudentForm";
 import { decodeUpload } from "../../shared/uploads";
 import { clearStagedUploads, readStagedUploads } from "../../shared/uploadHandoff";
 import "./new-work.css";
+import { useWriteAccess } from "../../shared/session";
 
 export default function NewWork() {
   const query = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const command = useCommand();
+  const writeAccess = useWriteAccess();
   const token = typeof location.state?.uploadToken === "string" ? location.state.uploadToken : "";
   const [incoming] = useState(() => (token ? readStagedUploads(token) : undefined));
   const [params] = useSearchParams();
@@ -419,7 +421,7 @@ export default function NewWork() {
             <p>Дальше — разбор: сверьте шаги с оригиналом и подтвердите работу.</p>
             <button
               className="dp-primary"
-              disabled={command.isPending || decoding}
+              disabled={command.isPending || decoding || !writeAccess.allowed}
               onClick={submit}
             >
               {command.isPending ? "Сохраняем…" : "Создать работу и открыть разбор"}

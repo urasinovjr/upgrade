@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useBeforeUnload, useBlocker } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { gateway } from "../../data/gateway";
+import { useWriteAccess } from "../../shared/session";
 import type { Attachment, Draft, Work } from "../../domain/models";
 import { applyDraft, currentRevision, inputSignature, reviewBlockers } from "../../domain/review";
 
@@ -9,6 +10,7 @@ export type ReviewAction = "analyse" | "manual" | "confirm" | "edit" | "withdraw
 export type SaveState = "saving" | "dirty" | "saved";
 
 export function useReviewDraft(work: Work) {
+  const writeAccess = useWriteAccess();
   const client = useQueryClient();
   const [draft, setDraft] = useState<Draft>(() =>
     structuredClone(work.editing ? work.draft : currentRevision(work)?.draft || work.draft),
@@ -118,14 +120,14 @@ export function useReviewDraft(work: Work) {
     saveState,
     dirty,
     saving,
-    busy,
+    busy: busy || !writeAccess.allowed,
     error,
     action,
     updateAttachments,
     needsRecheck,
     effective,
     blockers: reviewBlockers(effective),
-    canEdit: work.editing && !work.job && !busy,
+    canEdit: work.editing && !work.job && !busy && writeAccess.allowed,
     blocker,
   };
 }

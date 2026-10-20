@@ -6,6 +6,7 @@ import { PageBar, PageLoading, PageState } from "../../shared/ui";
 import { Roster } from "./Roster";
 import { StudentForm } from "./StudentForm";
 import "./students.css";
+import { useWriteAccess } from "../../shared/session";
 
 export default function Students() {
   const query = useStore();
@@ -18,11 +19,16 @@ export default function Students() {
     if (requested)
       void navigate(location.pathname + location.search, { replace: true, state: null });
   }, [requested, navigate, location.pathname, location.search]);
+  const writeAccess = useWriteAccess();
   const add = () => setOpen(true);
   const bar = (
     <PageBar
       actions={
-        <button className="dp-primary dp-compact-action" onClick={add}>
+        <button
+          className="dp-primary dp-compact-action"
+          onClick={add}
+          disabled={!writeAccess.allowed}
+        >
           <UserPlus size={16} aria-hidden="true" />
           <span>Добавить ученика</span>
         </button>
@@ -91,7 +97,7 @@ export default function Students() {
                   <strong>Учеников пока нет</strong>
                   Добавьте ученика, чтобы загружать его работы и видеть темы для повторения.
                 </span>
-                <button className="dp-text" onClick={add}>
+                <button className="dp-text" onClick={add} disabled={!writeAccess.allowed}>
                   <UserPlus size={14} aria-hidden="true" />
                   Добавить ученика
                 </button>

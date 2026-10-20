@@ -1,0 +1,54 @@
+.dp-account {
+  display: grid;
+  gap: var(--ug-space-5);
+  max-width: 720px;
+}
+.dp-account-section {
+  display: grid;
+  gap: var(--ug-space-3);
+  padding: var(--ug-space-5);
+  background: var(--ug-surface);
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-lg);
+}
+.dp-account-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ug-space-3);
+}
+.dp-account-row > span {
+  min-width: 0;
+}
+.dp-account-danger {
+  border-color: var(--ug-danger-line);
+}
+.dp-account-section form {
+  display: grid;
+  gap: var(--ug-space-3);
+}
+.dp-account-check {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  font-weight: 400;
+}
+.dp-read-only {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ug-space-2) var(--ug-space-3);
+  padding: var(--ug-space-2) var(--ug-space-4);
+  background: var(--ug-warning-soft);
+  border-bottom: 1px solid var(--ug-warning-line);
+  color: var(--ug-ink);
+}
+.dp-account-danger button.dp-danger {
+  background: var(--ug-danger);
+  border-color: var(--ug-danger);
+  color: var(--ug-on-blue);
+}
+.dp-account-danger button.dp-danger:hover {
+  background: var(--ug-danger);
+  opacity: 0.9;
+}

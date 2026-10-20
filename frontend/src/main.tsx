@@ -41,10 +41,11 @@ import { studentTone } from "./shared/status";
 import { needsAttention } from "./domain/analytics";
 import { useMediaQuery } from "./shared/useMediaQuery";
 import { account } from "./data/account";
-import { onAuthLost } from "./data/api";
+import { onAuthLost, onSubscriptionEnded } from "./data/api";
 import { serverMode } from "./data/gateway";
-import { sessionKey, useSession, useSetSession } from "./shared/session";
+import { sessionKey, useSession, useSetSession, useWriteAccess } from "./shared/session";
 import { RequireSession } from "./features/auth/RequireSession";
+import { ReadOnlyBanner } from "./features/account/ReadOnlyBanner";
 
 const Works = lazy(() => import("./features/works/Works"));
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
@@ -60,6 +61,8 @@ const ConfirmEmail = lazy(() => import("./features/auth/ConfirmEmail"));
 const ResetRequest = lazy(() => import("./features/auth/ResetRequest"));
 const ResetPassword = lazy(() => import("./features/auth/ResetPassword"));
 const ProviderCallback = lazy(() => import("./features/auth/ProviderCallback"));
+const AccountSettings = lazy(() => import("./features/account/AccountSettings"));
+const Subscription = lazy(() => import("./features/account/Subscription"));
 
 const railQuery = "(min-width: 701px) and (max-width: 1199px)";
 
@@ -135,6 +138,7 @@ function Shell() {
   const store = useStore();
   const session = useSession();
   const setSession = useSetSession();
+  const writeAccess = useWriteAccess();
   const displayName = session.data?.account.displayName ?? "Преподаватель";
   const railByDefault = useMediaQuery(railQuery);
   const [collapsedChoice, setCollapsedChoice] = useState<boolean | null>(null);
@@ -204,6 +208,7 @@ function Shell() {
           </button>
           <button
             className="dp-icon dp-sidebar-tool"
+            disabled={!writeAccess.allowed}
             onClick={() => navigate("/works/new")}
             aria-label="Новая работа"
             title="Новая работа"
@@ -275,10 +280,17 @@ function Shell() {
           <span className="dp-sidebar-avatar" aria-hidden="true">
             {displayName[0]}
           </span>
-          <span className="dp-sidebar-person">
-            <span className="dp-nav-text">{displayName}</span>
-            <span className="dp-nav-text dp-sidebar-meta">Математика · 9–11 класс</span>
-          </span>
+          {serverMode ? (
+            <Link to="/settings" className="dp-sidebar-person" title="Настройки аккаунта">
+              <span className="dp-nav-text">{displayName}</span>
+              <span className="dp-nav-text dp-sidebar-meta">Настройки и подписка</span>
+            </Link>
+          ) : (
+            <span className="dp-sidebar-person">
+              <span className="dp-nav-text">{displayName}</span>
+              <span className="dp-nav-text dp-sidebar-meta">Математика · 9–11 класс</span>
+            </span>
+          )}
           {serverMode && (
             <button
               className="dp-icon dp-sidebar-tool"
@@ -306,6 +318,7 @@ function Shell() {
           </div>
           <div ref={setActions} className="dp-topbar-actions" />
         </header>
+        <ReadOnlyBanner />
         <main id="main-content" className="dp-main" tabIndex={-1}>
           <TopbarSlots.Provider value={{ trail, actions }}>
             <Suspense fallback={<PageLoading variant={variant} />}>
@@ -368,6 +381,7 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
 onAuthLost(() => queryClient.setQueryData(sessionKey, null));
+onSubscriptionEnded(() => void queryClient.invalidateQueries({ queryKey: sessionKey }));
 const router = createRouter([
   ...authRoutes,
   {
@@ -391,6 +405,12 @@ const router = createRouter([
           { path: "students/:id", element: <StudentDetail /> },
           { path: "review/:id", element: <Alias base="/works/" /> },
           { path: "student/:id", element: <Alias base="/students/" /> },
+          ...(serverMode
+            ? [
+                { path: "settings", element: <AccountSettings /> },
+                { path: "subscription", element: <Subscription /> },
+              ]
+            : []),
           ...(import.meta.env.DEV ? [{ path: "dev/states", element: <States /> }] : []),
           {
             path: "*",

@@ -4,6 +4,7 @@ export const apiBase = import.meta.env.VITE_API_URL ?? "";
 const unsafe = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 let csrfToken = "";
 let authLost = () => {};
+let subscriptionEnded = () => {};
 
 export class ApiError extends Error {
   readonly code: string;
@@ -25,6 +26,10 @@ export function onAuthLost(handler: () => void) {
   authLost = handler;
 }
 
+export function onSubscriptionEnded(handler: () => void) {
+  subscriptionEnded = handler;
+}
+
 type Options = { method?: string; json?: unknown; form?: FormData };
 
 async function send(path: string, { method = "GET", json, form }: Options) {
@@ -42,6 +47,7 @@ async function send(path: string, { method = "GET", json, form }: Options) {
   const data = await response.json().catch(() => null);
   const code = typeof data?.detail === "string" ? data.detail : "request_failed";
   if (response.status === 401 && code === "not_authenticated") authLost();
+  if (response.status === 402) subscriptionEnded();
   throw new ApiError(code, response.status, data ?? {});
 }
 
