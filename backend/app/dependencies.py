@@ -5,6 +5,7 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
+from app.files import Storage
 from app.provider import Provider
 
 
@@ -21,6 +22,11 @@ def get_settings(request: Request) -> Settings:
     return request.app.state.settings
 
 
+def get_storage(request: Request) -> Storage:
+    return request.app.state.storage
+
+
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 ProviderDep = Annotated[Provider, Depends(get_provider)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+StorageDep = Annotated[Storage, Depends(get_storage)]

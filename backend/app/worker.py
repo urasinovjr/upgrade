@@ -4,6 +4,8 @@ from collections.abc import Awaitable, Callable
 
 from app.config import Settings
 from app.database import make_engine, make_session_factory
+from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
+from app.mail import SEND_EMAIL_JOB, SmtpMailer, forget_email_token, handle_send_email
 from app.provider import Provider
 from app.queue import (
     Job,
@@ -22,8 +24,12 @@ JobHandler = Callable[[WorkerContext, Job], Awaitable[None]]
 
 HANDLERS: dict[str, JobHandler] = {
     STAND_JOB: handle_stand_job,
+    SEND_EMAIL_JOB: handle_send_email,
+    DELETE_FILES_JOB: handle_delete_files,
 }
-FAILURE_HOOKS: dict[str, JobHandler] = {}
+FAILURE_HOOKS: dict[str, JobHandler] = {
+    SEND_EMAIL_JOB: forget_email_token,
+}
 
 
 async def keep_lease(context: WorkerContext, job: Job) -> None:
@@ -92,11 +98,14 @@ async def main() -> None:
     settings = Settings()
     engine = make_engine(settings.database_url, settings.db_pool_size)
     provider = Provider(settings.provider_url, settings.provider_timeout)
-    context = WorkerContext(make_session_factory(engine), provider, settings)
+    storage = await S3Storage.connect(settings)
+    mailer = SmtpMailer(settings)
+    context = WorkerContext(make_session_factory(engine), provider, settings, storage, mailer)
     logger.info("worker_started concurrency=%s", settings.worker_concurrency)
     try:
         await run_worker(context)
     finally:
+        await storage.close()
         await provider.close()
         await engine.dispose()
 

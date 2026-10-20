@@ -13,6 +13,7 @@ from app.models import Base
 from app.provider import Provider, ProviderError
 from app.queue import WorkerContext
 from app.stand import WorkCreate
+from tests.fakes import MemoryMailer, MemoryStorage
 
 ROOT = Path(__file__).resolve().parent.parent
 ADMIN_URL = os.environ.get(
@@ -89,12 +90,24 @@ def test_settings() -> Settings:
     return Settings(database_url=TEST_DATABASE_URL, retry_delay=0.01, db_pool_size=10)
 
 
-def worker_context(sessions, settings: Settings, provider: Provider) -> WorkerContext:
-    return WorkerContext(sessions, provider, settings)
+def worker_context(
+    sessions,
+    settings: Settings,
+    provider: Provider | None = None,
+    storage: MemoryStorage | None = None,
+    mailer: MemoryMailer | None = None,
+) -> WorkerContext:
+    return WorkerContext(
+        sessions,
+        provider or FakeProvider(),
+        settings,
+        storage or MemoryStorage(),
+        mailer or MemoryMailer(),
+    )
 
 
 async def make_client(settings: Settings, provider: Provider):
-    app = create_app(settings, provider)
+    app = create_app(settings, provider, MemoryStorage(), MemoryMailer())
     async with app.router.lifespan_context(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:

@@ -24,19 +24,50 @@ services:
       timeout: 3s
       retries: 30
 
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    command: server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -volume.max=4 -master.volumeSizeLimitMB=256
+    ports:
+      - "127.0.0.1:9000:8333"
+    volumes:
+      - s3_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8333/healthz"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
   api:
     build: .
     image: upgrade-backend
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
-    environment:
+    environment: &backend-environment
       DATABASE_URL: postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade
       PROVIDER_URL: http://provider-sim:8001
+      S3_ENDPOINT_URL: http://s3:8333
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
     ports:
       - "127.0.0.1:8010:8000"
     depends_on:
       db:
         condition: service_healthy
       provider-sim:
+        condition: service_healthy
+      s3:
+        condition: service_healthy
+      mailpit:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -47,9 +78,10 @@ services:
   worker:
     image: upgrade-backend
     command: python -m app.worker
-    environment:
-      DATABASE_URL: postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade
-      PROVIDER_URL: http://provider-sim:8001
+    environment: *backend-environment
     depends_on:
       api:
         condition: service_healthy
+
+volumes:
+  s3_data:
