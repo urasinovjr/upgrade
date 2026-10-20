@@ -13,7 +13,7 @@ class JobOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    work_id: UUID
+    work_id: UUID = Field(validation_alias="subject_id")
     status: str
     attempts: int
     last_error: str | None

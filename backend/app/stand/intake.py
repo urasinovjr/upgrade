@@ -3,15 +3,20 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
-from app.models import Job, Result, Work
 from app.provider import Provider
-from app.schemas import WorkCreate
-from app.services.processing import run_with_retries
+from app.queue import Job, enqueue
+from app.stand.models import StandResult, StandWork
+from app.stand.processing import run_with_retries
+from app.stand.schemas import WorkCreate
+
+STAND_JOB = "stand_analysis"
 
 
-async def accept_work(session: AsyncSession, data: WorkCreate, upload_id: str) -> Job:
+async def accept_work(
+    session: AsyncSession, data: WorkCreate, upload_id: str, max_attempts: int
+) -> Job:
     new_work = (
-        insert(Work)
+        insert(StandWork)
         .values(
             teacher_id=data.teacher_id,
             student_id=data.student_id,
@@ -20,20 +25,24 @@ async def accept_work(session: AsyncSession, data: WorkCreate, upload_id: str) -
             pages=data.pages,
         )
         .on_conflict_do_nothing(index_elements=["teacher_id", "idempotency_key"])
-        .returning(Work.id)
+        .returning(StandWork.id)
     )
     work_id = await session.scalar(new_work)
     if work_id is not None:
-        job = Job(work_id=work_id)
-        session.add(job)
+        job = await enqueue(
+            session, STAND_JOB, work_id, max_attempts, dedupe_key=f"stand:{work_id}"
+        )
         await session.commit()
-        await session.refresh(job)
         return job
 
     existing = (
         select(Job)
-        .join(Work, Work.id == Job.work_id)
-        .where(Work.teacher_id == data.teacher_id, Work.idempotency_key == upload_id)
+        .join(StandWork, StandWork.id == Job.subject_id)
+        .where(
+            Job.kind == STAND_JOB,
+            StandWork.teacher_id == data.teacher_id,
+            StandWork.idempotency_key == upload_id,
+        )
     )
     job = await session.scalar(existing)
     await session.commit()
@@ -47,8 +56,8 @@ async def process_now(
     settings: Settings,
     data: WorkCreate,
     upload_id: str,
-) -> Result:
-    work = Work(
+) -> StandResult:
+    work = StandWork(
         teacher_id=data.teacher_id,
         student_id=data.student_id,
         upload_id=upload_id,
@@ -59,7 +68,7 @@ async def process_now(
     text, analysis = await run_with_retries(
         provider, upload_id, data.pages, settings.sync_attempts, settings.retry_delay
     )
-    result = Result(work_id=work.id, text=text, analysis=analysis)
+    result = StandResult(work_id=work.id, text=text, analysis=analysis)
     session.add(result)
     await session.commit()
     return result

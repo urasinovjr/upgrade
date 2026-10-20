@@ -1,22 +1,22 @@
 import asyncio
 from datetime import timedelta
+from uuid import uuid4
 
 from sqlalchemy import func, select, update
 
-from app.models import Job, Result
-from app.services.intake import accept_work
-from app.services.jobs import claim_job, fail_stuck_jobs, finish_job, retry_or_fail
+from app.queue import Job, claim_job, complete_job, enqueue, fail_stuck_jobs, retry_or_fail
+from app.stand import StandResult, accept_work
 from tests.conftest import work_data
 
 
-async def add_job(sessions, upload_id: str) -> Job:
+async def add_job(sessions, upload_id: str, max_attempts: int = 5) -> Job:
     async with sessions() as session:
-        return await accept_work(session, work_data(), upload_id)
+        return await accept_work(session, work_data(), upload_id, max_attempts)
 
 
-async def claim(sessions, max_attempts: int = 5) -> Job | None:
+async def claim(sessions) -> Job | None:
     async with sessions() as session:
-        return await claim_job(session, lease_seconds=5, max_attempts=max_attempts)
+        return await claim_job(session, lease_seconds=5)
 
 
 async def load(sessions, job_id) -> Job:
@@ -53,43 +53,65 @@ async def test_abandoned_job_is_claimed_again(sessions):
 
 
 async def test_abandoned_job_on_last_attempt_fails(sessions):
-    job = await add_job(sessions, "upload-1")
-    await claim(sessions, max_attempts=1)
+    job = await add_job(sessions, "upload-1", max_attempts=1)
+    await claim(sessions)
     await expire_lease(sessions, job.id)
 
-    assert await claim(sessions, max_attempts=1) is None
+    assert await claim(sessions) is None
     async with sessions() as session:
-        await fail_stuck_jobs(session, max_attempts=1)
+        failed = await fail_stuck_jobs(session)
+    assert [item.id for item in failed] == [job.id]
     stored = await load(sessions, job.id)
     assert stored.status == "failed"
     assert stored.last_error == "lease_expired"
 
 
 async def test_failed_attempt_is_retried_until_limit(sessions):
-    job = await add_job(sessions, "upload-1")
+    job = await add_job(sessions, "upload-1", max_attempts=2)
     claimed = await claim(sessions)
 
     async with sessions() as session:
-        await retry_or_fail(session, job.id, claimed.attempts, "provider_timeout", 2, 0.01)
+        assert not await retry_or_fail(session, claimed, "provider_timeout", 0.01)
     assert (await load(sessions, job.id)).status == "retrying"
 
     await asyncio.sleep(0.05)
     claimed = await claim(sessions)
     async with sessions() as session:
-        await retry_or_fail(session, job.id, claimed.attempts, "provider_timeout", 2, 0.01)
+        assert await retry_or_fail(session, claimed, "provider_timeout", 0.01)
     stored = await load(sessions, job.id)
     assert stored.status == "failed"
     assert stored.attempts == 2
 
 
-async def test_result_is_published_once(sessions):
-    job = await add_job(sessions, "upload-1")
-
-    for _ in range(2):
-        async with sessions() as session:
-            await finish_job(session, job.id, job.work_id, "text", {"steps": 1})
+async def test_repeated_upload_reuses_stand_job(sessions):
+    first = await add_job(sessions, "upload-1")
+    second = await add_job(sessions, "upload-1")
 
     async with sessions() as session:
-        results = await session.scalar(select(func.count()).select_from(Result))
-    assert results == 1
-    assert (await load(sessions, job.id)).status == "done"
+        jobs = await session.scalar(select(func.count()).select_from(Job))
+        results = await session.scalar(select(func.count()).select_from(StandResult))
+    assert second.id == first.id
+    assert jobs == 1
+    assert results == 0
+
+
+async def test_dedupe_key_returns_existing_job(sessions):
+    subject = uuid4()
+    async with sessions() as session:
+        first = await enqueue(session, "send_email", subject, 3, {"to": "a"}, dedupe_key="mail:1")
+        second = await enqueue(session, "send_email", subject, 3, {"to": "b"}, dedupe_key="mail:1")
+        await session.commit()
+
+    assert second.id == first.id
+    assert second.payload == {"to": "a"}
+
+
+async def test_completed_job_keeps_new_payload(sessions):
+    async with sessions() as session:
+        job = await enqueue(session, "send_email", uuid4(), 3, {"token": "secret"})
+        await complete_job(session, job.id, {"template": "confirm"})
+        await session.commit()
+
+    stored = await load(sessions, job.id)
+    assert stored.status == "done"
+    assert stored.payload == {"template": "confirm"}

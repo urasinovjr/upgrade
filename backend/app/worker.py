@@ -1,59 +1,70 @@
 import asyncio
 import logging
-
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from collections.abc import Awaitable, Callable
 
 from app.config import Settings
 from app.database import make_engine, make_session_factory
-from app.models import Job, Work
-from app.provider import Provider, ProviderError
-from app.services.jobs import claim_job, extend_lease, fail_stuck_jobs, finish_job, retry_or_fail
-from app.services.processing import run_pipeline
+from app.provider import Provider
+from app.queue import (
+    Job,
+    JobFailure,
+    WorkerContext,
+    claim_job,
+    extend_lease,
+    fail_stuck_jobs,
+    retry_or_fail,
+)
+from app.stand import STAND_JOB, handle_stand_job
 
 logger = logging.getLogger("worker")
 
+JobHandler = Callable[[WorkerContext, Job], Awaitable[None]]
 
-async def keep_lease(
-    sessions: async_sessionmaker[AsyncSession], job: Job, settings: Settings
-) -> None:
+HANDLERS: dict[str, JobHandler] = {
+    STAND_JOB: handle_stand_job,
+}
+FAILURE_HOOKS: dict[str, JobHandler] = {}
+
+
+async def keep_lease(context: WorkerContext, job: Job) -> None:
     while True:
-        await asyncio.sleep(settings.heartbeat_seconds)
-        async with sessions() as session:
-            await extend_lease(session, job.id, settings.lease_seconds)
+        await asyncio.sleep(context.settings.heartbeat_seconds)
+        async with context.sessions() as session:
+            await extend_lease(session, job.id, context.settings.lease_seconds)
 
 
-async def handle_job(
-    sessions: async_sessionmaker[AsyncSession], provider: Provider, settings: Settings, job: Job
-) -> None:
-    async with sessions() as session:
-        work = await session.get(Work, job.work_id)
-    assert work is not None
-    heartbeat = asyncio.create_task(keep_lease(sessions, job, settings))
+async def report_failure(context: WorkerContext, job: Job) -> None:
+    hook = FAILURE_HOOKS.get(job.kind)
+    if hook is not None:
+        await hook(context, job)
+
+
+async def handle_job(context: WorkerContext, job: Job) -> None:
+    handler = HANDLERS[job.kind]
+    heartbeat = asyncio.create_task(keep_lease(context, job))
     try:
-        text, analysis = await run_pipeline(provider, work.upload_id, work.pages)
-    except ProviderError as error:
-        async with sessions() as session:
-            await retry_or_fail(
-                session,
-                job.id,
-                job.attempts,
-                error.code,
-                settings.job_attempts,
-                settings.retry_delay,
-            )
+        await handler(context, job)
+    except JobFailure as error:
+        async with context.sessions() as session:
+            failed = await retry_or_fail(session, job, error.code, context.settings.retry_delay)
         logger.info("job_retry job=%s attempt=%s error=%s", job.id, job.attempts, error.code)
+        if failed:
+            await report_failure(context, job)
         return
     finally:
         heartbeat.cancel()
-    async with sessions() as session:
-        await finish_job(session, job.id, work.id, text, analysis)
-    logger.info("job_done job=%s attempt=%s", job.id, job.attempts)
+    logger.info("job_done job=%s kind=%s attempt=%s", job.id, job.kind, job.attempts)
 
 
-async def run_worker(
-    sessions: async_sessionmaker[AsyncSession], provider: Provider, settings: Settings
-) -> None:
-    slots = asyncio.Semaphore(settings.worker_concurrency)
+async def fail_abandoned_jobs(context: WorkerContext) -> None:
+    async with context.sessions() as session:
+        jobs = await fail_stuck_jobs(session)
+    for job in jobs:
+        await report_failure(context, job)
+
+
+async def run_worker(context: WorkerContext) -> None:
+    slots = asyncio.Semaphore(context.settings.worker_concurrency)
     running: set[asyncio.Task] = set()
 
     def on_done(task: asyncio.Task) -> None:
@@ -64,15 +75,14 @@ async def run_worker(
 
     while True:
         await slots.acquire()
-        async with sessions() as session:
-            job = await claim_job(session, settings.lease_seconds, settings.job_attempts)
+        async with context.sessions() as session:
+            job = await claim_job(session, context.settings.lease_seconds)
         if job is None:
             slots.release()
-            async with sessions() as session:
-                await fail_stuck_jobs(session, settings.job_attempts)
-            await asyncio.sleep(settings.poll_seconds)
+            await fail_abandoned_jobs(context)
+            await asyncio.sleep(context.settings.poll_seconds)
             continue
-        task = asyncio.create_task(handle_job(sessions, provider, settings, job))
+        task = asyncio.create_task(handle_job(context, job))
         running.add(task)
         task.add_done_callback(on_done)
 
@@ -82,9 +92,10 @@ async def main() -> None:
     settings = Settings()
     engine = make_engine(settings.database_url, settings.db_pool_size)
     provider = Provider(settings.provider_url, settings.provider_timeout)
+    context = WorkerContext(make_session_factory(engine), provider, settings)
     logger.info("worker_started concurrency=%s", settings.worker_concurrency)
     try:
-        await run_worker(make_session_factory(engine), provider, settings)
+        await run_worker(context)
     finally:
         await provider.close()
         await engine.dispose()

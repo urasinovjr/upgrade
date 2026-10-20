@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -6,11 +7,14 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import Settings
-from app.database import Base, make_engine, make_session_factory
+from app.database import make_engine, make_session_factory
 from app.main import create_app
+from app.models import Base
 from app.provider import Provider, ProviderError
-from app.schemas import WorkCreate
+from app.queue import WorkerContext
+from app.stand import WorkCreate
 
+ROOT = Path(__file__).resolve().parent.parent
 ADMIN_URL = os.environ.get(
     "TEST_ADMIN_URL", "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
 )
@@ -55,6 +59,10 @@ async def create_test_database() -> None:
         await admin.dispose()
 
 
+def table_names() -> str:
+    return ", ".join(table.name for table in Base.metadata.sorted_tables)
+
+
 @pytest.fixture(scope="session")
 async def engine():
     try:
@@ -72,13 +80,17 @@ async def engine():
 @pytest.fixture
 async def sessions(engine):
     async with engine.begin() as connection:
-        await connection.execute(text("TRUNCATE results, jobs, works"))
+        await connection.execute(text(f"TRUNCATE {table_names()} CASCADE"))
     return make_session_factory(engine)
 
 
 @pytest.fixture
 def test_settings() -> Settings:
     return Settings(database_url=TEST_DATABASE_URL, retry_delay=0.01, db_pool_size=10)
+
+
+def worker_context(sessions, settings: Settings, provider: Provider) -> WorkerContext:
+    return WorkerContext(sessions, provider, settings)
 
 
 async def make_client(settings: Settings, provider: Provider):

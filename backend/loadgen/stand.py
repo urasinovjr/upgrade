@@ -22,9 +22,9 @@ OUTCOMES = text(
            extract(epoch FROM min(r.created_at)) AS first_result_at,
            coalesce(bool_or(j.status = 'failed'), false) AS failed,
            coalesce(max(j.attempts), 0) AS job_attempts
-    FROM works w
-    LEFT JOIN results r ON r.work_id = w.id
-    LEFT JOIN jobs j ON j.work_id = w.id
+    FROM stand_works w
+    LEFT JOIN stand_results r ON r.work_id = w.id
+    LEFT JOIN jobs j ON j.subject_id = w.id AND j.kind = 'stand_analysis'
     GROUP BY w.upload_id
     """
 )
@@ -51,7 +51,8 @@ async def reset_database(engine: AsyncEngine) -> None:
     for attempt in range(1, RESET_ATTEMPTS + 1):
         try:
             async with engine.begin() as connection:
-                await connection.execute(text("TRUNCATE results, jobs, works"))
+                await connection.execute(text("TRUNCATE stand_results, stand_works"))
+                await connection.execute(text("DELETE FROM jobs WHERE kind = 'stand_analysis'"))
             return
         except DBAPIError:
             if attempt == RESET_ATTEMPTS:
@@ -98,9 +99,12 @@ async def wait_until_settled(engine: AsyncEngine) -> None:
         await asyncio.sleep(1.0)
         async with engine.connect() as connection:
             active = await connection.scalar(
-                text("SELECT count(*) FROM jobs WHERE status IN ('queued', 'running', 'retrying')")
+                text(
+                    "SELECT count(*) FROM jobs WHERE kind = 'stand_analysis' "
+                    "AND status IN ('queued', 'running', 'retrying')"
+                )
             )
-            results = await connection.scalar(text("SELECT count(*) FROM results"))
+            results = await connection.scalar(text("SELECT count(*) FROM stand_results"))
         quiet = active == 0 and results == last_results
         quiet_checks = quiet_checks + 1 if quiet else 0
         last_results = results

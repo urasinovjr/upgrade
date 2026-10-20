@@ -6,7 +6,7 @@ from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.errors import DomainError, domain_error_handler
 from app.provider import Provider
-from app.routers import works
+from app.stand.router import router as stand_router
 
 
 def create_app(settings: Settings | None = None, provider: Provider | None = None) -> FastAPI:
@@ -26,7 +26,8 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
 
     app = FastAPI(title="UpGrade", lifespan=lifespan)
     app.add_exception_handler(DomainError, domain_error_handler)
-    app.include_router(works.router)
+    if app_settings.stand_enabled:
+        app.include_router(stand_router)
 
     @app.get("/health")
     async def health() -> dict:

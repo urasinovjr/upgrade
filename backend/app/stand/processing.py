@@ -1,11 +1,7 @@
 import asyncio
-import random
 
 from app.provider import Provider, ProviderError
-
-
-def retry_delay(attempt: int, base: float) -> float:
-    return base * 2 ** (attempt - 1) * random.uniform(0.5, 1.5)
+from app.queue import retry_delay
 
 
 async def run_pipeline(provider: Provider, upload_id: str, pages: int) -> tuple[str, dict]:

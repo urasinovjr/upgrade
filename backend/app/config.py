@@ -15,3 +15,4 @@ class Settings(BaseSettings):
     heartbeat_seconds: float = 1.5
     worker_concurrency: int = 16
     poll_seconds: float = 0.2
+    stand_enabled: bool = True

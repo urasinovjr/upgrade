@@ -1,8 +1,10 @@
 import asyncio
+from uuid import uuid4
 
 from sqlalchemy import func, select
 
-from app.models import Result, Work
+from app.queue import enqueue
+from app.stand import StandResult, StandWork
 
 BODY = {"teacher_id": "teacher-1", "student_id": "student-1", "pages": 2}
 
@@ -18,7 +20,7 @@ async def test_repeated_upload_returns_same_job(client, sessions):
 
     assert first.status_code == 202
     assert second.json()["id"] == first.json()["id"]
-    assert await count(sessions, Work) == 1
+    assert await count(sessions, StandWork) == 1
 
 
 async def test_parallel_retries_create_one_work(client, sessions):
@@ -28,7 +30,7 @@ async def test_parallel_retries_create_one_work(client, sessions):
     responses = await asyncio.gather(*requests)
 
     assert {response.json()["id"] for response in responses} == {responses[0].json()["id"]}
-    assert await count(sessions, Work) == 1
+    assert await count(sessions, StandWork) == 1
 
 
 async def test_upload_without_key_is_rejected(client):
@@ -42,7 +44,7 @@ async def test_sync_upload_returns_result(client, sessions):
 
     assert response.status_code == 200
     assert response.json()["text"] == "text of upload-3"
-    assert await count(sessions, Result) == 1
+    assert await count(sessions, StandResult) == 1
 
 
 async def test_sync_failure_leaves_no_work(failing_client, sessions):
@@ -52,7 +54,7 @@ async def test_sync_failure_leaves_no_work(failing_client, sessions):
 
     assert response.status_code == 502
     assert response.json() == {"detail": "provider_unavailable"}
-    assert await count(sessions, Work) == 0
+    assert await count(sessions, StandWork) == 0
 
 
 async def test_unknown_job_is_not_found(client):
@@ -60,3 +62,13 @@ async def test_unknown_job_is_not_found(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "job_not_found"}
+
+
+async def test_other_job_kinds_are_hidden_from_stand(client, sessions):
+    async with sessions() as session:
+        job = await enqueue(session, "send_email", uuid4(), 3)
+        await session.commit()
+
+    response = await client.get(f"/jobs/{job.id}")
+
+    assert response.status_code == 404
