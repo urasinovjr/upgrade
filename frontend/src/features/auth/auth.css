@@ -33,10 +33,13 @@
   align-items: start;
   font-weight: 400;
 }
-.dp-auth-check input {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
+.dp-auth-card :is(form, .dp-auth-footer) a:not([class]) {
+  color: var(--ug-blue-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dp-auth-card form > a:not([class]) {
+  justify-self: start;
 }
 .dp-auth-providers {
   display: grid;

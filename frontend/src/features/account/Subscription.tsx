@@ -24,7 +24,7 @@ export default function Subscription() {
   const { status, endsAt, planTitle, contactUrl } = session.data.subscription;
   const active = status === "trial" || status === "active";
   return (
-    <div className="dp-account">
+    <div className="dp-page dp-account">
       <h1>Подписка</h1>
       <section className="dp-account-section" aria-labelledby="subscription-status">
         <h2 id="subscription-status">{statusTitles[status]}</h2>
@@ -43,7 +43,7 @@ export default function Subscription() {
         <div className="dp-account-row">
           <a className="dp-button dp-primary" href={contactUrl}>
             <CreditCard size={14} aria-hidden="true" />
-            Оформить подписку
+            {status === "trial" || status === "none" ? "Оформить подписку" : "Продлить подписку"}
           </a>
           <span className="dp-caption">Оплата картой появится позже, пока напишите нам.</span>
         </div>

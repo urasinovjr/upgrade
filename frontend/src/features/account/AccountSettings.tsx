@@ -82,7 +82,7 @@ function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
         Понимаю, что данные удалятся без возможности восстановления
       </label>
       <ErrorMessage error={remove.error} />
-      <button className="dp-danger" disabled={!understood || remove.isPending}>
+      <button className="dp-destructive" disabled={!understood || remove.isPending}>
         Удалить аккаунт
       </button>
     </form>
@@ -95,7 +95,7 @@ export default function AccountSettings() {
   if (details.isError) return <ErrorMessage error={details.error} />;
   const { displayName, email, hasPassword, identities } = details.data;
   return (
-    <div className="dp-account">
+    <div className="dp-page dp-account">
       <h1>Настройки</h1>
       <section className="dp-account-section" aria-labelledby="profile-title">
         <h2 id="profile-title">Профиль</h2>

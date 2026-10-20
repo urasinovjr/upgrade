@@ -567,9 +567,15 @@
     line-height: var(--ug-lh-h2);
   }
 }
-@container widget (max-width: 700px) {
+@container widget (max-width: 899px) {
   .dp-work-hint {
     display: none;
+  }
+}
+@container widget (max-width: 360px) {
+  .dp-app.dp-app .dp-viewbar .dp-segment > button {
+    white-space: normal;
+    line-height: 1.2;
   }
 }
 @container widget (max-width: 280px) {

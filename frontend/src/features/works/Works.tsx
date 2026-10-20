@@ -28,10 +28,17 @@ export default function Works() {
   const bar = (
     <PageBar
       actions={
-        <Link className="dp-primary dp-new-work" to="/works/new">
-          <Plus size={16} aria-hidden="true" />
-          <span>Новая работа</span>
-        </Link>
+        upload.allowed ? (
+          <Link className="dp-primary dp-new-work" to="/works/new">
+            <Plus size={16} aria-hidden="true" />
+            <span>Новая работа</span>
+          </Link>
+        ) : (
+          <button className="dp-primary dp-new-work" disabled>
+            <Plus size={16} aria-hidden="true" />
+            <span>Новая работа</span>
+          </button>
+        )
       }
     />
   );

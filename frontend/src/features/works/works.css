@@ -542,8 +542,8 @@
     display: flex;
     align-items: center;
     gap: var(--ug-space-2);
-    padding: var(--ug-space-6) var(--ug-space-2) var(--ug-space-2);
-    margin: calc(-1 * var(--ug-space-6)) calc(-1 * var(--ug-space-2)) 0;
+    padding: var(--ug-space-4) var(--ug-space-2) var(--ug-space-2);
+    margin: calc(-1 * var(--ug-space-4)) calc(-1 * var(--ug-space-2)) 0;
     background: var(--ug-surface);
   }
   .dp-works .dp-viewbar-filters {

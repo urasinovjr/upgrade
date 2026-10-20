@@ -16,6 +16,7 @@ import { currentRevision, deriveGaps } from "../../domain/review";
 import { topics } from "../../data/fixtures";
 import { gateway } from "../../data/gateway";
 import { useCommand, useStore } from "../../shared/query";
+import { useWriteAccess } from "../../shared/session";
 import { statusMeta } from "../../shared/status";
 import { date, wordForCount } from "../../shared/text";
 import {
@@ -105,6 +106,7 @@ function ClosureNote({ closure }: { closure: Closure }) {
 
 function StudentPage({ state, student }: { state: StoreState; student: Student }) {
   const command = useCommand();
+  const writeAccess = useWriteAccess();
   const gaps = deriveGaps(state, student.id);
   const open = gaps.filter((gap) => !gap.closed);
   const closed = gaps.filter((gap) => gap.closed);
@@ -224,7 +226,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
       {gap.closed ? (
         <button
           data-gap-action={gap.topicId}
-          disabled={command.isPending}
+          disabled={command.isPending || !writeAccess.allowed}
           onClick={() => reopenGap(gap.topicId)}
         >
           <RotateCcw size={14} aria-hidden="true" />
@@ -233,6 +235,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
       ) : (
         <button
           data-gap-action={gap.topicId}
+          disabled={!writeAccess.allowed}
           onClick={() => {
             command.reset();
             setNote("");
@@ -299,6 +302,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
             <button
               className="dp-compact-action"
               aria-label="Редактировать ученика"
+              disabled={!writeAccess.allowed}
               onClick={() => setEditing(true)}
             >
               <Pencil size={14} aria-hidden="true" />
@@ -415,10 +419,12 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                     Последние работы
                     <span className="dp-count">{works.length}</span>
                   </h2>
-                  <Link className="dp-text" to={newWorkLink}>
-                    <Plus size={14} aria-hidden="true" />
-                    Новая работа
-                  </Link>
+                  {writeAccess.allowed && (
+                    <Link className="dp-text" to={newWorkLink}>
+                      <Plus size={14} aria-hidden="true" />
+                      Новая работа
+                    </Link>
+                  )}
                 </div>
                 {works.length ? (
                   <ul className="dp-student-works">
@@ -507,10 +513,12 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                       Отсутствие пробела ещё не означает, что тема освоена. Проверенная работа по
                       теме покажет, есть ли пробел.
                     </p>
-                    <Link className="dp-text" to={newWorkLink}>
-                      <Plus size={14} aria-hidden="true" />
-                      Новая работа
-                    </Link>
+                    {writeAccess.allowed && (
+                      <Link className="dp-text" to={newWorkLink}>
+                        <Plus size={14} aria-hidden="true" />
+                        Новая работа
+                      </Link>
+                    )}
                   </div>
                 )}
                 {!!topic.prerequisites.length && (

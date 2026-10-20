@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { gateway } from "../../data/gateway";
 import type { Student } from "../../domain/models";
 import { useCommand } from "../../shared/query";
+import { useWriteAccess } from "../../shared/session";
 import { ConfirmDelete } from "../../shared/ui";
 
 export function StudentActions({ student }: { student: Student }) {
@@ -11,11 +12,12 @@ export function StudentActions({ student }: { student: Student }) {
   const client = useQueryClient();
   const navigate = useNavigate();
   const archived = Boolean(student.archivedAt);
+  const writeAccess = useWriteAccess();
   return (
     <>
       <button
         className="dp-compact-action"
-        disabled={command.isPending}
+        disabled={command.isPending || !writeAccess.allowed}
         onClick={() => command.mutate(() => gateway.archiveStudent(student.id, !archived))}
       >
         {archived ? (
@@ -27,7 +29,7 @@ export function StudentActions({ student }: { student: Student }) {
       </button>
       <ConfirmDelete
         label="Удалить"
-        title={"Удалить ученика " + student.name + "?"}
+        title={"Удалить ученика «" + student.name + "»?"}
         description="Вместе с учеником удалятся его работы, файлы, отчёты и история пробелов."
         onConfirm={async () => {
           await gateway.removeStudent(student.id);

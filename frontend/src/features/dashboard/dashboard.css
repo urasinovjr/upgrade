@@ -21,6 +21,10 @@
   cursor: progress;
   opacity: 0.7;
 }
+.dp-app label.dp-upload-button.is-disabled {
+  cursor: default;
+  opacity: 0.45;
+}
 
 .dp-kpis {
   display: grid;

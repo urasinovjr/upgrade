@@ -245,6 +245,8 @@ a.dp-workspace:hover {
 }
 
 .dp-workspace-main {
+  display: flex;
+  flex-direction: column;
   margin-left: calc(var(--ug-sidebar-w) + var(--ug-safe-left));
   padding-right: env(safe-area-inset-right, 0px);
   min-width: 0;
@@ -354,8 +356,7 @@ a.dp-workspace:hover {
   display: none;
 }
 .dp-main {
-  min-height: calc(100vh - var(--ug-topbar-h) - var(--ug-bottom-nav-h));
-  min-height: calc(100dvh - var(--ug-topbar-h) - var(--ug-bottom-nav-h));
+  flex: 1 0 auto;
 }
 .dp-app .dp-main:focus {
   outline: none;

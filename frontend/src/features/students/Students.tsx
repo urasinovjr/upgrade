@@ -59,7 +59,7 @@ export default function Students() {
       {bar}
       <div className="dp-page dp-students">
         <div className="dp-students-bar">
-          <h1 id="students-title">Ученики</h1>
+          <h1 id="students-title">{showArchive ? "Архив учеников" : "Ученики"}</h1>
           <span className="dp-count">{pool.length}</span>
           {(archivedCount > 0 || showArchive) && (
             <button

@@ -46,7 +46,13 @@ const editHints: Record<Breakpoint, string> = {
 
 function UploadButton({ upload }: { upload: QuickUpload }) {
   return (
-    <label className={"dp-primary dp-upload-button" + (upload.busy ? " is-busy" : "")}>
+    <label
+      className={
+        "dp-primary dp-upload-button" +
+        (upload.busy ? " is-busy" : "") +
+        (upload.allowed ? "" : " is-disabled")
+      }
+    >
       {upload.busy ? (
         <LoaderCircle className="dp-spin" size={16} aria-hidden="true" />
       ) : (
@@ -59,7 +65,7 @@ function UploadButton({ upload }: { upload: QuickUpload }) {
         accept="image/jpeg,image/png,application/pdf"
         className="dp-visually-hidden"
         aria-label="Быстрая загрузка решения"
-        disabled={upload.busy}
+        disabled={upload.busy || !upload.allowed}
         onChange={(event) => {
           void upload.addFiles(event.target.files);
           event.target.value = "";

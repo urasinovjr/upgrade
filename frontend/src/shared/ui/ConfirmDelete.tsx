@@ -41,7 +41,7 @@ export function ConfirmDelete({
           <button type="button" onClick={() => setOpen(false)}>
             Отмена
           </button>
-          <button className="dp-primary" disabled={pending} onClick={() => void confirm()}>
+          <button className="dp-destructive" disabled={pending} onClick={() => void confirm()}>
             {pending ? "Удаляем…" : "Удалить"}
           </button>
         </div>

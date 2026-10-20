@@ -29,7 +29,7 @@ export function WorkQueue({
   mode,
   filters,
   update,
-  upload,
+  upload: offeredUpload,
   autoFocusSearch,
   className = "",
   ref,
@@ -44,6 +44,7 @@ export function WorkQueue({
   ref?: Ref<HTMLElement>;
 }) {
   const [dragging, setDragging] = useState(false);
+  const upload = offeredUpload?.allowed ? offeredUpload : undefined;
   const full = mode === "full";
   const students = new Map(state.students.map((student) => [student.id, student]));
   const { view } = filters;

@@ -307,6 +307,21 @@ body {
   background-repeat: no-repeat;
   cursor: pointer;
 }
+:where(.dp-app, .dp-dialog) input:is([type="checkbox"], [type="radio"]) {
+  flex: none;
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--ug-blue);
+}
+:where(.dp-app, .dp-dialog) :is(input, textarea, select):disabled {
+  background-color: var(--ug-soft);
+  color: var(--ug-muted);
+  cursor: not-allowed;
+}
 :where(.dp-app, .dp-dialog) textarea {
   min-height: 100px;
   resize: vertical;
@@ -808,6 +823,15 @@ body {
     padding: var(--ug-space-6) var(--ug-space-5);
     max-height: min(80dvh, calc(100dvh - var(--keyboard-height, 0px) - 32px));
     top: calc((100dvh - var(--keyboard-height, 0px)) / 2);
+  }
+  .dp-dialog .dp-dialog-actions {
+    position: sticky;
+    bottom: calc(-1 * var(--ug-space-6));
+    z-index: 1;
+    margin: var(--ug-space-5) calc(-1 * var(--ug-space-5)) calc(-1 * var(--ug-space-6));
+    padding: var(--ug-space-3) var(--ug-space-5) var(--ug-space-6);
+    background: var(--ug-surface);
+    border-top: 1px solid var(--ug-line);
   }
   .dp-sk-dashboard .dp-sk-row:first-child {
     grid-template-columns: repeat(2, minmax(0, 1fr));

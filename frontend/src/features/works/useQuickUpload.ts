@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { decodeUpload } from "../../shared/uploads";
+import { useWriteAccess } from "../../shared/session";
 import { stageUploads } from "../../shared/uploadHandoff";
 
 export function useQuickUpload() {
   const navigate = useNavigate();
+  const { allowed } = useWriteAccess();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>();
   const running = useRef(false);
@@ -16,7 +18,7 @@ export function useQuickUpload() {
     };
   }, []);
   const addFiles = async (files: FileList | null | undefined) => {
-    if (!files?.length || running.current) return;
+    if (!allowed || !files?.length || running.current) return;
     running.current = true;
     setBusy(true);
     setError(undefined);
@@ -31,6 +33,6 @@ export function useQuickUpload() {
       if (mounted.current) setBusy(false);
     }
   };
-  return { busy, error, addFiles };
+  return { busy, error, addFiles, allowed };
 }
 export type QuickUpload = ReturnType<typeof useQuickUpload>;

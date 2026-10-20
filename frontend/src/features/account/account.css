@@ -1,7 +1,16 @@
 .dp-account {
   display: grid;
   gap: var(--ug-space-5);
+  margin: 0;
+}
+.dp-account > * {
   max-width: 720px;
+}
+.dp-account-section a:not([class]),
+.dp-read-only a {
+  color: var(--ug-blue-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .dp-account-section {
   display: grid;
@@ -33,6 +42,9 @@
   align-items: start;
   font-weight: 400;
 }
+.dp-account-section > a:not([class]) {
+  justify-self: start;
+}
 .dp-read-only {
   display: flex;
   flex-wrap: wrap;
@@ -42,13 +54,4 @@
   background: var(--ug-warning-soft);
   border-bottom: 1px solid var(--ug-warning-line);
   color: var(--ug-ink);
-}
-.dp-account-danger button.dp-danger {
-  background: var(--ug-danger);
-  border-color: var(--ug-danger);
-  color: var(--ug-on-blue);
-}
-.dp-account-danger button.dp-danger:hover {
-  background: var(--ug-danger);
-  opacity: 0.9;
 }
