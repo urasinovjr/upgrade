@@ -13,6 +13,7 @@ from app.models import Base
 from app.provider import Provider, ProviderError
 from app.queue import WorkerContext
 from app.stand import WorkCreate
+from tests.accounts import sign_up
 from tests.fakes import FakeOAuth, MemoryMailer, MemoryStorage
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -141,4 +142,18 @@ def oauth() -> FakeOAuth:
 @pytest.fixture
 async def oauth_client(sessions, test_settings, oauth):
     async for http in make_client(test_settings, FakeProvider(), oauth):
+        yield http
+
+
+@pytest.fixture
+async def teacher(sessions, test_settings):
+    async for http in make_client(test_settings, FakeProvider()):
+        await sign_up(http, sessions, "first@example.com")
+        yield http
+
+
+@pytest.fixture
+async def other_teacher(sessions, test_settings):
+    async for http in make_client(test_settings, FakeProvider()):
+        await sign_up(http, sessions, "second@example.com")
         yield http

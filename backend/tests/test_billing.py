@@ -1,21 +1,13 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 
 from app.billing import Subscription
 from app.cli import run
 from tests.accounts import mailed_token, registration, sign_up
+from tests.students import end_all_subscriptions
 
 EMAIL = "teacher@example.com"
-
-
-async def expire_subscriptions(sessions) -> None:
-    past = datetime.now(UTC) - timedelta(days=1)
-    async with sessions() as session:
-        await session.execute(
-            update(Subscription).values(starts_at=past - timedelta(days=14), ends_at=past)
-        )
-        await session.commit()
 
 
 async def test_confirmation_starts_fourteen_day_trial(client, sessions):
@@ -56,7 +48,7 @@ async def test_reset_before_confirmation_starts_trial(client, sessions):
 
 async def test_expired_trial_is_reported(client, sessions):
     await sign_up(client, sessions, EMAIL)
-    await expire_subscriptions(sessions)
+    await end_all_subscriptions(sessions)
 
     response = await client.get("/api/subscription")
 
@@ -65,7 +57,7 @@ async def test_expired_trial_is_reported(client, sessions):
 
 async def test_cli_grants_subscription_after_expiry(client, sessions, test_settings):
     await sign_up(client, sessions, EMAIL)
-    await expire_subscriptions(sessions)
+    await end_all_subscriptions(sessions)
 
     saved = await run(
         ["plan-upsert", "--code", "teacher", "--title", "Репетитор", "--price-minor", "99000"],

@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base, now_column
@@ -107,3 +108,14 @@ class OAuthState(Base):
     personal_data_version: Mapped[str | None] = mapped_column(String(32))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = now_column()
+
+
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSONB)
+    updated_at: Mapped[datetime] = now_column()

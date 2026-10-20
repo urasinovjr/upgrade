@@ -11,9 +11,12 @@ from app.database import make_engine, make_session_factory
 from app.dependencies import verify_origin
 from app.errors import DomainError, domain_error_handler
 from app.files import S3Storage, Storage
+from app.knowledge.router import router as knowledge_router
 from app.mail import Mailer, SmtpMailer
 from app.provider import Provider
+from app.snapshot import router as snapshot_router
 from app.stand.router import router as stand_router
+from app.students.router import router as students_router
 
 
 def create_app(
@@ -47,6 +50,9 @@ def create_app(
     api.include_router(auth_router)
     api.include_router(account_router)
     api.include_router(billing_router)
+    api.include_router(snapshot_router)
+    api.include_router(students_router)
+    api.include_router(knowledge_router)
     app.include_router(api)
     if app_settings.stand_enabled:
         app.include_router(stand_router)

@@ -26,6 +26,9 @@ REGISTRY: dict[str, int] = {
     "oauth_failed": status.HTTP_502_BAD_GATEWAY,
     "subscription_inactive": status.HTTP_402_PAYMENT_REQUIRED,
     "plan_not_found": status.HTTP_404_NOT_FOUND,
+    "student_not_found": status.HTTP_404_NOT_FOUND,
+    "closure_note_required": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "preference_too_large": status.HTTP_413_CONTENT_TOO_LARGE,
 }
 
 

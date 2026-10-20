@@ -1,5 +1,12 @@
 from app.access.current import CurrentAccount, check_origin, load_current_account
-from app.access.models import AuthSession, Consent, EmailToken, RateLimit, User
+from app.access.models import (
+    AuthSession,
+    Consent,
+    EmailToken,
+    RateLimit,
+    User,
+    UserPreference,
+)
 
 __all__ = [
     "AuthSession",
@@ -8,6 +15,7 @@ __all__ = [
     "EmailToken",
     "RateLimit",
     "User",
+    "UserPreference",
     "check_origin",
     "load_current_account",
 ]

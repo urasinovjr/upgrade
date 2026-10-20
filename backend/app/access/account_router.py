@@ -1,13 +1,18 @@
-from fastapi import APIRouter, Response, status
+from typing import Annotated, Literal
+
+from fastapi import APIRouter, Body, Response, status
 from sqlalchemy import select
 
 from app.access.models import OAuthIdentity
 from app.access.oauth_flow import start_oauth, unlink_identity
+from app.access.preferences import read_preference, save_preference
 from app.access.router import Provider, set_oauth_cookie
 from app.access.schemas import AccountDetailsOut, IdentityOut, OAuthStartOut
 from app.dependencies import CurrentAccountDep, OAuthDep, SessionDep, SettingsDep
 
 router = APIRouter(prefix="/account", tags=["account"])
+
+PreferenceKey = Literal["dashboard-layout"]
 
 
 @router.get("")
@@ -44,3 +49,20 @@ async def start_provider_link(
 @router.delete("/identities/{provider}", status_code=status.HTTP_204_NO_CONTENT)
 async def unlink_provider(provider: Provider, current: CurrentAccountDep, session: SessionDep):
     await unlink_identity(session, current.user, provider)
+
+
+@router.get("/preferences/{key}")
+async def read_account_preference(
+    key: PreferenceKey, current: CurrentAccountDep, session: SessionDep
+) -> dict | None:
+    return await read_preference(session, current.user.id, key)
+
+
+@router.put("/preferences/{key}", status_code=status.HTTP_204_NO_CONTENT)
+async def save_account_preference(
+    key: PreferenceKey,
+    value: Annotated[dict, Body()],
+    current: CurrentAccountDep,
+    session: SessionDep,
+) -> None:
+    await save_preference(session, current.user.id, key, value)
