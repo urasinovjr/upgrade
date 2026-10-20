@@ -23,6 +23,7 @@ from app.works.actions import (
     save_draft,
     update_attachments,
 )
+from app.works.deletion import delete_student, delete_work
 from app.works.schemas import (
     AttachmentLayout,
     DraftSavedOut,
@@ -71,6 +72,20 @@ async def post_work(
 @router.get("/works/{work_id}", response_model_exclude_none=True)
 async def get_work(work_id: UUID, current: CurrentAccountDep, session: SessionDep) -> WorkOut:
     return await describe_work(session, await owned_work(session, current.user.id, work_id))
+
+
+@router.delete("/works/{work_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_work(
+    work_id: UUID, current: CurrentAccountDep, session: SessionDep, settings: SettingsDep
+) -> None:
+    await delete_work(session, settings, current.user.id, work_id)
+
+
+@router.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_student(
+    student_id: UUID, current: CurrentAccountDep, session: SessionDep, settings: SettingsDep
+) -> None:
+    await delete_student(session, settings, current.user.id, student_id)
 
 
 @router.put("/works/{work_id}/draft")

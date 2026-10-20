@@ -115,8 +115,15 @@ def worker_context(
     )
 
 
-async def make_client(settings: Settings, provider: Provider, oauth: FakeOAuth | None = None):
-    app = create_app(settings, provider, MemoryStorage(), MemoryMailer(), oauth or FakeOAuth())
+async def make_client(
+    settings: Settings,
+    provider: Provider,
+    oauth: FakeOAuth | None = None,
+    storage: MemoryStorage | None = None,
+):
+    app = create_app(
+        settings, provider, storage or MemoryStorage(), MemoryMailer(), oauth or FakeOAuth()
+    )
     async with app.router.lifespan_context(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -147,14 +154,19 @@ async def oauth_client(sessions, test_settings, oauth):
 
 
 @pytest.fixture
-async def teacher(sessions, test_settings):
-    async for http in make_client(test_settings, FakeProvider()):
+def storage() -> MemoryStorage:
+    return MemoryStorage()
+
+
+@pytest.fixture
+async def teacher(sessions, test_settings, storage):
+    async for http in make_client(test_settings, FakeProvider(), storage=storage):
         await sign_up(http, sessions, "first@example.com")
         yield http
 
 
 @pytest.fixture
-async def other_teacher(sessions, test_settings):
-    async for http in make_client(test_settings, FakeProvider()):
+async def other_teacher(sessions, test_settings, storage):
+    async for http in make_client(test_settings, FakeProvider(), storage=storage):
         await sign_up(http, sessions, "second@example.com")
         yield http

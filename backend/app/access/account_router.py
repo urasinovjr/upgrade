@@ -3,11 +3,12 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Body, Response, status
 from sqlalchemy import select
 
+from app.access.deletion import delete_account
 from app.access.models import OAuthIdentity
 from app.access.oauth_flow import start_oauth, unlink_identity
 from app.access.preferences import read_preference, save_preference
 from app.access.router import Provider, set_oauth_cookie
-from app.access.schemas import AccountDetailsOut, IdentityOut, OAuthStartOut
+from app.access.schemas import AccountDeleteIn, AccountDetailsOut, IdentityOut, OAuthStartOut
 from app.dependencies import CurrentAccountDep, OAuthDep, SessionDep, SettingsDep
 
 router = APIRouter(prefix="/account", tags=["account"])
@@ -66,3 +67,15 @@ async def save_account_preference(
     session: SessionDep,
 ) -> None:
     await save_preference(session, current.user.id, key, value)
+
+
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_account(
+    data: AccountDeleteIn,
+    current: CurrentAccountDep,
+    session: SessionDep,
+    settings: SettingsDep,
+    response: Response,
+) -> None:
+    await delete_account(session, settings, current.user, data.password)
+    response.delete_cookie(settings.session_cookie_name, path="/")

@@ -86,6 +86,10 @@ class IdentityOut(ApiModel):
     created_at: datetime
 
 
+class AccountDeleteIn(ApiModel):
+    password: str | None = Field(default=None, max_length=128)
+
+
 class AccountDetailsOut(ApiModel):
     id: UUID
     email: str | None

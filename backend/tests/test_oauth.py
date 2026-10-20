@@ -186,3 +186,14 @@ async def test_linking_needs_session(oauth_client):
     response = await oauth_client.post("/api/account/identities/vk/start")
 
     assert response.status_code == 401
+
+
+async def test_provider_account_is_deleted_without_password(oauth_client, oauth, sessions):
+    oauth.profiles["code-1"] = profile("ya-1")
+    signed = await callback(oauth_client, await start(oauth_client, consents=CONSENTS), "code-1")
+    oauth_client.headers["X-CSRF-Token"] = signed.json()["session"]["csrfToken"]
+
+    response = await oauth_client.request("DELETE", "/api/account", json={})
+
+    assert response.status_code == 204
+    assert await users(sessions) == []
