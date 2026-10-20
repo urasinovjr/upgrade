@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access import CurrentAccount, check_origin, load_current_account
 from app.access.oauth_client import OAuthClient
+from app.billing import current_state
 from app.config import Settings
+from app.errors import DomainError
 from app.files import Storage
 from app.provider import Provider
 
@@ -50,6 +52,16 @@ async def get_current_account(
 
 
 CurrentAccountDep = Annotated[CurrentAccount, Depends(get_current_account)]
+
+
+async def get_writable_account(current: CurrentAccountDep, session: SessionDep) -> CurrentAccount:
+    state = await current_state(session, current.user.id)
+    if not state.active:
+        raise DomainError("subscription_inactive")
+    return current
+
+
+WritableAccountDep = Annotated[CurrentAccount, Depends(get_writable_account)]
 
 
 def client_ip(request: Request) -> str:

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from app.access.account_router import router as account_router
 from app.access.oauth_client import HttpOAuthClient, OAuthClient
 from app.access.router import router as auth_router
+from app.billing.router import router as billing_router
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.dependencies import verify_origin
@@ -45,6 +46,7 @@ def create_app(
     api = APIRouter(prefix="/api", dependencies=[Depends(verify_origin)])
     api.include_router(auth_router)
     api.include_router(account_router)
+    api.include_router(billing_router)
     app.include_router(api)
     if app_settings.stand_enabled:
         app.include_router(stand_router)

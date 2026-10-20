@@ -24,6 +24,8 @@ REGISTRY: dict[str, int] = {
     "oauth_identity_taken": status.HTTP_409_CONFLICT,
     "last_login_method": status.HTTP_409_CONFLICT,
     "oauth_failed": status.HTTP_502_BAD_GATEWAY,
+    "subscription_inactive": status.HTTP_402_PAYMENT_REQUIRED,
+    "plan_not_found": status.HTTP_404_NOT_FOUND,
 }
 
 

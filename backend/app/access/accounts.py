@@ -10,6 +10,7 @@ from app.access.passwords import hash_password, needs_rehash, verify_password
 from app.access.rules import lock_until, normalize_email, password_is_weak
 from app.access.schemas import RegisterIn
 from app.access.sessions import revoke_user_sessions
+from app.billing import start_trial
 from app.config import Settings
 from app.errors import DomainError
 from app.mail import enqueue_email
@@ -96,14 +97,19 @@ async def resend_confirmation(session: AsyncSession, settings: Settings, email: 
         await session.commit()
 
 
-async def confirm_email(session: AsyncSession, token: str) -> User:
+async def mark_email_confirmed(session: AsyncSession, settings: Settings, user: User) -> None:
+    if user.email_confirmed_at is None:
+        user.email_confirmed_at = datetime.now(UTC)
+        await start_trial(session, user.id, settings.trial_days)
+
+
+async def confirm_email(session: AsyncSession, settings: Settings, token: str) -> User:
     user_id = await use_email_token(session, token, "confirm")
     if user_id is None:
         raise DomainError("token_invalid")
     user = await session.get(User, user_id)
     assert user is not None
-    if user.email_confirmed_at is None:
-        user.email_confirmed_at = datetime.now(UTC)
+    await mark_email_confirmed(session, settings, user)
     return user
 
 
@@ -119,7 +125,9 @@ async def request_password_reset(session: AsyncSession, settings: Settings, emai
     await session.commit()
 
 
-async def reset_password(session: AsyncSession, token: str, password: str) -> None:
+async def reset_password(
+    session: AsyncSession, settings: Settings, token: str, password: str
+) -> None:
     user_id = await use_email_token(session, token, "reset")
     if user_id is None:
         raise DomainError("token_invalid")
@@ -131,8 +139,7 @@ async def reset_password(session: AsyncSession, token: str, password: str) -> No
     user.password_hash = await hash_password(password)
     user.failed_logins = 0
     user.locked_until = None
-    if user.email_confirmed_at is None:
-        user.email_confirmed_at = datetime.now(UTC)
+    await mark_email_confirmed(session, settings, user)
     await revoke_user_sessions(session, user.id)
     await session.commit()
 

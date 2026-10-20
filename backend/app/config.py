@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     personal_data_url: str = "http://localhost:5173/legal/personal-data"
     personal_data_version: str = "2026-10-21"
 
+    trial_days: int = 14
+    billing_contact_url: str = "mailto:support@upgrade.local"
+
     oauth_cookie_name: str = "upgrade_oauth"
     oauth_state_minutes: int = 10
     oauth_timeout: float = 10.0

@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import Field
 
 from app.api_model import ApiModel
+from app.billing import SubscriptionOut
 
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
@@ -54,6 +55,7 @@ class AccountOut(ApiModel):
 class SessionOut(ApiModel):
     account: AccountOut
     csrf_token: str
+    subscription: SubscriptionOut
 
 
 class OAuthStartIn(ApiModel):

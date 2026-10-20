@@ -11,6 +11,7 @@ from app.access.accounts import find_user_by_email, record_consents
 from app.access.models import OAuthIdentity, OAuthState, User
 from app.access.oauth_client import OAuthClient, OAuthError, OAuthProfile
 from app.access.rules import new_token, token_hash
+from app.billing import start_trial
 from app.config import Settings
 from app.errors import DomainError
 
@@ -122,6 +123,7 @@ async def sign_up_with_provider(
     session.add(user)
     await session.flush()
     await record_consents(session, settings, user, ip)
+    await start_trial(session, user.id, settings.trial_days)
     await link_identity(session, user.id, state.provider, profile)
     return user
 

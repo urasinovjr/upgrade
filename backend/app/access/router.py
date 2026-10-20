@@ -20,6 +20,7 @@ from app.access.schemas import (
     TokenIn,
 )
 from app.access.sessions import create_session, revoke_session
+from app.billing import describe_subscription
 from app.config import Settings
 from app.dependencies import CurrentAccountDep, OAuthDep, SessionDep, SettingsDep, client_ip
 
@@ -54,7 +55,11 @@ async def start_session(
     token, csrf_token = await create_session(session, user.id, settings.session_days)
     await session.commit()
     set_session_cookie(response, settings, token)
-    return SessionOut(account=AccountOut.model_validate(user), csrf_token=csrf_token)
+    return SessionOut(
+        account=AccountOut.model_validate(user),
+        csrf_token=csrf_token,
+        subscription=await describe_subscription(session, settings, user.id),
+    )
 
 
 Provider = Literal["yandex", "vk"]
@@ -94,7 +99,7 @@ async def register(
 async def confirm(
     data: TokenIn, session: SessionDep, settings: SettingsDep, response: Response
 ) -> SessionOut:
-    user = await accounts.confirm_email(session, data.token)
+    user = await accounts.confirm_email(session, settings, data.token)
     return await start_session(session, settings, response, user)
 
 
@@ -113,8 +118,8 @@ async def request_password_reset(data: EmailIn, session: SessionDep, settings: S
 @router.post(
     "/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT, dependencies=RateLimited
 )
-async def reset_password(data: PasswordResetIn, session: SessionDep) -> None:
-    await accounts.reset_password(session, data.token, data.password)
+async def reset_password(data: PasswordResetIn, session: SessionDep, settings: SettingsDep) -> None:
+    await accounts.reset_password(session, settings, data.token, data.password)
 
 
 @router.post("/login", dependencies=RateLimited)
@@ -126,9 +131,13 @@ async def login(
 
 
 @router.get("/session")
-async def read_session(current: CurrentAccountDep) -> SessionOut:
+async def read_session(
+    current: CurrentAccountDep, session: SessionDep, settings: SettingsDep
+) -> SessionOut:
     return SessionOut(
-        account=AccountOut.model_validate(current.user), csrf_token=current.session.csrf_token
+        account=AccountOut.model_validate(current.user),
+        csrf_token=current.session.csrf_token,
+        subscription=await describe_subscription(session, settings, current.user.id),
     )
 
 
