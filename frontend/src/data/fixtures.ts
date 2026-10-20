@@ -113,7 +113,7 @@ function tasks(reviewed = false): Task[] {
   ];
 }
 
-export function seedState(): StoreState {
+export function seedState(now = Date.now()): StoreState {
   const students = [
     {
       id: "anna",
@@ -165,7 +165,7 @@ export function seedState(): StoreState {
       studentId,
       title,
       status: status === "confirmed" ? "ready" : status,
-      createdAt: new Date(Date.now() - index * 86400000).toISOString(),
+      createdAt: new Date(now - index * 86400000).toISOString(),
       demo: true,
       manual: false,
       editing: true,
@@ -184,7 +184,7 @@ export function seedState(): StoreState {
       published: [],
       initialAnalysis: structuredClone(draft),
     };
-    if (status === "confirmed") work = publishWork(work);
+    if (status === "confirmed") work = publishWork(work, new Date(now).toISOString());
     return work;
   });
   return { students, works, closures: [] };

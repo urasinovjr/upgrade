@@ -49,9 +49,12 @@ npx playwright install chromium webkit
 npm run e2e
 npm run e2e:server
 npm run e2e:docker
+npm run e2e:visual
 ```
 
 `npm run e2e:server` и `npm run e2e:docker` проходят регистрацию, письмо в Mailpit, загрузку, разбор, подтверждение, режим только чтения и удаление на поднятом стеке. Первый сам запускает `dev:server` (порт 5173 должен быть свободен), второй проверяет контейнер `frontend` на порту 8080.
+
+`npm run e2e:visual` снимает все экраны демо- и серверного режима на ширинах 390–1440 и сравнивает их с эталонами в `e2e-visual/*-snapshots`. Ответы API подменяются в браузере, Docker не нужен; время, идентификаторы и анимации зафиксированы. Вместе со снимком проверяются горизонтальное переполнение, один `h1`, контраст текста и ошибки в консоли. Эталоны сняты на macOS: на других системах сравнение пропускается, а проверки вёрстки выполняются. После намеренного изменения интерфейса или обновления Playwright эталоны обновляет `npm run e2e:visual:update`.
 
 Переносимая сборка в один HTML-файл: `npm run build:standalone`.
 
@@ -102,7 +105,7 @@ uv run pytest
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_TLS`, `MAIL_FROM` | отправка писем |
 | `TERMS_URL`, `TERMS_VERSION`, `PERSONAL_DATA_URL`, `PERSONAL_DATA_VERSION` | документы, на которые даётся согласие |
 | `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `VK_CLIENT_ID` | вход через Яндекс ID и VK ID; без них кнопки не показываются |
-| `BILLING_CONTACT_URL` | куда ведёт кнопка «Оформить подписку» |
+| `BILLING_CONTACT_URL` | куда ведут кнопки «Оформить подписку» и «Продлить подписку» |
 
 Redirect URI у провайдеров входа: `<PUBLIC_URL>/auth/callback/yandex` и `<PUBLIC_URL>/auth/callback/vk`.
 
