@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import SecretStr
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -77,3 +77,22 @@ class Settings(BaseSettings):
     max_files_per_work: int = 20
     max_pages_per_work: int = 40
     max_draft_bytes: int = 512 * 1024
+
+    @model_validator(mode="after")
+    def check_production(self) -> Self:
+        if self.app_env != "production":
+            return self
+        problems = []
+        if not self.cookie_secure:
+            problems.append("COOKIE_SECURE must be true")
+        if self.stand_enabled:
+            problems.append("STAND_ENABLED must be false")
+        if not self.public_url.startswith("https://"):
+            problems.append("PUBLIC_URL must use https")
+        if self.s3_secret_key.get_secret_value() == "upgrade-secret":
+            problems.append("S3_SECRET_KEY must be set")
+        if "upgrade:upgrade@" in self.database_url:
+            problems.append("DATABASE_URL must not use the development password")
+        if problems:
+            raise ValueError("; ".join(problems))
+        return self
