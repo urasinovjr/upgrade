@@ -68,4 +68,12 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr = SecretStr("upgrade-secret")
     s3_bucket: str = "upgrade-files"
     s3_create_bucket: bool = True
+    s3_connect_timeout: float = 5.0
+    s3_read_timeout: float = 30.0
+    s3_attempts: int = 2
     cleanup_job_attempts: int = 10
+
+    max_file_bytes: int = 20 * 1024 * 1024
+    max_files_per_work: int = 20
+    max_pages_per_work: int = 40
+    max_draft_bytes: int = 512 * 1024

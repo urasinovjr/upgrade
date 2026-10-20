@@ -45,7 +45,12 @@ class S3Storage:
                 region_name=settings.s3_region,
                 aws_access_key_id=settings.s3_access_key,
                 aws_secret_access_key=settings.s3_secret_key.get_secret_value(),
-                config=AioConfig(s3={"addressing_style": "path"}),
+                config=AioConfig(
+                    s3={"addressing_style": "path"},
+                    connect_timeout=settings.s3_connect_timeout,
+                    read_timeout=settings.s3_read_timeout,
+                    retries={"max_attempts": settings.s3_attempts, "mode": "standard"},
+                ),
             )
         )
         storage = cls(client, settings.s3_bucket, exit_stack)

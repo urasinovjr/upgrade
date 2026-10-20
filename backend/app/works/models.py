@@ -1,0 +1,91 @@
+from datetime import datetime
+from uuid import UUID, uuid4
+
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.database import Base, now_column
+
+STATUSES = ("preparation", "queued", "processing", "needs_input", "ready", "confirmed", "failed")
+
+
+def teacher_column() -> Mapped[UUID]:
+    return mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+
+class Work(Base):
+    __tablename__ = "works"
+    __table_args__ = (
+        UniqueConstraint("id", "teacher_id"),
+        ForeignKeyConstraint(
+            ["student_id", "teacher_id"],
+            ["students.id", "students.teacher_id"],
+            ondelete="CASCADE",
+        ),
+        CheckConstraint(
+            "status IN ('preparation', 'queued', 'processing', 'needs_input', 'ready', "
+            "'confirmed', 'failed')",
+            name="ck_works_status",
+        ),
+        Index("ix_works_teacher_created", "teacher_id", "created_at"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    teacher_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    student_id: Mapped[UUID]
+    title: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(16))
+    editing: Mapped[bool]
+    manual: Mapped[bool]
+    draft: Mapped[dict] = mapped_column(JSONB)
+    current_revision_id: Mapped[UUID | None]
+    analysis_job_id: Mapped[UUID | None]
+    created_at: Mapped[datetime] = now_column()
+
+
+class WorkFile(Base):
+    __tablename__ = "work_files"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["work_id", "teacher_id"], ["works.id", "works.teacher_id"], ondelete="CASCADE"
+        ),
+        CheckConstraint(
+            "content_type IN ('image/jpeg', 'image/png', 'application/pdf')",
+            name="ck_work_files_type",
+        ),
+        Index("ix_work_files_work_position", "work_id", "position"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    teacher_id: Mapped[UUID] = teacher_column()
+    work_id: Mapped[UUID]
+    position: Mapped[int]
+    name: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(32))
+    size: Mapped[int]
+    pages: Mapped[int]
+    page_order: Mapped[list] = mapped_column(JSONB)
+    crops: Mapped[dict] = mapped_column(JSONB)
+    storage_key: Mapped[str] = mapped_column(String(300), unique=True)
+    created_at: Mapped[datetime] = now_column()
+
+
+class WorkRevision(Base):
+    __tablename__ = "work_revisions"
+    __table_args__ = (UniqueConstraint("work_id", "number"),)
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    work_id: Mapped[UUID] = mapped_column(ForeignKey("works.id", ondelete="CASCADE"))
+    number: Mapped[int]
+    confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    draft: Mapped[dict] = mapped_column(JSONB)
+    attachments: Mapped[list] = mapped_column(JSONB)

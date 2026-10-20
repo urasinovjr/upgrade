@@ -73,7 +73,8 @@ async def engine():
         pytest.skip("PostgreSQL from docker compose is not running")
     test_engine = make_engine(TEST_DATABASE_URL, pool_size=10)
     async with test_engine.begin() as connection:
-        await connection.run_sync(Base.metadata.drop_all)
+        await connection.execute(text("DROP SCHEMA public CASCADE"))
+        await connection.execute(text("CREATE SCHEMA public"))
         await connection.run_sync(Base.metadata.create_all)
     yield test_engine
     await test_engine.dispose()

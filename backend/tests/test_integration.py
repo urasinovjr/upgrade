@@ -1,4 +1,5 @@
 import socket
+import time
 from email.message import EmailMessage
 from uuid import uuid4
 
@@ -58,3 +59,23 @@ async def test_smtp_mailer_delivers_to_mailpit():
     async with httpx.AsyncClient(trust_env=False) as http:
         response = await http.get(f"{MAILPIT_API}/search", params={"query": f"to:{recipient}"})
     assert response.json()["messages_count"] == 1
+
+
+async def test_unreachable_storage_fails_fast():
+    settings = Settings(
+        s3_endpoint_url="http://127.0.0.1:9",
+        s3_create_bucket=False,
+        s3_connect_timeout=0.5,
+        s3_read_timeout=0.5,
+        s3_attempts=1,
+    )
+    storage = await S3Storage.connect(settings)
+    started = time.perf_counter()
+    try:
+        with pytest.raises(StorageError) as error:
+            await storage.put("teachers/x/works/y/z", b"data", "image/png")
+    finally:
+        await storage.close()
+
+    assert error.value.code == "storage_unavailable"
+    assert time.perf_counter() - started < 5
