@@ -4,7 +4,16 @@ from uuid import uuid4
 
 from sqlalchemy import func, select, update
 
-from app.queue import Job, claim_job, complete_job, enqueue, fail_stuck_jobs, retry_or_fail
+from app.queue import (
+    Job,
+    claim_job,
+    complete_job,
+    defer_job,
+    deferral_delay,
+    enqueue,
+    fail_stuck_jobs,
+    retry_or_fail,
+)
 from app.stand import StandResult, accept_work
 from tests.conftest import work_data
 
@@ -115,3 +124,34 @@ async def test_completed_job_keeps_new_payload(sessions):
     stored = await load(sessions, job.id)
     assert stored.status == "done"
     assert stored.payload == {"template": "confirm"}
+
+
+async def test_deferred_job_keeps_its_attempt(sessions):
+    job = await add_job(sessions, "upload-1", max_attempts=1)
+    claimed = await claim(sessions)
+
+    async with sessions() as session:
+        await defer_job(session, claimed, "provider_rate_limited", 0.01)
+    stored = await load(sessions, job.id)
+    await asyncio.sleep(0.05)
+    again = await claim(sessions)
+
+    assert (stored.status, stored.attempts, stored.deferrals) == ("retrying", 0, 1)
+    assert stored.last_error == "provider_rate_limited"
+    assert (again.id, again.attempts) == (job.id, 1)
+
+
+async def test_skipped_kinds_are_left_in_the_queue(sessions):
+    job = await add_job(sessions, "upload-1")
+
+    async with sessions() as session:
+        assert await claim_job(session, lease_seconds=5, skip_kinds=(job.kind,)) is None
+    assert (await claim(sessions)).id == job.id
+
+
+def test_deferral_delay_grows_up_to_the_cap():
+    delays = [deferral_delay(number, 5, 120) for number in range(1, 10)]
+
+    assert 3.75 <= delays[0] <= 6.25
+    assert all(delay <= 150 for delay in delays)
+    assert delays[-1] >= 90

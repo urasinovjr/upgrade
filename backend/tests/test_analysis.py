@@ -203,6 +203,30 @@ async def test_refused_credentials_fail_without_retries(
     assert (await read_work(teacher, work["id"]))["status"] == "failed"
 
 
+async def test_rate_limit_defers_without_spending_attempts(
+    teacher, sessions, test_settings, storage
+):
+    settings = test_settings.model_copy(update={"job_attempts": 1, "rate_limit_deferrals": 1})
+    work = await checked_work(teacher, await create_student(teacher))
+    async with sessions() as session:
+        stored = await session.get(Work, UUID(work["id"]))
+        await start_analysis(session, settings, stored)
+        await session.commit()
+    provider = FakeDraftProvider(2, error="provider_rate_limited")
+
+    job = await run_next_job(sessions, settings, storage, provider)
+    async with sessions() as session:
+        deferred = await session.get(Job, job.id)
+    await retry_now(sessions, job)
+    await run_next_job(sessions, settings, storage, provider)
+    async with sessions() as session:
+        exhausted = await session.get(Job, job.id)
+
+    assert (deferred.status, deferred.attempts, deferred.deferrals) == ("retrying", 0, 1)
+    assert (await read_work(teacher, work["id"]))["status"] == "failed"
+    assert (exhausted.status, exhausted.last_error) == ("failed", "provider_rate_limited")
+
+
 async def test_missing_file_fails_the_attempt(teacher, sessions, test_settings, storage):
     queued = await queued_work(teacher)
     storage.objects.clear()

@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
+from collections import Counter
+from collections.abc import Awaitable, Callable, Iterable
 
 from app.analysis import WORK_ANALYSIS_JOB, handle_work_analysis, mark_analysis_failed
 from app.analysis.providers import make_provider
@@ -17,6 +18,8 @@ from app.queue import (
     JobFailure,
     WorkerContext,
     claim_job,
+    defer_job,
+    deferral_delay,
     extend_lease,
     fail_stuck_jobs,
     retry_or_fail,
@@ -64,9 +67,18 @@ async def handle_job(context: WorkerContext, job: Job) -> None:
         await handler(context, job)
         logger.info("job_done", extra=job_fields(job))
     except JobFailure as error:
+        settings = context.settings
+        if error.deferred and job.deferrals < settings.rate_limit_deferrals:
+            delay = deferral_delay(
+                job.deferrals + 1, settings.rate_limit_delay, settings.rate_limit_max_delay
+            )
+            async with context.sessions() as session:
+                await defer_job(session, job, error.code, delay)
+            logger.info("job_deferred", extra={**job_fields(job), "error": error.code})
+            return
         async with context.sessions() as session:
             failed = await retry_or_fail(
-                session, job, error.code, context.settings.retry_delay, error.retryable
+                session, job, error.code, settings.retry_delay, error.retryable
             )
         logger.info("job_retry", extra={**job_fields(job), "error": error.code, "failed": failed})
         if failed:
@@ -83,12 +95,18 @@ async def fail_abandoned_jobs(context: WorkerContext) -> None:
         await report_failure(context, job)
 
 
+def full_kinds(running: Iterable[str], limits: dict[str, int]) -> tuple[str, ...]:
+    counts = Counter(running)
+    return tuple(kind for kind, limit in limits.items() if counts[kind] >= limit)
+
+
 async def run_worker(context: WorkerContext) -> None:
     slots = asyncio.Semaphore(context.settings.worker_concurrency)
-    running: set[asyncio.Task] = set()
+    limits = {WORK_ANALYSIS_JOB: context.settings.analysis_concurrency}
+    running: dict[asyncio.Task, str] = {}
 
     def on_done(task: asyncio.Task) -> None:
-        running.discard(task)
+        running.pop(task, None)
         slots.release()
         if not task.cancelled() and task.exception():
             logger.error("job_crashed", exc_info=task.exception())
@@ -96,14 +114,16 @@ async def run_worker(context: WorkerContext) -> None:
     while True:
         await slots.acquire()
         async with context.sessions() as session:
-            job = await claim_job(session, context.settings.lease_seconds)
+            job = await claim_job(
+                session, context.settings.lease_seconds, full_kinds(running.values(), limits)
+            )
         if job is None:
             slots.release()
             await fail_abandoned_jobs(context)
             await asyncio.sleep(context.settings.poll_seconds)
             continue
         task = asyncio.create_task(handle_job(context, job))
-        running.add(task)
+        running[task] = job.kind
         task.add_done_callback(on_done)
 
 

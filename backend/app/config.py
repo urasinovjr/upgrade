@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     lease_seconds: float = 5.0
     heartbeat_seconds: float = 1.5
     worker_concurrency: int = 16
+    analysis_concurrency: int = 1
+    rate_limit_delay: float = 5.0
+    rate_limit_max_delay: float = 120.0
+    rate_limit_deferrals: int = 20
     poll_seconds: float = 0.2
     stand_enabled: bool = True
     log_format: Literal["json", "text"] = "json"

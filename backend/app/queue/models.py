@@ -22,6 +22,7 @@ class Job(Base):
     dedupe_key: Mapped[str | None] = mapped_column(String(128), unique=True)
     status: Mapped[str] = mapped_column(String(16), default="queued")
     attempts: Mapped[int] = mapped_column(default=0)
+    deferrals: Mapped[int] = mapped_column(default=0)
     max_attempts: Mapped[int]
     run_after: Mapped[datetime] = now_column()
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

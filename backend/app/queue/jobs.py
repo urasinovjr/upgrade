@@ -10,10 +10,11 @@ from app.queue.retry import retry_delay
 
 
 class JobFailure(Exception):
-    def __init__(self, code: str, retryable: bool = True):
+    def __init__(self, code: str, retryable: bool = True, deferred: bool = False):
         super().__init__(code)
         self.code = code
         self.retryable = retryable
+        self.deferred = deferred
 
 
 def seconds_from_now(seconds: float):
@@ -47,7 +48,9 @@ async def enqueue(
     return job
 
 
-async def claim_job(session: AsyncSession, lease_seconds: float) -> Job | None:
+async def claim_job(
+    session: AsyncSession, lease_seconds: float, skip_kinds: tuple[str, ...] = ()
+) -> Job | None:
     now = func.clock_timestamp()
     waiting = and_(Job.status.in_(["queued", "retrying"]), Job.run_after <= now)
     abandoned = and_(
@@ -55,7 +58,7 @@ async def claim_job(session: AsyncSession, lease_seconds: float) -> Job | None:
     )
     query = (
         select(Job)
-        .where(or_(waiting, abandoned))
+        .where(or_(waiting, abandoned), Job.kind.not_in(skip_kinds))
         .order_by(Job.run_after)
         .limit(1)
         .with_for_update(skip_locked=True)
@@ -105,6 +108,22 @@ async def retry_or_fail(
     )
     await session.commit()
     return failed
+
+
+async def defer_job(session: AsyncSession, job: Job, error_code: str, delay: float) -> None:
+    await session.execute(
+        update(Job)
+        .where(Job.id == job.id, Job.status == "running")
+        .values(
+            status="retrying",
+            attempts=Job.attempts - 1,
+            deferrals=Job.deferrals + 1,
+            run_after=seconds_from_now(delay),
+            last_error=error_code,
+            lease_until=None,
+        )
+    )
+    await session.commit()
 
 
 async def fail_stuck_jobs(session: AsyncSession) -> list[Job]:

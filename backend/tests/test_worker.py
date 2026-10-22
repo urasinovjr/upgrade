@@ -2,7 +2,7 @@ from sqlalchemy import select
 
 from app.queue import Job, claim_job
 from app.stand import StandResult, accept_work
-from app.worker import handle_job
+from app.worker import full_kinds, handle_job
 from tests.conftest import FakeProvider, work_data, worker_context
 
 
@@ -46,3 +46,10 @@ async def test_worker_fails_job_on_last_attempt(sessions, test_settings):
     async with sessions() as session:
         stored = await session.get(Job, job.id)
     assert stored.status == "failed"
+
+
+def test_full_kinds_are_skipped_until_a_slot_frees():
+    limits = {"work_analysis": 1}
+
+    assert full_kinds(["send_email"], limits) == ()
+    assert full_kinds(["work_analysis", "send_email"], limits) == ("work_analysis",)

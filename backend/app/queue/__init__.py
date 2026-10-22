@@ -3,13 +3,14 @@ from app.queue.jobs import (
     JobFailure,
     claim_job,
     complete_job,
+    defer_job,
     enqueue,
     extend_lease,
     fail_stuck_jobs,
     retry_or_fail,
 )
 from app.queue.models import Job
-from app.queue.retry import retry_delay
+from app.queue.retry import deferral_delay, retry_delay
 
 __all__ = [
     "Job",
@@ -17,6 +18,8 @@ __all__ = [
     "WorkerContext",
     "claim_job",
     "complete_job",
+    "defer_job",
+    "deferral_delay",
     "enqueue",
     "extend_lease",
     "fail_stuck_jobs",

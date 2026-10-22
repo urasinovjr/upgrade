@@ -143,8 +143,11 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
     try:
         draft = await build_draft(context.analysis_provider, source, context.settings, record)
     except ProviderError as error:
-        retryable = error.code not in FINAL_PROVIDER_ERRORS
-        raise JobFailure(error.code, retryable=retryable) from error
+        raise JobFailure(
+            error.code,
+            retryable=error.code not in FINAL_PROVIDER_ERRORS,
+            deferred=error.code == "provider_rate_limited",
+        ) from error
     except InvalidReply as error:
         logger.info(
             "analysis_invalid_reply",

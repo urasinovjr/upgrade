@@ -95,6 +95,8 @@ services:
     image: upgrade-backend
     command: python -m app.worker
     environment: *backend-environment
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
     depends_on:
       api:
         condition: service_healthy
