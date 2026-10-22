@@ -29,7 +29,7 @@ function palette() {
     muted: token("muted", "#5f6578"),
     line: token("line", "#e4e6e1"),
     bg: token("bg", "#f5f6f3"),
-    pencilSoft: token("pencil-soft", "#eff0f2"),
+    markerSoft: token("marker-soft", "#eef9c4"),
     warningSoft: token("warning-soft", "#fbf1df"),
     tones,
   };
@@ -162,12 +162,12 @@ export async function downloadReport(report: Report) {
               text: "Что повторить" + (topic ? " · " + topic.name : ""),
               bold: true,
               fontSize: 11,
-              color: colors.tones.pencil,
+              color: colors.ink,
               margin: [0, 0, 0, 4],
             },
             { text: gap.reason, color: colors.text },
           ],
-          colors.pencilSoft,
+          colors.markerSoft,
         ),
       );
     }

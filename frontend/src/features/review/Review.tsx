@@ -13,7 +13,8 @@ import {
   Pencil,
   Plus,
   ShieldCheck,
-  Sparkles,
+  PenLine,
+  PencilLine,
 } from "lucide-react";
 import { topics } from "../../data/fixtures";
 import { serverMode } from "../../data/gateway";
@@ -168,9 +169,13 @@ function GapSection({
   const toggle = (decision: "confirmed" | "rejected") =>
     onChange({ ...gap, decision: gap.decision === decision ? "hypothesis" : decision });
   return (
-    <section className="dp-gap-proposal">
+    <section className="dp-gap-proposal" data-decision={gap.decision}>
       <h3>
-        <Sparkles size={14} aria-hidden="true" />
+        {gap.decision === "confirmed" ? (
+          <PenLine size={14} aria-hidden="true" />
+        ) : (
+          <PencilLine size={14} aria-hidden="true" />
+        )}
         Тема для повторения · {topic?.name ?? "Тема не найдена"}
       </h3>
       <p className={gap.reason.trim() ? undefined : "dp-gap-empty"}>
@@ -180,6 +185,7 @@ function GapSection({
         <>
           <div className="dp-inline-actions">
             <button
+              className="dp-gap-confirm"
               aria-pressed={gap.decision === "confirmed"}
               disabled={busy}
               onClick={() => toggle("confirmed")}
@@ -626,7 +632,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                   setGapEdit(true);
                 }}
               >
-                <Sparkles size={14} />
+                <PencilLine size={14} />
                 Добавить тему для повторения
               </button>
             )

@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Target } from "lucide-react";
 import type { DashboardSummary } from "../../../domain/dashboard";
 import { Avatar } from "../../../shared/ui";
 import { topicMapLink } from "../../knowledge/links";
@@ -8,7 +8,7 @@ export function Focus({ summary }: { summary: DashboardSummary }) {
   return (
     <aside className="dp-recs" aria-labelledby="recs-title">
       <h2 id="recs-title">
-        <Sparkles size={14} aria-hidden="true" />
+        <Target size={14} aria-hidden="true" />
         Фокус на ученике
         {!!summary.openGaps && <span className="dp-count">{summary.openGaps}</span>}
       </h2>

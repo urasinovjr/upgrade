@@ -11,7 +11,7 @@ import {
   History,
   LoaderCircle,
   ShieldCheck,
-  Sparkles,
+  Target,
 } from "lucide-react";
 import { gateway } from "../../data/gateway";
 import { topics } from "../../data/fixtures";
@@ -229,7 +229,7 @@ export default function Report() {
                       {task.gap?.decision === "confirmed" && (
                         <div className="dp-report-recommendation">
                           <h4>
-                            <Sparkles size={14} aria-hidden="true" />
+                            <Target size={14} aria-hidden="true" />
                             Что повторить{topic ? " · " + topic.name : ""}
                           </h4>
                           <p>{task.gap.reason}</p>

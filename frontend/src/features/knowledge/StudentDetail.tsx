@@ -9,7 +9,7 @@ import {
   Pencil,
   Plus,
   RotateCcw,
-  Sparkles,
+  Target,
 } from "lucide-react";
 import type { Closure, Evidence, StoreState, Student, StudentGap } from "../../domain/models";
 import { currentRevision, deriveGaps } from "../../domain/review";
@@ -267,7 +267,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
             </Title>
             {next && (
               <span className="dp-student-next">
-                <Sparkles size={12} aria-hidden="true" />
+                <Target size={12} aria-hidden="true" />
                 Следующий шаг
               </span>
             )}

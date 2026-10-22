@@ -101,7 +101,7 @@
   transition: box-shadow var(--ug-dur-fast);
 }
 .dp-student-topic.is-open .dp-student-topic-bar {
-  background: var(--ug-warning);
+  background: var(--ug-danger);
   box-shadow: none;
 }
 .dp-student-topic.is-closed .dp-student-topic-bar {
@@ -246,8 +246,9 @@
 }
 .dp-closure-note {
   margin: var(--ug-space-2) 0 0;
-  padding-left: var(--ug-space-3);
-  border-left: 2px solid var(--ug-success-line);
+  padding: var(--ug-space-2) var(--ug-space-3);
+  border-radius: var(--ug-radius-sm);
+  background: var(--ug-success-soft);
   color: var(--ug-text);
 }
 .dp-app .dp-closure-date {
@@ -523,8 +524,9 @@
     fill var(--ug-dur-fast);
 }
 .dp-map-node.is-gap-open .dp-map-box {
-  fill: var(--ug-warning-soft);
-  stroke: var(--ug-warning-line);
+  fill: var(--ug-danger-soft);
+  stroke: var(--ug-danger);
+  stroke-width: 2;
 }
 .dp-map-node.is-gap-closed .dp-map-box {
   fill: var(--ug-success-soft);

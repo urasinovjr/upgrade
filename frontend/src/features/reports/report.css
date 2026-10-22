@@ -23,7 +23,7 @@
 }
 .dp-report-canvas {
   padding: var(--ug-space-7) var(--ug-space-6) var(--ug-space-8);
-  background: var(--ug-soft);
+  background: var(--ug-bg);
 }
 .dp-report-window[data-mode="expanded"] .dp-report-canvas {
   min-height: 100%;
@@ -45,15 +45,14 @@
   margin-bottom: var(--ug-space-7);
 }
 .dp-report-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ug-space-2);
-  font-weight: 600;
+  font-size: 16px;
 }
 .dp-report-sheet > h2 {
+  font-family: var(--ug-font-display);
   font-size: var(--ug-fs-h1);
   line-height: var(--ug-lh-h1);
-  letter-spacing: -0.9px;
+  letter-spacing: var(--ug-tracking-display);
+  font-weight: 700;
 }
 .dp-report-student {
   display: flex;
@@ -125,9 +124,8 @@
 }
 .dp-report-step:not(.is-correct) {
   margin: var(--ug-space-2) 0;
-  padding: var(--ug-space-3) var(--ug-space-3) var(--ug-space-3) var(--ug-space-4);
+  padding: var(--ug-space-3);
   border: 1px solid color-mix(in oklab, var(--ug-tone) 22%, var(--ug-surface));
-  border-left: 3px solid var(--ug-tone);
   border-radius: var(--ug-radius-md);
   background: var(--ug-tone-soft);
 }
@@ -145,7 +143,11 @@
   font-variant-numeric: tabular-nums;
 }
 .dp-report-step:not(.is-correct) .dp-report-step-number {
-  background: var(--ug-surface);
+  border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--ug-tone);
+  color: var(--ug-tone);
+  font-weight: 700;
 }
 .dp-report-verdict {
   grid-area: verdict;
@@ -194,11 +196,10 @@
   color: var(--ug-text);
 }
 .dp-report-recommendation {
-  border: 1px solid var(--ug-pencil-line);
-  background: var(--ug-pencil-soft);
+  background: var(--ug-marker-soft);
 }
 .dp-app .dp-report-recommendation h4 {
-  color: var(--ug-pencil-strong);
+  color: var(--ug-ink);
 }
 .dp-report-note {
   display: flex;

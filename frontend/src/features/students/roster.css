@@ -149,7 +149,7 @@
   transform: scaleY(1.34);
 }
 .dp-topic-cell.is-gap {
-  background: var(--ug-warning);
+  background: var(--ug-danger);
   box-shadow: none;
 }
 .dp-topic-cell.is-closed {
@@ -157,8 +157,12 @@
   box-shadow: none;
 }
 .dp-topic-cell.is-path {
-  background: var(--ug-pencil-soft);
-  box-shadow: inset 0 0 0 1px var(--ug-pencil);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--ug-surface) 0 4px,
+    var(--ug-danger-line) 4px 7px
+  );
+  box-shadow: inset 0 0 0 1px var(--ug-danger);
 }
 .dp-roster-chevron {
   grid-area: chevron;

@@ -7,7 +7,7 @@ import {
   History,
   LayoutList,
   PieChart,
-  Sparkles,
+  Crosshair,
   SquareCheckBig,
   Target,
   TableProperties,
@@ -81,7 +81,7 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   focus: {
     title: "Фокус на ученике",
     description: "Открытые пробелы: что повторить с учеником дальше.",
-    Icon: Sparkles,
+    Icon: Crosshair,
     skeletonHeight: 240,
     divider: false,
     render: ({ summary }) => <Focus summary={summary} />,

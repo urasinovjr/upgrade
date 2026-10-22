@@ -10,7 +10,7 @@ export const topicStatus: Record<
   TopicState,
   { key: TopicState; label: string; tone: Tone; Icon: LucideIcon }
 > = {
-  open: { key: "open", label: topicStatusLabel.gap, tone: "warning", Icon: Target },
+  open: { key: "open", label: topicStatusLabel.gap, tone: "danger", Icon: Target },
   closed: { key: "closed", label: topicStatusLabel.closed, tone: "success", Icon: CircleCheck },
   none: { key: "none", label: topicStatusLabel.none, tone: "neutral", Icon: Circle },
 };
