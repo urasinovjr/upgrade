@@ -14,7 +14,7 @@ from app.provider import Provider, ProviderError
 from app.queue import WorkerContext
 from app.stand import WorkCreate
 from tests.accounts import sign_up
-from tests.fakes import FakeOAuth, MemoryMailer, MemoryStorage
+from tests.fakes import FakeDraftProvider, FakeOAuth, MemoryMailer, MemoryStorage
 
 ROOT = Path(__file__).resolve().parent.parent
 ADMIN_URL = os.environ.get(
@@ -105,6 +105,7 @@ def worker_context(
     provider: Provider | None = None,
     storage: MemoryStorage | None = None,
     mailer: MemoryMailer | None = None,
+    analysis_provider: FakeDraftProvider | None = None,
 ) -> WorkerContext:
     return WorkerContext(
         sessions,
@@ -112,6 +113,7 @@ def worker_context(
         settings,
         storage or MemoryStorage(),
         mailer or MemoryMailer(),
+        analysis_provider or FakeDraftProvider(),
     )
 
 

@@ -1,12 +1,22 @@
+import json
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import load_only
 
+from app.config import Settings
 from app.errors import DomainError
 from app.queue import Job
-from app.works.models import Work, WorkFile, WorkRevision
-from app.works.schemas import AttachmentOut, Draft, PublishedRevision, WorkJob, WorkOut
+from app.works.models import AnalysisRun, Work, WorkFile, WorkRevision
+from app.works.schemas import (
+    AnalysisInfo,
+    AttachmentOut,
+    Draft,
+    PublishedRevision,
+    WorkJob,
+    WorkOut,
+)
 
 
 def dump(model) -> dict:
@@ -15,6 +25,10 @@ def dump(model) -> dict:
 
 def read_draft(work: Work) -> Draft:
     return Draft.model_validate(work.draft)
+
+
+def draft_too_large(draft: Draft, settings: Settings) -> bool:
+    return len(json.dumps(dump(draft), ensure_ascii=False).encode()) > settings.max_draft_bytes
 
 
 async def owned_work(
@@ -55,13 +69,52 @@ def attachment_out(file: WorkFile) -> AttachmentOut:
     )
 
 
-def revision_out(revision: WorkRevision) -> PublishedRevision:
+async def runs_by_id(session: AsyncSession, run_ids: list[UUID]) -> dict[UUID, AnalysisRun]:
+    if not run_ids:
+        return {}
+    rows = await session.scalars(
+        select(AnalysisRun)
+        .where(AnalysisRun.id.in_(run_ids))
+        .options(
+            load_only(
+                AnalysisRun.id,
+                AnalysisRun.provider,
+                AnalysisRun.model,
+                AnalysisRun.prompt_version,
+                AnalysisRun.draft,
+                AnalysisRun.created_at,
+            )
+        )
+    )
+    return {run.id: run for run in rows}
+
+
+def analysis_info(run: AnalysisRun | None) -> AnalysisInfo | None:
+    if run is None:
+        return None
+    return AnalysisInfo(
+        run_id=run.id,
+        provider=run.provider,
+        model=run.model,
+        prompt_version=run.prompt_version,
+        finished_at=run.created_at,
+    )
+
+
+def initial_analysis(run: AnalysisRun | None) -> Draft | None:
+    if run is None or run.draft is None:
+        return None
+    return Draft.model_validate(run.draft)
+
+
+def revision_out(revision: WorkRevision, run: AnalysisRun | None = None) -> PublishedRevision:
     return PublishedRevision(
         id=revision.id,
         number=revision.number,
         confirmed_at=revision.confirmed_at,
         draft=Draft.model_validate(revision.draft),
         attachments=revision.attachments,
+        analysis=analysis_info(run),
     )
 
 
@@ -79,8 +132,14 @@ def job_out(job: Job | None) -> WorkJob | None:
 
 
 def work_out(
-    work: Work, files: list[WorkFile], revisions: list[WorkRevision], job: Job | None = None
+    work: Work,
+    files: list[WorkFile],
+    revisions: list[WorkRevision],
+    job: Job | None = None,
+    runs: dict[UUID, AnalysisRun] | None = None,
 ) -> WorkOut:
+    runs = runs or {}
+    run = runs.get(work.analysis_run_id)
     return WorkOut(
         id=work.id,
         student_id=work.student_id,
@@ -89,11 +148,15 @@ def work_out(
         status=work.status,
         attachments=[attachment_out(file) for file in files],
         draft=read_draft(work),
-        published=[revision_out(revision) for revision in revisions],
+        published=[
+            revision_out(revision, runs.get(revision.analysis_run_id)) for revision in revisions
+        ],
         current_published_id=work.current_revision_id,
         editing=work.editing,
         manual=work.manual,
         job=job_out(job),
+        initial_analysis=initial_analysis(run),
+        analysis=analysis_info(run),
     )
 
 
@@ -103,12 +166,16 @@ async def describe_works(session: AsyncSession, works: list[Work]) -> list[WorkO
     revisions = await revisions_of(session, work_ids)
     job_ids = [work.analysis_job_id for work in works if work.analysis_job_id]
     jobs = {job.id: job for job in await session.scalars(select(Job).where(Job.id.in_(job_ids)))}
+    run_ids = [work.analysis_run_id for work in works if work.analysis_run_id]
+    run_ids += [revision.analysis_run_id for revision in revisions if revision.analysis_run_id]
+    runs = await runs_by_id(session, run_ids)
     return [
         work_out(
             work,
             [file for file in files if file.work_id == work.id],
             [revision for revision in revisions if revision.work_id == work.id],
             jobs.get(work.analysis_job_id) if work.analysis_job_id else None,
+            runs,
         )
         for work in works
     ]

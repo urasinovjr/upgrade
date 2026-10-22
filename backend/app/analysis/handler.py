@@ -1,7 +1,24 @@
-from app.analysis.service import apply_outcome
+import logging
+from dataclasses import asdict
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.analysis.contract import FileSource, InvalidReply
+from app.analysis.drafting import layout_signature
+from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft
+from app.analysis.service import accept_draft, mark_failed
+from app.files.storage import Storage, StorageError
 from app.provider import ProviderError
 from app.queue import Job, JobFailure, WorkerContext, complete_job
-from app.works.models import Work
+from app.works.models import AnalysisRun, Work, WorkFile
+from app.works.schemas import Draft
+from app.works.service import files_of, read_draft
+
+logger = logging.getLogger("analysis")
+
+INVALID_REPLY = "provider_invalid_response"
 
 
 async def current_work(session, job: Job) -> Work | None:
@@ -11,31 +28,101 @@ async def current_work(session, job: Job) -> Work | None:
     return work
 
 
-async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
+async def last_layout(session: AsyncSession, work_id: UUID) -> list[dict] | None:
+    run_input = await session.scalar(
+        select(AnalysisRun.input)
+        .where(AnalysisRun.work_id == work_id, AnalysisRun.status == "succeeded")
+        .order_by(AnalysisRun.created_at.desc())
+        .limit(1)
+    )
+    return run_input["layout"] if run_input else None
+
+
+async def read_file(storage: Storage, file: WorkFile) -> FileSource:
+    chunks = [chunk async for chunk in await storage.open(file.storage_key)]
+    return FileSource(
+        file_id=str(file.id),
+        content_type=file.content_type,
+        data=b"".join(chunks),
+        page_order=file.page_order,
+    )
+
+
+async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | None:
     async with context.sessions() as session:
         work = await current_work(session, job)
         if work is None:
             await complete_job(session, job.id)
             await session.commit()
-            return
+            return None
         work.status = "processing"
+        files = await files_of(session, [work.id])
+        draft = read_draft(work)
+        previous_layout = await last_layout(session, work.id)
         await session.commit()
     try:
-        text = await context.provider.recognize(str(job.subject_id), job.payload["pages"])
-        await context.provider.analyze(str(job.subject_id), text)
+        sources = [await read_file(context.storage, file) for file in files]
+    except StorageError as error:
+        raise JobFailure(error.code) from error
+    return AnalysisSource(
+        input_revision=job.payload["input_revision"],
+        draft=draft,
+        files=sources,
+        layout=layout_signature(files),
+        last_layout=previous_layout,
+    )
+
+
+async def save_run(
+    context: WorkerContext, job: Job, record: RunRecord, draft: Draft | None, error: str | None
+) -> None:
+    async with context.sessions() as session:
+        work = await session.get(Work, job.subject_id, with_for_update=True)
+        if work is not None:
+            run = AnalysisRun(
+                work_id=work.id,
+                job_id=job.id,
+                input_revision=job.payload["input_revision"],
+                status="failed" if error else "succeeded",
+                error=error,
+                **asdict(record),
+            )
+            session.add(run)
+            await session.flush()
+            if draft is not None and work.analysis_job_id == job.id:
+                accept_draft(work, draft, run.id, job.payload["input_revision"])
+            logger.info(
+                "analysis_run work=%s run=%s error=%s recognize_ms=%s review_ms=%s",
+                work.id,
+                run.id,
+                error,
+                record.recognize_ms,
+                record.review_ms,
+            )
+        if draft is not None:
+            await complete_job(session, job.id)
+        await session.commit()
+
+
+async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
+    source = await begin_analysis(context, job)
+    if source is None:
+        return
+    record = RunRecord()
+    try:
+        draft = await build_draft(context.analysis_provider, source, context.settings, record)
     except ProviderError as error:
         raise JobFailure(error.code) from error
-    async with context.sessions() as session:
-        work = await current_work(session, job)
-        if work is not None:
-            apply_outcome(work, job.payload["input_revision"], succeeded=True)
-        await complete_job(session, job.id)
-        await session.commit()
+    except InvalidReply as error:
+        logger.info("analysis_invalid_reply work=%s reason=%s", job.subject_id, error.reason)
+        await save_run(context, job, record, None, INVALID_REPLY)
+        raise JobFailure(INVALID_REPLY) from error
+    await save_run(context, job, record, draft, None)
 
 
 async def mark_analysis_failed(context: WorkerContext, job: Job) -> None:
     async with context.sessions() as session:
         work = await current_work(session, job)
         if work is not None:
-            apply_outcome(work, job.payload["input_revision"], succeeded=False)
+            mark_failed(work)
             await session.commit()

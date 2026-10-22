@@ -49,6 +49,7 @@ class Work(Base):
     draft: Mapped[dict] = mapped_column(JSONB)
     current_revision_id: Mapped[UUID | None]
     analysis_job_id: Mapped[UUID | None]
+    analysis_run_id: Mapped[UUID | None]
     created_at: Mapped[datetime] = now_column()
 
 
@@ -89,3 +90,29 @@ class WorkRevision(Base):
     confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     draft: Mapped[dict] = mapped_column(JSONB)
     attachments: Mapped[list] = mapped_column(JSONB)
+    analysis_run_id: Mapped[UUID | None]
+
+
+class AnalysisRun(Base):
+    __tablename__ = "analysis_runs"
+    __table_args__ = (
+        CheckConstraint("status IN ('succeeded', 'failed')", name="ck_analysis_runs_status"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    work_id: Mapped[UUID] = mapped_column(ForeignKey("works.id", ondelete="CASCADE"), index=True)
+    job_id: Mapped[UUID]
+    input_revision: Mapped[int]
+    recognized: Mapped[bool]
+    status: Mapped[str] = mapped_column(String(16))
+    error: Mapped[str | None] = mapped_column(String(64))
+    provider: Mapped[str] = mapped_column(String(64))
+    model: Mapped[str] = mapped_column(String(64))
+    prompt_version: Mapped[str] = mapped_column(String(64))
+    input: Mapped[dict] = mapped_column(JSONB)
+    recognition: Mapped[dict | None] = mapped_column(JSONB)
+    review: Mapped[dict | None] = mapped_column(JSONB)
+    draft: Mapped[dict | None] = mapped_column(JSONB)
+    recognize_ms: Mapped[int | None]
+    review_ms: Mapped[int | None]
+    created_at: Mapped[datetime] = now_column()

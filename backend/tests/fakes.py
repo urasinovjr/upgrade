@@ -2,8 +2,10 @@ from collections.abc import AsyncIterator
 from email.message import EmailMessage
 
 from app.access.oauth_client import OAuthError, OAuthProfile
+from app.analysis.contract import FileSource, ProviderReply, ReviewTask, TaskInput
 from app.files import StorageError
 from app.mail import MailError
+from app.provider import ProviderError
 
 
 class MemoryStorage:
@@ -70,3 +72,45 @@ class FakeOAuth:
         if code not in self.profiles:
             raise OAuthError(provider)
         return self.profiles[code]
+
+
+def correct_task(task: ReviewTask) -> dict:
+    steps = [{"id": step.id, "verdict": "correct", "explanation": ""} for step in task.steps]
+    return {
+        "task_id": task.id,
+        "supported": True,
+        "topic_id": "equations",
+        "steps": steps,
+        "feedback": "Решение верное.",
+    }
+
+
+class FakeDraftProvider:
+    def __init__(self, failures: int = 0, invalid: int = 0):
+        self.failures = failures
+        self.invalid = invalid
+        self.recognized: list[tuple[list[FileSource], list[TaskInput]]] = []
+        self.reviewed: list[list[ReviewTask]] = []
+
+    def reply(self, raw: dict) -> ProviderReply:
+        return ProviderReply(raw=raw, provider="fake", model="fake-model", prompt_version="test-1")
+
+    async def recognize(self, files: list[FileSource], tasks: list[TaskInput]) -> ProviderReply:
+        self.recognized.append((files, tasks))
+        if self.failures > 0:
+            self.failures -= 1
+            raise ProviderError("provider_unavailable")
+        steps = [{"latex": "x=\\pm 2", "legible": True}]
+        return self.reply(
+            {"tasks": [{"task_id": task.id, "matched": True, "steps": steps} for task in tasks]}
+        )
+
+    async def review(self, tasks: list[ReviewTask]) -> ProviderReply:
+        self.reviewed.append(tasks)
+        if self.invalid > 0:
+            self.invalid -= 1
+            return self.reply({"tasks": "broken"})
+        return self.reply({"tasks": [correct_task(task) for task in tasks]})
+
+    async def close(self) -> None:
+        pass

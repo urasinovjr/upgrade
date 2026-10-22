@@ -9,6 +9,7 @@ from app.config import Settings
 from app.provider import Provider
 
 if TYPE_CHECKING:
+    from app.analysis.contract import DraftProvider
     from app.files.storage import Storage
     from app.mail.mailer import Mailer
 
@@ -20,3 +21,4 @@ class WorkerContext:
     settings: Settings
     storage: Storage
     mailer: Mailer
+    analysis_provider: DraftProvider

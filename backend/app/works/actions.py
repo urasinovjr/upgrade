@@ -1,4 +1,3 @@
-import json
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -15,11 +14,13 @@ from app.works.schemas import AttachmentLayout, Draft, ReportOut
 from app.works.service import (
     attachment_out,
     describe_work,
+    draft_too_large,
     dump,
     files_of,
     owned_work,
     read_draft,
     revision_out,
+    runs_by_id,
 )
 
 
@@ -31,7 +32,7 @@ def require_editable(work: Work) -> None:
 
 
 def check_draft_size(draft: Draft, settings: Settings) -> None:
-    if len(json.dumps(dump(draft), ensure_ascii=False).encode()) > settings.max_draft_bytes:
+    if draft_too_large(draft, settings):
         raise DomainError("draft_too_large")
 
 
@@ -114,6 +115,7 @@ async def confirm(session: AsyncSession, work: Work) -> None:
         confirmed_at=datetime.now(UTC),
         draft=work.draft,
         attachments=[dump(attachment_out(file)) for file in files],
+        analysis_run_id=work.analysis_run_id,
     )
     session.add(revision)
     await session.flush()
@@ -177,10 +179,11 @@ async def read_report(
     if revision is None:
         raise DomainError("revision_not_found")
     student = await owned_student(session, teacher_id, work.student_id)
+    runs = await runs_by_id(session, [revision.analysis_run_id] if revision.analysis_run_id else [])
     return ReportOut(
         work=await describe_work(session, work),
         student=StudentOut.model_validate(student),
-        revision=revision_out(revision),
+        revision=revision_out(revision, runs.get(revision.analysis_run_id)),
     )
 
 

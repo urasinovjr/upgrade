@@ -64,12 +64,21 @@ class AttachmentOut(ApiModel):
     crops: dict[str, CropRect]
 
 
+class AnalysisInfo(ApiModel):
+    run_id: UUID
+    provider: str
+    model: str
+    prompt_version: str
+    finished_at: datetime
+
+
 class PublishedRevision(ApiModel):
     id: UUID
     number: int
     confirmed_at: datetime
     draft: Draft
     attachments: list[AttachmentOut]
+    analysis: AnalysisInfo | None = None
 
 
 class WorkJob(ApiModel):
@@ -94,6 +103,8 @@ class WorkOut(ApiModel):
     editing: bool
     manual: bool
     job: WorkJob | None = None
+    initial_analysis: Draft | None = None
+    analysis: AnalysisInfo | None = None
 
 
 class AttachmentMeta(ApiModel):

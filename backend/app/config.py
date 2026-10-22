@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     db_pool_size: int = 20
     provider_url: str = "http://localhost:8011"
     provider_timeout: float = 6.0
+    analysis_timeout: float = 60.0
+    analysis_max_bytes: int = 50 * 1024 * 1024
     sync_attempts: int = 2
     job_attempts: int = 5
     retry_delay: float = 0.5

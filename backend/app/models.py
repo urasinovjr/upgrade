@@ -16,9 +16,10 @@ from app.knowledge.models import Closure
 from app.queue.models import Job
 from app.stand.models import StandResult, StandWork
 from app.students.models import Student
-from app.works.models import Work, WorkFile, WorkRevision
+from app.works.models import AnalysisRun, Work, WorkFile, WorkRevision
 
 __all__ = [
+    "AnalysisRun",
     "AuthSession",
     "Base",
     "Closure",

@@ -38,10 +38,12 @@ export function useReviewDraft(work: Work) {
   const wasProcessing = useRef(Boolean(work.job));
   useEffect(() => {
     if (wasProcessing.current && !work.job) {
+      latest.current = structuredClone(work.draft);
+      setDraft(latest.current);
       setNeedsRecheck(work.draft.inputRevision !== work.draft.analysedInputRevision);
     }
     wasProcessing.current = Boolean(work.job);
-  }, [work.job, work.draft.inputRevision, work.draft.analysedInputRevision]);
+  }, [work.job, work.draft]);
   useEffect(
     () => () => {
       clearTimeout(timer.current);
