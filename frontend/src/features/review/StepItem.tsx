@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, Link2Off, LocateFixed, Pencil, Trash2 } from "lucide-react";
 import type { Step, Verdict } from "../../domain/models";
+import { fromOriginal } from "../../domain/stepOrigin";
 import { Formula, FormulaInput } from "../../shared/math";
 import { verdictMeta } from "../../shared/status";
 
@@ -66,6 +67,51 @@ function VerdictSwitch({
   );
 }
 
+function OriginTools({
+  step,
+  index,
+  editable,
+  disabled,
+  onShow,
+  onUnlink,
+}: {
+  step: Step;
+  index: number;
+  editable: boolean;
+  disabled: boolean;
+  onShow: () => void;
+  onUnlink: () => void;
+}) {
+  return (
+    <div className="dp-step-origin">
+      {!fromOriginal(step) && <span className="dp-step-origin-note">Не из оригинала</span>}
+      {step.origin && (
+        <>
+          <button
+            className="dp-text"
+            onClick={onShow}
+            aria-label={"Показать шаг " + index + " в оригинале"}
+          >
+            <LocateFixed size={14} aria-hidden="true" />
+            Показать в оригинале
+          </button>
+          {editable && (
+            <button
+              className="dp-text"
+              onClick={onUnlink}
+              disabled={disabled}
+              aria-label={"Убрать связь шага " + index + " с оригиналом"}
+            >
+              <Link2Off size={14} aria-hidden="true" />
+              Убрать связь
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function StepItem({
   step,
   index,
@@ -73,6 +119,8 @@ export function StepItem({
   disabled,
   onVerdict,
   onEdit,
+  onShow,
+  onUnlink,
 }: {
   step: Step;
   index: number;
@@ -80,7 +128,19 @@ export function StepItem({
   disabled: boolean;
   onVerdict: (verdict: Verdict) => void;
   onEdit: () => void;
+  onShow: () => void;
+  onUnlink: () => void;
 }) {
+  const origin = (
+    <OriginTools
+      step={step}
+      index={index}
+      editable={editable}
+      disabled={disabled}
+      onShow={onShow}
+      onUnlink={onUnlink}
+    />
+  );
   const [open, setOpen] = useState(false);
   const detail = useId();
   const root = useRef<HTMLElement>(null);
@@ -134,6 +194,7 @@ export function StepItem({
           <span className="dp-visually-hidden">Верно. Почему верно</span>
         </button>
         {tools}
+        {origin}
         <div className="dp-step-detail" inert={!open} aria-hidden={!open}>
           <div id={detail}>
             <p>{step.explanation || "Объяснение не добавлено."}</p>
@@ -161,6 +222,7 @@ export function StepItem({
       <p className={"dp-step-explanation" + (hasExplanation ? "" : " is-empty")}>
         {hasExplanation ? step.explanation : explanationPrompt}
       </p>
+      {origin}
     </article>
   );
 }

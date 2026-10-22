@@ -55,7 +55,7 @@ def test_review_uses_recognized_steps_and_keeps_teacher_steps_for_the_rest():
         {"task_id": "t3", "matched": False, "steps": [{"latex": "x", "legible": True}]},
     )
 
-    tasks = review_tasks(draft, found)
+    tasks, _ = review_tasks(draft, found)
 
     assert tasks[0].steps[0].id != "s1"
     assert tasks[0].steps[0].legible is False
@@ -66,7 +66,7 @@ def test_review_uses_recognized_steps_and_keeps_teacher_steps_for_the_rest():
 def test_merge_replaces_ai_fields_and_keeps_teacher_inputs():
     draft = draft_of(task("t1", condition="Условие", reference="x=2", feedback="старое"))
     draft.feedback = "Общий комментарий"
-    tasks = review_tasks(draft, None)
+    tasks, _ = review_tasks(draft, None)
     steps = [{"id": "s1", "verdict": "error", "explanation": "Потерян корень."}]
     gap = {"topic_id": "powers", "reason": "Повторить степени."}
     review = read_review({"tasks": [reviewed(steps=steps, gap=gap, topic_id="roots")]}, tasks)
@@ -91,7 +91,7 @@ def test_merge_replaces_ai_fields_and_keeps_teacher_inputs():
 
 def test_unsupported_task_is_omitted_with_reason():
     draft = draft_of(task("t1"))
-    tasks = review_tasks(draft, None)
+    tasks, _ = review_tasks(draft, None)
     item = reviewed(supported=False, reason="Задача на производную.")
 
     merged = merge_review(draft, tasks, read_review({"tasks": [item]}, tasks))
@@ -106,7 +106,7 @@ def test_illegible_step_stays_uncertain_whatever_the_verdict():
     found = recognition(
         {"task_id": "t1", "matched": True, "steps": [{"latex": "?", "legible": False}]}
     )
-    tasks = review_tasks(draft, found)
+    tasks, _ = review_tasks(draft, found)
     steps = [{"id": tasks[0].steps[0].id, "verdict": "correct", "explanation": ""}]
 
     merged = merge_review(draft, tasks, read_review({"tasks": [reviewed(steps=steps)]}, tasks))
@@ -137,7 +137,7 @@ def test_recognition_must_cover_exactly_the_requested_tasks():
     ],
 )
 def test_invalid_review_is_rejected(item, reason):
-    tasks = review_tasks(draft_of(task("t1")), None)
+    tasks, _ = review_tasks(draft_of(task("t1")), None)
 
     with pytest.raises(InvalidReply, match=reason):
         read_review({"tasks": [item]}, tasks)

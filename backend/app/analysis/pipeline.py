@@ -100,7 +100,7 @@ async def build_draft(
         record.recognized = True
         record.recognition = reply.raw
         recognition = read_recognition(reply.raw, inputs)
-    tasks = review_tasks(source.draft, recognition)
+    tasks, origins = review_tasks(source.draft, recognition, source.sanitized.pages, source.layout)
     record.input["review"] = [task.model_dump() for task in tasks]
     started = time.monotonic()
     reply = await provider.review(tasks)
@@ -108,6 +108,6 @@ async def build_draft(
     record.note(reply)
     record.review = reply.raw
     review = read_review(reply.raw, tasks)
-    draft = checked_draft(merge_review(source.draft, tasks, review), settings)
+    draft = checked_draft(merge_review(source.draft, tasks, review, origins), settings)
     record.draft = dump(draft)
     return draft

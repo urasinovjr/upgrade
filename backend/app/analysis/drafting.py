@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from app.analysis.contract import (
     Recognition,
+    RecognizedStep,
     RecognizedTask,
     Review,
     ReviewedStep,
@@ -10,8 +11,12 @@ from app.analysis.contract import (
     StepInput,
     TaskInput,
 )
+from app.redaction import PageImage
+from app.redaction.geometry import inside_page, to_original
 from app.works.models import WorkFile
-from app.works.schemas import Draft, GapProposal, Step, Task
+from app.works.schemas import CropRect, Draft, GapProposal, Step, StepOrigin, Task
+
+Origins = dict[str, StepOrigin | None]
 
 
 def layout_signature(files: list[WorkFile]) -> list[dict]:
@@ -43,41 +48,95 @@ def task_input(task: Task) -> TaskInput:
     )
 
 
-def recognized_steps(item: RecognizedTask) -> list[StepInput]:
+def page_crops(layout: list[dict]) -> dict[str, dict]:
+    return {item["id"]: item["crops"] for item in layout}
+
+
+def fitted(region: dict) -> CropRect:
+    x = round(min(max(region["x"], 0.0), 1.0), 6)
+    y = round(min(max(region["y"], 0.0), 1.0), 6)
+    width = round(min(region["width"], 1.0 - x), 6)
+    height = round(min(region["height"], 1.0 - y), 6)
+    return CropRect(x=x, y=y, width=width, height=height)
+
+
+def origin_of(
+    step: RecognizedStep, pages: list[PageImage], crops: dict[str, dict]
+) -> StepOrigin | None:
+    if step.page is None or step.region is None or not 0 <= step.page < len(pages):
+        return None
+    region = step.region.model_dump()
+    if not inside_page(region):
+        return None
+    page = pages[step.page]
+    mapped = to_original(region, crops.get(page.file_id, {}).get(str(page.page)))
+    if mapped["width"] <= 0 or mapped["height"] <= 0:
+        return None
+    return StepOrigin(
+        file_id=page.file_id, page=page.page, region=fitted(mapped), recognized_latex=step.latex
+    )
+
+
+def recognized_steps(
+    item: RecognizedTask, pages: list[PageImage], crops: dict[str, dict]
+) -> list[tuple[StepInput, StepOrigin | None]]:
     if not item.matched:
         return []
     return [
-        StepInput(id=str(uuid4()), latex=step.latex, legible=step.legible) for step in item.steps
+        (
+            StepInput(id=str(uuid4()), latex=step.latex, legible=step.legible),
+            origin_of(step, pages, crops),
+        )
+        for step in item.steps
     ]
 
 
-def review_tasks(draft: Draft, recognition: Recognition | None) -> list[ReviewTask]:
+def kept_steps(task: Task) -> list[tuple[StepInput, StepOrigin | None]]:
+    return [
+        (StepInput(id=step.id, latex=step.latex, legible=True), step.origin) for step in task.steps
+    ]
+
+
+def review_tasks(
+    draft: Draft,
+    recognition: Recognition | None,
+    pages: list[PageImage] | None = None,
+    layout: list[dict] | None = None,
+) -> tuple[list[ReviewTask], Origins]:
     recognized = {item.task_id: item for item in recognition.tasks} if recognition else {}
+    crops = page_crops(layout or [])
     result = []
+    origins: Origins = {}
     for task in draft.tasks:
         if task.id in recognized:
-            steps = recognized_steps(recognized[task.id])
+            pairs = recognized_steps(recognized[task.id], pages or [], crops)
         else:
-            steps = [StepInput(id=step.id, latex=step.latex, legible=True) for step in task.steps]
+            pairs = kept_steps(task)
+        origins.update({step.id: origin for step, origin in pairs})
+        steps = [step for step, _ in pairs]
         result.append(ReviewTask(**task_input(task).model_dump(), steps=steps))
-    return result
+    return result, origins
 
 
-def merged_step(step: StepInput, reviewed: ReviewedStep | None) -> Step:
+def merged_step(step: StepInput, reviewed: ReviewedStep | None, origin: StepOrigin | None) -> Step:
     explanation = reviewed.explanation if reviewed else ""
-    if reviewed is None or not step.legible:
-        return Step(id=step.id, latex=step.latex, verdict="uncertain", explanation=explanation)
-    return Step(id=step.id, latex=step.latex, verdict=reviewed.verdict, explanation=explanation)
+    verdict = "uncertain" if reviewed is None or not step.legible else reviewed.verdict
+    return Step(
+        id=step.id, latex=step.latex, verdict=verdict, explanation=explanation, origin=origin
+    )
 
 
-def merged_task(task: Task, source: ReviewTask, item: ReviewedTask) -> Task:
+def merged_task(task: Task, source: ReviewTask, item: ReviewedTask, origins: Origins) -> Task:
     reviewed = {step.id: step for step in item.steps}
     gap = None
     if item.gap is not None:
         gap = GapProposal(topic_id=item.gap.topic_id, reason=item.gap.reason, decision="hypothesis")
     return task.model_copy(
         update={
-            "steps": [merged_step(step, reviewed.get(step.id)) for step in source.steps],
+            "steps": [
+                merged_step(step, reviewed.get(step.id), origins.get(step.id))
+                for step in source.steps
+            ],
             "topic_id": item.topic_id,
             "gap": gap,
             "feedback": item.feedback if item.supported else item.reason,
@@ -87,11 +146,16 @@ def merged_task(task: Task, source: ReviewTask, item: ReviewedTask) -> Task:
     )
 
 
-def merge_review(draft: Draft, tasks: list[ReviewTask], review: Review) -> Draft:
+def merge_review(
+    draft: Draft, tasks: list[ReviewTask], review: Review, origins: Origins | None = None
+) -> Draft:
     sources = {task.id: task for task in tasks}
     reviewed = {item.task_id: item for item in review.tasks}
     merged = draft.model_copy(deep=True)
-    merged.tasks = [merged_task(task, sources[task.id], reviewed[task.id]) for task in merged.tasks]
+    merged.tasks = [
+        merged_task(task, sources[task.id], reviewed[task.id], origins or {})
+        for task in merged.tasks
+    ]
     merged.revision += 1
     merged.analysed_input_revision = merged.input_revision
     return merged

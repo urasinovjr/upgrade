@@ -110,6 +110,7 @@
   margin: var(--ug-space-3) var(--ug-space-4) 0;
 }
 .media-canvas {
+  scroll-margin-top: 96px;
   min-height: 280px;
   height: clamp(280px, calc(100dvh - 300px), 620px);
   overflow: auto;
@@ -292,4 +293,23 @@
   .dp-app .media-viewer :is(.mask-controls, .page-check) button {
     min-height: 44px;
   }
+}
+.focus-box {
+  position: absolute;
+  z-index: 2;
+  border: 3px solid var(--ug-violet);
+  border-radius: var(--ug-radius-sm);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ug-violet) 25%, transparent);
+  pointer-events: none;
+}
+.focus-box span {
+  position: absolute;
+  top: -1.6em;
+  left: -3px;
+  padding: 0 var(--ug-space-1);
+  border-radius: var(--ug-radius-sm);
+  background: var(--ug-violet);
+  color: var(--ug-surface);
+  font-size: var(--ug-fs-caption);
+  white-space: nowrap;
 }

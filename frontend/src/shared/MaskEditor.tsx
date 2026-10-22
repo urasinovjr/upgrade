@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from "react";
+import { useRef, useState, type PointerEvent, type Ref } from "react";
 import { CircleAlert, CircleCheck, Trash2 } from "lucide-react";
 import type { Attachment, CropRect } from "../domain/models";
 import { maxMasksPerPage, sentPageCount, uncheckedPages } from "../domain/redaction";
@@ -166,6 +166,14 @@ export function PageCheck({
       <span className="page-check-count">
         Проверено {done} из {total}
       </span>
+    </div>
+  );
+}
+
+export function FocusBox({ region, ref }: { region: CropRect; ref: Ref<HTMLDivElement> }) {
+  return (
+    <div ref={ref} className="focus-box" style={boxStyle(region)}>
+      <span>Шаг здесь</span>
     </div>
   );
 }

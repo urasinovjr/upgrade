@@ -34,7 +34,7 @@ async def analyse(provider: SimDraftProvider, *tasks: dict):
     inputs = [task_input(item) for item in draft.tasks]
     recognized = await provider.recognize(FILES, inputs)
     recognition = read_recognition(recognized.raw, inputs)
-    sources = review_tasks(draft, recognition)
+    sources, _ = review_tasks(draft, recognition)
     reply = await provider.review(sources)
     return recognized, read_review(reply.raw, sources)
 

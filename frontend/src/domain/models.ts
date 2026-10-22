@@ -11,11 +11,18 @@ export interface Student {
   color: string;
   archivedAt?: string;
 }
+export interface StepOrigin {
+  fileId: string;
+  page: number;
+  region: CropRect;
+  recognizedLatex: string;
+}
 export interface Step {
   id: string;
   latex: string;
   verdict: Verdict;
   explanation: string;
+  origin?: StepOrigin;
 }
 export interface GapProposal {
   topicId: string;

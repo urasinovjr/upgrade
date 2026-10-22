@@ -118,13 +118,24 @@ def written_lines(task: DraftTask) -> list[str]:
     return [line for line in (task.formula, "x=\\dots") if line]
 
 
-def recognized_task(task: DraftTask) -> dict:
+def step_region(index: int) -> dict:
+    top = min(0.85, 0.15 + index * 0.12)
+    return {"x": 0.1, "y": top, "width": 0.8, "height": 0.1}
+
+
+def located(steps: list[dict], pages: int) -> list[dict]:
+    if not pages:
+        return steps
+    return [{**step, "page": 0, "region": step_region(index)} for index, step in enumerate(steps)]
+
+
+def recognized_task(task: DraftTask, pages: int = 0) -> dict:
     if not (task.condition or task.formula or task.condition_file_ids):
         return {"task_id": task.id, "matched": False, "steps": []}
     steps = [{"latex": line, "legible": True} for line in written_lines(task)]
     if scenario(task) == "illegible":
         steps[-1] = {"latex": "?", "legible": False}
-    return {"task_id": task.id, "matched": True, "steps": steps}
+    return {"task_id": task.id, "matched": True, "steps": located(steps, pages)}
 
 
 def topic_of(task: DraftTask, topics: list[DraftTopic]) -> str:
@@ -258,7 +269,8 @@ async def draft_recognize(request: RecognizeRequest) -> dict:
     spent = usage(1000 * pages + 200 * len(request.tasks), 150 * len(request.tasks))
     if await draft_answer("draft_recognize", request.tasks, profile.ocr_median * pages):
         return {"tasks": "unreadable", "usage": spent}
-    return {"tasks": [recognized_task(task) for task in request.tasks], "usage": spent}
+    tasks = [recognized_task(task, len(request.pages)) for task in request.tasks]
+    return {"tasks": tasks, "usage": spent}
 
 
 @app.post("/draft/review")

@@ -42,6 +42,7 @@ import { InitialAnalysis } from "./InitialAnalysis";
 import { SentPages } from "./SentPages";
 import { Reanalyse } from "./Reanalyse";
 import { uncheckedPages } from "../../domain/redaction";
+import type { OriginFocus } from "../../domain/stepOrigin";
 import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
 import { useMediaQuery } from "../../shared/useMediaQuery";
@@ -309,6 +310,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
     if (requested && draft.tasks.some((task) => task.id === requested)) setTaskId(requested);
   }
   const [pane, setPane] = useState<Pane>("analysis");
+  const [focus, setFocus] = useState<OriginFocus>();
   const [editor, setEditor] = useState<{
     id: string;
     explain?: boolean;
@@ -406,6 +408,12 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         ?.focus({ preventScroll: true }),
     );
   };
+  const showOrigin = (step: Step) => {
+    const origin = step.origin;
+    if (!origin) return;
+    setFocus((current) => ({ ...origin, nonce: (current?.nonce ?? 0) + 1 }));
+    if (narrow) changePane("original");
+  };
   const paneSwitch = (
     <PaneSwitch
       pane={pane}
@@ -457,6 +465,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         files={work.attachments}
         update={canEdit ? review.updateAttachments : undefined}
         redaction={work.editing}
+        focus={focus}
         lead={
           <>
             {paneSwitch}
@@ -561,6 +570,14 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                   else saveStep({ ...item, verdict, explanation });
                 }}
                 onEdit={() => setEditor({ id: item.id })}
+                onShow={() => showOrigin(item)}
+                onUnlink={() =>
+                  updateTask({
+                    steps: task.steps.map((step) =>
+                      step.id === item.id ? { ...step, origin: undefined } : step,
+                    ),
+                  })
+                }
               />
             ))}
             {editable && (

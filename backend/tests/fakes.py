@@ -108,7 +108,8 @@ class FakeDraftProvider:
         if self.failures > 0:
             self.failures -= 1
             raise ProviderError("provider_unavailable")
-        steps = [{"latex": "x=\\pm 2", "legible": True}]
+        region = {"x": 0.1, "y": 0.5, "width": 0.8, "height": 0.2}
+        steps = [{"latex": "x=\\pm 2", "legible": True, "page": 0, "region": region}]
         return self.reply(
             {"tasks": [{"task_id": task.id, "matched": True, "steps": steps} for task in tasks]}
         )

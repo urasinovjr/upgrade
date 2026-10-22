@@ -161,6 +161,33 @@ test("masks hide personal data and every page is checked before analysis", async
   await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
 });
 
+test("a recognized step opens its place in the original", async ({ page }, testInfo) => {
+  await page.goto("/works/demo-ready");
+  await page.getByRole("button", { name: "Показать шаг 1 в оригинале" }).click();
+  await expect(page.locator(".focus-box")).toBeVisible();
+  await expect(page.getByText("Шаг здесь")).toBeInViewport();
+  if (testInfo.project.name.includes("mobile"))
+    await page.getByRole("tab", { name: "Разбор", exact: true }).click();
+  await expect(page.getByText("Не из оригинала")).toHaveCount(0);
+  await page.getByRole("button", { name: "Изменить шаг 1" }).click();
+  await page
+    .getByRole("dialog")
+    .locator('math-field[aria-label="Формула шага 1"]')
+    .evaluate((element) => {
+      const field = element as HTMLElement & { value: string };
+      field.value = "\\sqrt{y}=7";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  await page.getByRole("button", { name: "Применить правку" }).click();
+  await expect(page.getByText("Не из оригинала")).toHaveCount(1);
+  await page.getByRole("button", { name: "Убрать связь шага 2 с оригиналом" }).click();
+  await expect(page.getByRole("button", { name: "Показать шаг 2 в оригинале" })).toHaveCount(0);
+  await expect(page.getByText("Не из оригинала")).toHaveCount(2);
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Не из оригинала")).toHaveCount(2);
+});
+
 test("user upload remains manual; corrupted files are rejected", async ({ page }) => {
   await page.goto("/works/new");
   await page.getByLabel("Ученик", { exact: true }).selectOption("anna");

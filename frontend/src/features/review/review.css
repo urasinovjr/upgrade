@@ -1127,3 +1127,33 @@
   color: var(--ug-muted);
   overflow-wrap: anywhere;
 }
+.dp-step-origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ug-space-1) var(--ug-space-3);
+  font-size: var(--ug-fs-caption);
+}
+.dp-step-card .dp-step-origin {
+  grid-column: 1 / -1;
+}
+.dp-step-origin:empty {
+  display: none;
+}
+.dp-app .dp-step-origin button {
+  min-height: var(--ug-control-sm);
+  padding-inline: var(--ug-space-1);
+  gap: var(--ug-space-1);
+  font-size: var(--ug-fs-caption);
+}
+.dp-step-origin-note {
+  padding: 0 var(--ug-space-2);
+  border: 1px dashed var(--ug-line);
+  border-radius: var(--ug-radius-sm);
+  color: var(--ug-muted);
+}
+@media (max-width: 700px) {
+  .dp-app .dp-step-origin button {
+    min-height: 44px;
+  }
+}

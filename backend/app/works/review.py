@@ -16,9 +16,18 @@ def input_signature(draft: Draft) -> list[dict]:
     return [task_signature(task) for task in draft.tasks]
 
 
+def keep_step_origins(stored: Draft, draft: Draft) -> None:
+    origins = {step.id: step.origin for task in stored.tasks for step in task.steps}
+    for task in draft.tasks:
+        for step in task.steps:
+            if step.origin is not None:
+                step.origin = origins.get(step.id)
+
+
 def apply_draft(stored: Draft, proposed: Draft) -> Draft:
     changed_inputs = input_signature(stored) != input_signature(proposed)
     draft = proposed.model_copy(deep=True)
+    keep_step_origins(stored, draft)
     draft.revision = stored.revision + 1
     draft.input_revision = stored.input_revision + (1 if changed_inputs else 0)
     draft.analysed_input_revision = stored.analysed_input_revision
@@ -90,10 +99,14 @@ def reopened_draft(current: Draft, published: Draft) -> Draft:
 
 
 def initial_draft(tasks: list[Task]) -> Draft:
-    return Draft(
+    draft = Draft(
         revision=1,
         input_revision=0,
         analysed_input_revision=-1,
         tasks=[task.model_copy(deep=True) for task in tasks],
         feedback="",
     )
+    for task in draft.tasks:
+        for step in task.steps:
+            step.origin = None
+    return draft

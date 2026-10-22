@@ -1,4 +1,4 @@
-import type { StoreState, Task, Topic, Upload, Work } from "../domain/models";
+import type { StepOrigin, StoreState, Task, Topic, Upload, Work } from "../domain/models";
 import { publishWork } from "../domain/review";
 
 export const topics: Topic[] = [
@@ -52,7 +52,16 @@ export const topics: Topic[] = [
   },
 ];
 
-function tasks(reviewed = false): Task[] {
+function sheetLine(fileId: string, top: number, recognizedLatex: string): StepOrigin {
+  return {
+    fileId,
+    page: 1,
+    region: { x: 0.15, y: top / 1100, width: 0.62, height: 0.06 },
+    recognizedLatex,
+  };
+}
+
+function tasks(sheetId: string, reviewed = false): Task[] {
   return [
     {
       id: "t1",
@@ -68,12 +77,14 @@ function tasks(reviewed = false): Task[] {
         {
           id: "s1",
           latex: "(x-2)(x-3)=0",
+          origin: sheetLine(sheetId, 222, "(x-2)(x-3)=0"),
           verdict: "correct",
           explanation: "Произведение равно нулю, если один из множителей равен нулю.",
         },
         {
           id: "s2",
           latex: "x=2\\;\\text{или}\\;x=3",
+          origin: sheetLine(sheetId, 292, "x=2\\;\\text{или}\\;x=3"),
           verdict: "correct",
           explanation: "Оба значения удовлетворяют исходному уравнению.",
         },
@@ -94,12 +105,14 @@ function tasks(reviewed = false): Task[] {
         {
           id: "s3",
           latex: "\\frac{(x-3)(x+3)}{x-3}=x+3",
+          origin: sheetLine(sheetId, 505, "\\frac{(x-3)(x+3)}{x-3}=x+3"),
           verdict: "correct",
           explanation: "Сокращение допустимо при x ≠ 3.",
         },
         {
           id: "s4",
           latex: "x\\in\\mathbb{R}",
+          origin: sheetLine(sheetId, 592, "x\\in\\mathbb{R}"),
           verdict: "error",
           explanation: "При x = 3 исходное выражение не определено.",
         },
@@ -156,7 +169,7 @@ export function seedState(now = Date.now()): StoreState {
       revision: 1,
       inputRevision: 0,
       analysedInputRevision: status === "needs_input" ? -1 : 0,
-      tasks: tasks(status === "confirmed"),
+      tasks: tasks("sheet-" + id, status === "confirmed"),
       feedback:
         "Начните с ограничений исходного выражения. Затем выполните преобразования и проверьте ответ.",
     };

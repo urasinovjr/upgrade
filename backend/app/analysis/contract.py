@@ -42,9 +42,18 @@ class ProviderReply(BaseModel):
     output_tokens: int = 0
 
 
+class Region(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
+
 class RecognizedStep(BaseModel):
     latex: str = Field(max_length=5000)
     legible: bool
+    page: int | None = None
+    region: Region | None = None
 
 
 class RecognizedTask(BaseModel):

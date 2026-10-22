@@ -1,10 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Crop, EyeOff, ImageUp, ZoomIn, ZoomOut } from "lucide-react";
 import type { Attachment, Upload } from "../domain/models";
 import { keptChecks, pageMasks, withCheck, withMasks } from "../domain/redaction";
+import type { OriginFocus } from "../domain/stepOrigin";
 import { gateway } from "../data/gateway";
 import { CropControls } from "./CropControls";
-import { MaskControls, MaskLayer, PageCheck } from "./MaskEditor";
+import { FocusBox, MaskControls, MaskLayer, PageCheck } from "./MaskEditor";
 import { ErrorMessage } from "./ui";
 import "./media.css";
 const PdfPage = lazy(() => import("./PdfPage"));
@@ -17,23 +18,40 @@ function swapWithNeighbour<T>(items: T[], index: number, direction: number): T[]
   return next;
 }
 
+function revealFocus(box: HTMLElement | null) {
+  const canvas = box?.closest<HTMLElement>(".media-canvas");
+  if (!box || !canvas) return;
+  const offset = box.getBoundingClientRect().top - canvas.getBoundingClientRect().top;
+  canvas.scrollTop += offset - canvas.clientHeight / 4;
+  canvas.scrollIntoView({ block: "start" });
+}
+
 export function MediaViewer({
   files,
   update,
   uploads,
   lead,
   redaction = false,
+  focus,
 }: {
   files: Attachment[];
   update?: (files: Attachment[]) => void;
   uploads?: Upload[];
   lead?: ReactNode;
   redaction?: boolean;
+  focus?: OriginFocus;
 }) {
   const [selected, setSelected] = useState(files[0]?.id || "");
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [tool, setTool] = useState<"crop" | "mask">();
+  const [shownFocus, setShownFocus] = useState<number>();
+  const focusBox = useRef<HTMLDivElement>(null);
+  if (focus && focus.nonce !== shownFocus) {
+    setShownFocus(focus.nonce);
+    setSelected(focus.fileId);
+    setPage(focus.page);
+  }
   const file = files.find((item) => item.id === selected) || files[0];
   const fileId = file?.id;
   const [source, setSource] = useState<{ id: string; url: string }>();
@@ -41,6 +59,12 @@ export function MediaViewer({
   const [width, setWidth] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const localBlob = uploads?.find((item) => item.id === fileId)?.blob;
+  useEffect(() => {
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => revealFocus(focusBox.current));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [shownFocus, source]);
   const area = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;
     const measure = () => {
@@ -247,6 +271,9 @@ export function MediaViewer({
             drawing={tool === "mask" && Boolean(update)}
             onDraw={(mask) => saveFile(withMasks(file, activePage, [...masks, mask]))}
           />
+          {focus && focus.fileId === file.id && focus.page === activePage && (
+            <FocusBox ref={focusBox} region={focus.region} />
+          )}
           {source?.id === file.id && width > 0 ? (
             file.type === "application/pdf" ? (
               <Suspense fallback={<MediaPlaceholder />}>

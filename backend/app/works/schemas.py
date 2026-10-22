@@ -11,11 +11,29 @@ Text = Field(default="", max_length=10000)
 ShortText = Field(max_length=200)
 
 
+class CropRect(ApiModel):
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    width: float = Field(gt=0, le=1)
+    height: float = Field(gt=0, le=1)
+
+
+PageMasks = dict[str, list[CropRect]]
+
+
+class StepOrigin(ApiModel):
+    file_id: str = Field(max_length=64)
+    page: int = Field(ge=1)
+    region: CropRect
+    recognized_latex: str = Field(max_length=5000)
+
+
 class Step(ApiModel):
     id: str = Field(max_length=64)
     latex: str = Field(max_length=5000)
     verdict: Literal["correct", "error", "uncertain"]
     explanation: str = Field(max_length=5000)
+    origin: StepOrigin | None = None
 
 
 class GapProposal(ApiModel):
@@ -45,16 +63,6 @@ class Draft(ApiModel):
     analysed_input_revision: int
     tasks: list[Task] = Field(max_length=100)
     feedback: str = Text
-
-
-class CropRect(ApiModel):
-    x: float = Field(ge=0, le=1)
-    y: float = Field(ge=0, le=1)
-    width: float = Field(gt=0, le=1)
-    height: float = Field(gt=0, le=1)
-
-
-PageMasks = dict[str, list[CropRect]]
 
 
 class AttachmentOut(ApiModel):
