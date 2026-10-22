@@ -44,6 +44,8 @@ class ProviderReply(BaseModel):
     provider: str
     model: str
     prompt_version: str
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class RecognizedStep(BaseModel):

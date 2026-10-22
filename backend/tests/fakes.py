@@ -93,7 +93,14 @@ class FakeDraftProvider:
         self.reviewed: list[list[ReviewTask]] = []
 
     def reply(self, raw: dict) -> ProviderReply:
-        return ProviderReply(raw=raw, provider="fake", model="fake-model", prompt_version="test-1")
+        return ProviderReply(
+            raw=raw,
+            provider="fake",
+            model="fake-model",
+            prompt_version="test-1",
+            input_tokens=1000,
+            output_tokens=200,
+        )
 
     async def recognize(self, files: list[FileSource], tasks: list[TaskInput]) -> ProviderReply:
         self.recognized.append((files, tasks))

@@ -13,6 +13,7 @@ from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
 from app.mail import SEND_EMAIL_JOB, SmtpMailer, forget_email_token, handle_send_email
 from app.models import configure_models
+from app.observability import configure_logging, request_id_var
 from app.provider import Provider
 from app.queue import (
     Job,
@@ -54,21 +55,26 @@ async def report_failure(context: WorkerContext, job: Job) -> None:
         await hook(context, job)
 
 
+def job_fields(job: Job) -> dict:
+    return {"job_id": str(job.id), "kind": job.kind, "attempt": job.attempts}
+
+
 async def handle_job(context: WorkerContext, job: Job) -> None:
     handler = HANDLERS[job.kind]
+    token = request_id_var.set(job.payload.get("request_id"))
     heartbeat = asyncio.create_task(keep_lease(context, job))
     try:
         await handler(context, job)
+        logger.info("job_done", extra=job_fields(job))
     except JobFailure as error:
         async with context.sessions() as session:
             failed = await retry_or_fail(session, job, error.code, context.settings.retry_delay)
-        logger.info("job_retry job=%s attempt=%s error=%s", job.id, job.attempts, error.code)
+        logger.info("job_retry", extra={**job_fields(job), "error": error.code, "failed": failed})
         if failed:
             await report_failure(context, job)
-        return
     finally:
         heartbeat.cancel()
-    logger.info("job_done job=%s kind=%s attempt=%s", job.id, job.kind, job.attempts)
+        request_id_var.reset(token)
 
 
 async def fail_abandoned_jobs(context: WorkerContext) -> None:
@@ -86,7 +92,7 @@ async def run_worker(context: WorkerContext) -> None:
         running.discard(task)
         slots.release()
         if not task.cancelled() and task.exception():
-            logger.error("job_crashed error=%r", task.exception())
+            logger.error("job_crashed", exc_info=task.exception())
 
     while True:
         await slots.acquire()
@@ -103,9 +109,9 @@ async def run_worker(context: WorkerContext) -> None:
 
 
 async def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
-    tables = configure_models()
     settings = Settings()
+    configure_logging(settings.log_format, settings.log_level)
+    tables = configure_models()
     engine = make_engine(settings.database_url, settings.db_pool_size)
     provider = Provider(settings.provider_url, settings.provider_timeout)
     storage = await S3Storage.connect(settings)
@@ -114,7 +120,10 @@ async def main() -> None:
     context = WorkerContext(
         make_session_factory(engine), provider, settings, storage, mailer, analysis_provider
     )
-    logger.info("worker_started concurrency=%s tables=%s", settings.worker_concurrency, len(tables))
+    logger.info(
+        "worker_started",
+        extra={"concurrency": settings.worker_concurrency, "tables": len(tables)},
+    )
     try:
         await run_worker(context)
     finally:

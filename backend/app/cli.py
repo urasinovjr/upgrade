@@ -1,12 +1,19 @@
 import argparse
 import asyncio
 import sys
+from collections.abc import Awaitable, Callable
+from datetime import UTC, date, datetime, time, timedelta
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
+from app.analysis.report import Period, analysis_report
 from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.errors import DomainError
+
+Command = Callable[[AsyncSession, argparse.Namespace], Awaitable[str]]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,7 +33,52 @@ def build_parser() -> argparse.ArgumentParser:
     grant.add_argument("--plan", required=True)
     grant.add_argument("--days", type=int)
     grant.add_argument("--note", default="")
+
+    report = commands.add_parser("analysis-report", help="timings, failures and cost of runs")
+    report.add_argument("--since", type=date.fromisoformat)
+    report.add_argument("--until", type=date.fromisoformat)
+    report.add_argument("--csv", action="store_true")
     return parser
+
+
+def period_of(args: argparse.Namespace) -> Period:
+    since = datetime.combine(args.since, time(), UTC) if args.since else None
+    until = datetime.combine(args.until + timedelta(days=1), time(), UTC) if args.until else None
+    return Period(since, until)
+
+
+async def save_plan(session: AsyncSession, args: argparse.Namespace) -> str:
+    await upsert_plan(
+        session,
+        args.code,
+        args.title,
+        args.price_minor,
+        args.currency,
+        args.days,
+        not args.inactive,
+    )
+    await session.commit()
+    return f"plan {args.code} saved"
+
+
+async def extend_subscription(session: AsyncSession, args: argparse.Namespace) -> str:
+    user = await find_user_by_email(session, args.email)
+    if user is None:
+        raise DomainError("user_not_found")
+    subscription = await grant_subscription(session, user.id, args.plan, args.days, args.note)
+    await session.commit()
+    return f"subscription for {user.email} ends {subscription.ends_at.isoformat()}"
+
+
+async def report_runs(session: AsyncSession, args: argparse.Namespace) -> str:
+    return await analysis_report(session, period_of(args), args.csv)
+
+
+COMMANDS: dict[str, Command] = {
+    "plan-upsert": save_plan,
+    "grant-subscription": extend_subscription,
+    "analysis-report": report_runs,
+}
 
 
 async def run(argv: list[str], settings: Settings) -> str:
@@ -34,26 +86,7 @@ async def run(argv: list[str], settings: Settings) -> str:
     engine = make_engine(settings.database_url)
     try:
         async with make_session_factory(engine)() as session:
-            if args.command == "plan-upsert":
-                await upsert_plan(
-                    session,
-                    args.code,
-                    args.title,
-                    args.price_minor,
-                    args.currency,
-                    args.days,
-                    not args.inactive,
-                )
-                await session.commit()
-                return f"plan {args.code} saved"
-            user = await find_user_by_email(session, args.email)
-            if user is None:
-                raise DomainError("user_not_found")
-            subscription = await grant_subscription(
-                session, user.id, args.plan, args.days, args.note
-            )
-            await session.commit()
-            return f"subscription for {user.email} ends {subscription.ends_at.isoformat()}"
+            return await COMMANDS[args.command](session, args)
     finally:
         await engine.dispose()
 

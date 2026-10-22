@@ -28,6 +28,16 @@ def topic_payload() -> list[dict]:
     ]
 
 
+def read_usage(raw: dict) -> tuple[int, int]:
+    usage = raw.get("usage")
+    if not isinstance(usage, dict):
+        return 0, 0
+    tokens = [usage.get("input_tokens"), usage.get("output_tokens")]
+    if not all(isinstance(value, int) and value >= 0 for value in tokens):
+        return 0, 0
+    return tokens[0], tokens[1]
+
+
 def read_body(response: httpx.Response) -> dict:
     try:
         data = response.json()
@@ -64,11 +74,15 @@ class SimDraftProvider:
             raise ProviderError("provider_rate_limited")
         if response.status_code >= 400:
             raise ProviderError("provider_unavailable")
+        raw = read_body(response)
+        input_tokens, output_tokens = read_usage(raw)
         return ProviderReply(
-            raw=read_body(response),
+            raw=raw,
             provider=PROVIDER_NAME,
             model=MODEL,
             prompt_version=PROMPT_VERSION,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
         )
 
     async def close(self) -> None:

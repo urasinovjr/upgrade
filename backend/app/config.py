@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Literal, Self
 
 from pydantic import SecretStr, model_validator
@@ -23,6 +24,11 @@ class Settings(BaseSettings):
     worker_concurrency: int = 16
     poll_seconds: float = 0.2
     stand_enabled: bool = True
+    log_format: Literal["json", "text"] = "json"
+    log_level: str = "info"
+    price_input_per_mtok: Decimal = Decimal(0)
+    price_output_per_mtok: Decimal = Decimal(0)
+    price_currency: str = "USD"
 
     allowed_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     session_cookie_name: str = "upgrade_session"

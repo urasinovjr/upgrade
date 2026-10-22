@@ -1,5 +1,6 @@
 import logging
 from dataclasses import asdict
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from app.analysis.drafting import layout_signature
 from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft
 from app.analysis.service import accept_draft, mark_failed
 from app.files.storage import Storage, StorageError
+from app.observability import current_request_id
 from app.provider import ProviderError
 from app.queue import Job, JobFailure, WorkerContext, complete_job
 from app.works.models import AnalysisRun, Work, WorkFile
@@ -73,9 +75,27 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
     )
 
 
+def queued_ms(job: Job) -> int:
+    return max(0, round((datetime.now(UTC) - job.run_after).total_seconds() * 1000))
+
+
+def run_fields(run: AnalysisRun) -> dict:
+    return {
+        "work_id": str(run.work_id),
+        "run_id": str(run.id),
+        "error": run.error,
+        "queued_ms": run.queued_ms,
+        "recognize_ms": run.recognize_ms,
+        "review_ms": run.review_ms,
+        "input_tokens": run.input_tokens,
+        "output_tokens": run.output_tokens,
+    }
+
+
 async def save_run(
     context: WorkerContext, job: Job, record: RunRecord, draft: Draft | None, error: str | None
 ) -> None:
+    record.price(context.settings)
     async with context.sessions() as session:
         work = await session.get(Work, job.subject_id, with_for_update=True)
         if work is not None:
@@ -91,14 +111,7 @@ async def save_run(
             await session.flush()
             if draft is not None and work.analysis_job_id == job.id:
                 accept_draft(work, draft, run.id, job.payload["input_revision"])
-            logger.info(
-                "analysis_run work=%s run=%s error=%s recognize_ms=%s review_ms=%s",
-                work.id,
-                run.id,
-                error,
-                record.recognize_ms,
-                record.review_ms,
-            )
+            logger.info("analysis_run", extra=run_fields(run))
         if draft is not None:
             await complete_job(session, job.id)
         await session.commit()
@@ -108,13 +121,16 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
     source = await begin_analysis(context, job)
     if source is None:
         return
-    record = RunRecord()
+    record = RunRecord(request_id=current_request_id(), queued_ms=queued_ms(job))
     try:
         draft = await build_draft(context.analysis_provider, source, context.settings, record)
     except ProviderError as error:
         raise JobFailure(error.code) from error
     except InvalidReply as error:
-        logger.info("analysis_invalid_reply work=%s reason=%s", job.subject_id, error.reason)
+        logger.info(
+            "analysis_invalid_reply",
+            extra={"work_id": str(job.subject_id), "reason": error.reason},
+        )
         await save_run(context, job, record, None, INVALID_REPLY)
         raise JobFailure(INVALID_REPLY) from error
     await save_run(context, job, record, draft, None)

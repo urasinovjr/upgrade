@@ -1,5 +1,6 @@
 import time
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from pydantic import ValidationError
 
@@ -38,11 +39,27 @@ class RunRecord:
     draft: dict | None = None
     recognize_ms: int | None = None
     review_ms: int | None = None
+    request_id: str | None = None
+    queued_ms: int | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost: Decimal = Decimal(0)
+    cost_currency: str = ""
 
     def note(self, reply: ProviderReply) -> None:
         self.provider = reply.provider
         self.model = reply.model
         self.prompt_version = reply.prompt_version
+        self.input_tokens += reply.input_tokens
+        self.output_tokens += reply.output_tokens
+
+    def price(self, settings: Settings) -> None:
+        tokens_cost = (
+            self.input_tokens * settings.price_input_per_mtok
+            + self.output_tokens * settings.price_output_per_mtok
+        )
+        self.cost = tokens_cost / 1_000_000
+        self.cost_currency = settings.price_currency
 
 
 def elapsed_ms(started: float) -> int:

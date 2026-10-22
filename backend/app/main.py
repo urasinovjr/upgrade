@@ -14,6 +14,7 @@ from app.files import S3Storage, Storage
 from app.knowledge.router import router as knowledge_router
 from app.mail import Mailer, SmtpMailer
 from app.models import configure_models
+from app.observability import RequestIdMiddleware, configure_logging
 from app.provider import Provider
 from app.snapshot import router as snapshot_router
 from app.stand.router import router as stand_router
@@ -48,6 +49,7 @@ def create_app(
         await engine.dispose()
 
     app = FastAPI(title="UpGrade", lifespan=lifespan)
+    app.add_middleware(RequestIdMiddleware)
     app.add_exception_handler(DomainError, domain_error_handler)
     api = APIRouter(prefix="/api", dependencies=[Depends(verify_origin)])
     api.include_router(auth_router)
@@ -68,4 +70,6 @@ def create_app(
     return app
 
 
-app = create_app()
+main_settings = Settings()
+configure_logging(main_settings.log_format, main_settings.log_level)
+app = create_app(main_settings)

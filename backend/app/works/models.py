@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -7,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    Numeric,
     String,
     UniqueConstraint,
 )
@@ -97,6 +99,7 @@ class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
     __table_args__ = (
         CheckConstraint("status IN ('succeeded', 'failed')", name="ck_analysis_runs_status"),
+        Index("ix_analysis_runs_created_at", "created_at"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -115,4 +118,10 @@ class AnalysisRun(Base):
     draft: Mapped[dict | None] = mapped_column(JSONB)
     recognize_ms: Mapped[int | None]
     review_ms: Mapped[int | None]
+    request_id: Mapped[str | None] = mapped_column(String(64))
+    queued_ms: Mapped[int | None]
+    input_tokens: Mapped[int]
+    output_tokens: Mapped[int]
+    cost: Mapped[Decimal] = mapped_column(Numeric(12, 6))
+    cost_currency: Mapped[str] = mapped_column(String(8))
     created_at: Mapped[datetime] = now_column()

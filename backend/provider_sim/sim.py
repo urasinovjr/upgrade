@@ -244,18 +244,27 @@ async def draft_answer(endpoint: str, tasks: list[DraftTask], median: float) -> 
     return rng.random() < profile.invalid_rate
 
 
+def usage(input_tokens: int, output_tokens: int) -> dict:
+    return {"input_tokens": input_tokens, "output_tokens": output_tokens}
+
+
 @app.post("/draft/recognize")
 async def draft_recognize(request: RecognizeRequest) -> dict:
     profile = PROFILES[simulator.config.profile]
     pages = max(1, sum(len(file.page_order) for file in request.files))
+    spent = usage(1000 * pages + 200 * len(request.tasks), 150 * len(request.tasks))
     if await draft_answer("draft_recognize", request.tasks, profile.ocr_median * pages):
-        return {"tasks": "unreadable"}
-    return {"tasks": [recognized_task(task) for task in request.tasks]}
+        return {"tasks": "unreadable", "usage": spent}
+    return {"tasks": [recognized_task(task) for task in request.tasks], "usage": spent}
 
 
 @app.post("/draft/review")
 async def draft_review(request: ReviewRequest) -> dict:
     profile = PROFILES[simulator.config.profile]
+    spent = usage(300 * len(request.tasks), 200 * len(request.tasks))
     if await draft_answer("draft_review", request.tasks, profile.analyze_median):
-        return {"tasks": "unreadable"}
-    return {"tasks": [reviewed_task(task, request.topics) for task in request.tasks]}
+        return {"tasks": "unreadable", "usage": spent}
+    return {
+        "tasks": [reviewed_task(task, request.topics) for task in request.tasks],
+        "usage": spent,
+    }

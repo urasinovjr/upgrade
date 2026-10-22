@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
 from app.errors import DomainError
+from app.observability import current_request_id
 from app.queue import enqueue
 from app.works.models import Work
 from app.works.schemas import Draft
@@ -22,7 +23,7 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
         WORK_ANALYSIS_JOB,
         work.id,
         settings.job_attempts,
-        {"input_revision": draft.input_revision},
+        {"input_revision": draft.input_revision, "request_id": current_request_id()},
     )
     work.analysis_job_id = job.id
     work.status = "queued"
