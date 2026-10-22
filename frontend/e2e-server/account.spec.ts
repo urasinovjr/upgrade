@@ -1,10 +1,11 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { endSubscription } from "./database";
+import { endSubscription, resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
 
 const password = "correct horse 42";
 
 async function signUp(page: Page, request: APIRequestContext, email: string) {
+  resetRateLimits();
   await page.goto("/register");
   await page.getByLabel("Как к вам обращаться").fill("Ольга");
   await page.getByLabel("Почта").fill(email);

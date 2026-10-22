@@ -10,6 +10,10 @@ function quoted(value: string) {
   return "'" + value.replaceAll("'", "''") + "'";
 }
 
+export function resetRateLimits() {
+  compose("db", "psql", "-U", "upgrade", "-d", "upgrade", "-c", "DELETE FROM rate_limits");
+}
+
 export function enrollInPilot(email: string) {
   compose("api", "python", "-m", "app.cli", "pilot-enroll", "--email", email);
 }

@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
 
 test("teacher archives, restores and deletes a student", async ({ page, request }) => {
   const email = uniqueEmail("archive");
+  resetRateLimits();
   await page.goto("/register");
   await page.getByLabel("Как к вам обращаться").fill("Ирина");
   await page.getByLabel("Почта").fill(email);

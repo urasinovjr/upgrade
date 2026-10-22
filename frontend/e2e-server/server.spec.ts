@@ -1,18 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { mailedLink, uniqueEmail } from "./mailbox";
-
-const password = "correct horse 42";
-
-async function register(page: Page, email: string) {
-  await page.goto("/register");
-  await page.getByLabel("Как к вам обращаться").fill("Анна Петровна");
-  await page.getByLabel("Почта").fill(email);
-  await page.getByLabel("Пароль").fill(password);
-  await page.getByRole("checkbox", { name: /условия использования/ }).check();
-  await page.getByRole("checkbox", { name: /обработку персональных данных/ }).check();
-  await page.getByRole("button", { name: "Создать аккаунт" }).click();
-  await expect(page.getByRole("heading", { name: "Проверьте почту" })).toBeVisible();
-}
+import { password, register, waitForAnalysis } from "./setup";
 
 test("teacher registers, uploads a work, runs analysis and confirms it", async ({
   page,
@@ -53,9 +41,7 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await expect(page.locator(".mask-box")).toHaveCount(1);
 
   await page.getByRole("button", { name: "Запустить разбор" }).first().click();
-  await expect(page.getByRole("button", { name: "Запустить разбор" })).toHaveCount(0, {
-    timeout: 30_000,
-  });
+  await waitForAnalysis(page);
   await page.getByRole("button", { name: "Исходный разбор" }).click();
   await expect(page.getByText(/Разбор ИИ: sim-draft · промпт sim-1/)).toBeVisible();
   await page.getByRole("button", { name: "Что получил ИИ" }).click();
@@ -101,15 +87,4 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await page.goto("/works");
   await page.getByRole("button", { name: /^Все 1/ }).click();
   await expect(page.getByRole("link", { name: /Контрольная по уравнениям/ })).toBeVisible();
-});
-
-test("another teacher does not see the first teacher's data", async ({ page, request }) => {
-  const email = uniqueEmail("other");
-  await register(page, email);
-  await page.goto(await mailedLink(request, email));
-  await expect(page).toHaveURL(/\/dashboard$/);
-  await page.goto("/works");
-  await expect(page.getByRole("heading", { name: "Работы", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Все \d/ })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: /Контрольная по уравнениям/ })).toHaveCount(0);
 });

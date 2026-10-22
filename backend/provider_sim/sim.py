@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import math
 import random
+import re
 from collections import Counter
 from dataclasses import dataclass
 
@@ -37,6 +38,7 @@ TOPIC_HINTS = (
 )
 DEFAULT_TOPIC = "equations"
 HANG_SECONDS = 120.0
+FAIL_MARKER = re.compile(r"\[\[fail:(\d+)\]\]")
 
 
 class SimConfig(BaseModel):
@@ -175,6 +177,16 @@ def reviewed_task(task: DraftTask, topics: list[DraftTopic]) -> dict:
     return {**result, "supported": True, "steps": steps, "feedback": feedback}
 
 
+def forced_failure(tasks: list[DraftTask]) -> bool:
+    for task in tasks:
+        found = FAIL_MARKER.search(task.condition)
+        if found:
+            key = "forced:" + task.condition
+            simulator.calls[key] += 1
+            return simulator.calls[key] <= int(found.group(1))
+    return False
+
+
 def draft_key(tasks: list[DraftTask]) -> str:
     return "draft:" + ",".join(task.id for task in tasks)
 
@@ -264,6 +276,8 @@ def usage(input_tokens: int, output_tokens: int) -> dict:
 
 @app.post("/draft/recognize")
 async def draft_recognize(request: RecognizeRequest) -> dict:
+    if forced_failure(request.tasks):
+        raise HTTPException(status_code=503, detail="provider_error")
     profile = PROFILES[simulator.config.profile]
     pages = max(1, len(request.pages))
     spent = usage(1000 * pages + 200 * len(request.tasks), 150 * len(request.tasks))

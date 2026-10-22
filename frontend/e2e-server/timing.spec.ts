@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { countFor, enrollInPilot } from "./database";
+import { countFor, enrollInPilot, resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
 
 test("pilot teacher's active time and manual check reach the server", async ({ page, request }) => {
   const email = uniqueEmail("timing");
+  resetRateLimits();
   await page.goto("/register");
   await page.getByLabel("Как к вам обращаться").fill("Ольга");
   await page.getByLabel("Почта").fill(email);

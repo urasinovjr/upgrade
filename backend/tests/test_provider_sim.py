@@ -108,3 +108,16 @@ async def test_stand_endpoints_keep_their_answers(provider):
 
     assert ocr.json() == {"text": "recognized 2 pages of u1"}
     assert analysis.json() == {"steps": 6, "errors": 1, "topic": "logarithmic-inequalities"}
+
+
+async def test_fail_marker_fails_the_first_recognitions(provider):
+    draft = initial_draft([Task.model_validate(task("t1", condition="Решите [[fail:2]]"))])
+    inputs = [task_input(item) for item in draft.tasks]
+
+    for _ in range(2):
+        with pytest.raises(ProviderError) as failure:
+            await provider.recognize(FILES, inputs)
+        assert failure.value.code == "provider_unavailable"
+    reply = await provider.recognize(FILES, inputs)
+
+    assert read_recognition(reply.raw, inputs).tasks[0].matched is True
