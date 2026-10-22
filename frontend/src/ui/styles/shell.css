@@ -88,8 +88,7 @@ a.dp-workspace:hover {
   background: var(--ug-soft);
 }
 .dp-wordmark {
-  display: inline-flex;
-  align-items: flex-start;
+  display: inline-block;
   color: var(--ug-ink);
   font-family: var(--ug-font-display);
   font-size: 18px;
@@ -115,10 +114,10 @@ a.dp-workspace:hover {
   transform: rotate(-1.5deg);
 }
 .dp-wordmark-tick {
-  flex-shrink: 0;
   width: 0.8em;
   height: 0.8em;
-  margin: -0.35em 0 0 1px;
+  margin-left: 1px;
+  vertical-align: 0.45em;
   fill: none;
   stroke: var(--ug-danger);
   stroke-width: 3;

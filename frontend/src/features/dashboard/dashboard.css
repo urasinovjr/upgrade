@@ -117,7 +117,7 @@
   font-weight: 700;
 }
 .dp-app .dp-recs-lead {
-  color: color-mix(in oklab, var(--ug-on-action) 78%, var(--ug-action));
+  color: var(--ug-on-action-soft);
   font-size: var(--ug-fs-caption);
 }
 .dp-overview .dp-recs ul {
@@ -133,7 +133,7 @@
   transition: background var(--ug-dur-fast);
 }
 .dp-rec:hover {
-  background: color-mix(in oklab, var(--ug-on-action) 10%, var(--ug-action));
+  background: var(--ug-action-hover);
 }
 .dp-rec .dp-avatar {
   background: var(--ug-marker);
@@ -154,7 +154,7 @@
   color: var(--ug-on-action);
 }
 .dp-app .dp-rec small {
-  color: color-mix(in oklab, var(--ug-on-action) 82%, var(--ug-action));
+  color: var(--ug-on-action-soft);
 }
 .dp-rec small {
   display: -webkit-box;
@@ -165,7 +165,7 @@
 .dp-app .dp-recs-empty {
   padding: var(--ug-space-2) 0 var(--ug-space-1);
   font-size: var(--ug-fs-caption);
-  color: color-mix(in oklab, var(--ug-on-action) 82%, var(--ug-action));
+  color: var(--ug-on-action-soft);
 }
 
 .dp-overview .dp-roster-list {

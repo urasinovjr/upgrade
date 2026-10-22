@@ -21,6 +21,7 @@ async function openDialog(page: Page, name: string | RegExp) {
 }
 
 const screens: Screen[] = [
+  { name: "welcome", path: "/welcome", widths: allWidths },
   { name: "dashboard", path: "/dashboard", widths: allWidths },
   { name: "dashboard-edit", path: "/dashboard", widths: [phone, 1440], prepare: customize },
   {

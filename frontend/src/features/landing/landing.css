@@ -655,7 +655,7 @@
 .dp-app .dp-landing-honest p {
   max-width: 48ch;
   margin-top: var(--ug-space-3);
-  color: color-mix(in oklab, var(--ug-on-action) 86%, var(--ug-action));
+  color: var(--ug-on-action-soft);
 }
 
 .dp-landing-price {
