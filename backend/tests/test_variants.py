@@ -1,17 +1,13 @@
 from decimal import Decimal
 
 import pytest
+from pydantic import SecretStr
 
+from app.analysis.openai_provider import OpenAiDraftProvider
 from app.analysis.pipeline import RunRecord
+from app.analysis.providers import ProviderNotConfigured, make_provider
 from app.analysis.sim_provider import MODEL, PROMPT_VERSION, PROVIDER_NAME, SimDraftProvider
-from app.analysis.variants import (
-    VARIANTS,
-    UnknownVariant,
-    Variant,
-    code_commit,
-    get_variant,
-    make_provider,
-)
+from app.analysis.variants import VARIANTS, UnknownVariant, Variant, code_commit, get_variant
 
 
 def test_sim_variant_matches_the_simulator():
@@ -71,3 +67,23 @@ def test_commit_falls_back_to_git(test_settings):
 
     assert commit
     assert commit != "abc1234"
+
+
+async def test_yandex_variant_needs_key_and_folder(test_settings):
+    variant = get_variant("yandex-qwen36-v1")
+
+    with pytest.raises(ProviderNotConfigured):
+        make_provider(variant, test_settings)
+    with pytest.raises(ProviderNotConfigured):
+        make_provider(
+            variant, test_settings.model_copy(update={"analysis_api_key": SecretStr("key")})
+        )
+    settings = test_settings.model_copy(
+        update={"analysis_api_key": SecretStr("key"), "analysis_folder_id": "b1g"}
+    )
+    provider = make_provider(variant, settings)
+    try:
+        assert isinstance(provider, OpenAiDraftProvider)
+        assert provider.model_uri == "gpt://b1g/qwen3.6-35b-a3b"
+    finally:
+        await provider.close()

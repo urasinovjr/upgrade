@@ -64,6 +64,9 @@ services:
     environment: &backend-environment
       DATABASE_URL: postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade
       PROVIDER_URL: http://provider-sim:8001
+      ANALYSIS_VARIANT: ${ANALYSIS_VARIANT:-sim}
+      ANALYSIS_API_KEY: ${ANALYSIS_API_KEY:-}
+      ANALYSIS_FOLDER_ID: ${ANALYSIS_FOLDER_ID:-}
       S3_ENDPOINT_URL: http://s3:8333
       SMTP_HOST: mailpit
       SMTP_PORT: "1025"

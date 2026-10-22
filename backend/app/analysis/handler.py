@@ -23,6 +23,7 @@ from app.works.service import files_of, read_draft
 logger = logging.getLogger("analysis")
 
 INVALID_REPLY = "provider_invalid_response"
+FINAL_PROVIDER_ERRORS = {"provider_auth", "provider_rejected"}
 
 
 async def current_work(session, job: Job) -> Work | None:
@@ -142,7 +143,8 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
     try:
         draft = await build_draft(context.analysis_provider, source, context.settings, record)
     except ProviderError as error:
-        raise JobFailure(error.code) from error
+        retryable = error.code not in FINAL_PROVIDER_ERRORS
+        raise JobFailure(error.code, retryable=retryable) from error
     except InvalidReply as error:
         logger.info(
             "analysis_invalid_reply",

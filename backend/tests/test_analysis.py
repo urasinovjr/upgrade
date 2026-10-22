@@ -185,6 +185,24 @@ async def test_provider_failure_is_retried_then_failed(teacher, sessions, test_s
     assert (await act(teacher, work["id"], "manual")).json()["status"] == "ready"
 
 
+@pytest.mark.parametrize("code", ["provider_auth", "provider_rejected"])
+async def test_refused_credentials_fail_without_retries(
+    teacher, sessions, test_settings, storage, code
+):
+    work = await checked_work(teacher, await create_student(teacher))
+    async with sessions() as session:
+        stored = await session.get(Work, UUID(work["id"]))
+        await start_analysis(session, test_settings, stored)
+        await session.commit()
+
+    job = await run_next_job(sessions, test_settings, storage, FakeDraftProvider(1, error=code))
+
+    async with sessions() as session:
+        stored_job = await session.get(Job, job.id)
+    assert (stored_job.status, stored_job.attempts, stored_job.last_error) == ("failed", 1, code)
+    assert (await read_work(teacher, work["id"]))["status"] == "failed"
+
+
 async def test_missing_file_fails_the_attempt(teacher, sessions, test_settings, storage):
     queued = await queued_work(teacher)
     storage.objects.clear()

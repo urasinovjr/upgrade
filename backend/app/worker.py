@@ -3,7 +3,8 @@ import logging
 from collections.abc import Awaitable, Callable
 
 from app.analysis import WORK_ANALYSIS_JOB, handle_work_analysis, mark_analysis_failed
-from app.analysis.variants import code_commit, get_variant, make_provider
+from app.analysis.providers import make_provider
+from app.analysis.variants import code_commit, get_variant
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files

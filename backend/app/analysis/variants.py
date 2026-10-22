@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal
 
-from app.analysis.contract import DraftProvider
-from app.analysis.sim_provider import MODEL, PROMPT_VERSION, PROVIDER_NAME, SimDraftProvider
+from app.analysis.sim_provider import MODEL, PROMPT_VERSION, PROVIDER_NAME
 from app.config import Settings
 
 
@@ -21,6 +20,12 @@ class Variant:
     provider: str
     model: str
     prompt_version: str
+    base_url: str = ""
+    model_uri: str = ""
+    auth_scheme: str = "Bearer"
+    project_header: str = ""
+    temperature: float = 0.0
+    max_tokens: int = 8000
     price_input_per_mtok: Decimal = Decimal(0)
     price_output_per_mtok: Decimal = Decimal(0)
     currency: str = "RUB"
@@ -36,6 +41,19 @@ VARIANTS = {
             model=MODEL,
             prompt_version=PROMPT_VERSION,
         ),
+        Variant(
+            name="yandex-qwen36-v1",
+            kind="openai",
+            provider="yandex-ai-studio",
+            model="qwen3.6-35b-a3b",
+            prompt_version="math-1",
+            base_url="https://ai.api.cloud.yandex.net/v1",
+            model_uri="gpt://{folder}/qwen3.6-35b-a3b",
+            auth_scheme="Api-Key",
+            project_header="OpenAI-Project",
+            price_input_per_mtok=Decimal(200),
+            price_output_per_mtok=Decimal(300),
+        ),
     ]
 }
 
@@ -44,10 +62,6 @@ def get_variant(name: str) -> Variant:
     if name not in VARIANTS:
         raise UnknownVariant(name)
     return VARIANTS[name]
-
-
-def make_provider(variant: Variant, settings: Settings) -> DraftProvider:
-    return SimDraftProvider(settings.provider_url, settings.analysis_timeout)
 
 
 def git(*args: str) -> str:

@@ -8,8 +8,9 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
+from app.analysis.providers import ProviderNotConfigured, make_provider
 from app.analysis.report import Period, analysis_report
-from app.analysis.variants import UnknownVariant, get_variant, make_provider
+from app.analysis.variants import UnknownVariant, get_variant
 from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
@@ -141,9 +142,11 @@ async def run_control_set(args: argparse.Namespace, settings: Settings) -> str:
         raise SystemExit("\n".join(f"ошибка: {item}" for item in problems))
     try:
         variant = get_variant(args.variant or settings.analysis_variant)
+        provider = make_provider(variant, settings)
     except UnknownVariant as error:
         raise SystemExit(f"неизвестный вариант разбора: {error.name}") from error
-    provider = make_provider(variant, settings)
+    except ProviderNotConfigured as error:
+        raise SystemExit(str(error)) from error
     try:
         return await run_split(
             manifest, args.root, args.split, args.out, provider, settings, variant
