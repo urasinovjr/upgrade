@@ -53,7 +53,10 @@ services:
       retries: 30
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        APP_COMMIT: ${APP_COMMIT:-unknown}
     image: upgrade-backend
     command: >-
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000

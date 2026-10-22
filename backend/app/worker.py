@@ -2,12 +2,8 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 
-from app.analysis import (
-    WORK_ANALYSIS_JOB,
-    SimDraftProvider,
-    handle_work_analysis,
-    mark_analysis_failed,
-)
+from app.analysis import WORK_ANALYSIS_JOB, handle_work_analysis, mark_analysis_failed
+from app.analysis.variants import code_commit, get_variant, make_provider
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
@@ -118,13 +114,26 @@ async def main() -> None:
     provider = Provider(settings.provider_url, settings.provider_timeout)
     storage = await S3Storage.connect(settings)
     mailer = SmtpMailer(settings)
-    analysis_provider = SimDraftProvider(settings.provider_url, settings.analysis_timeout)
+    variant = get_variant(settings.analysis_variant)
+    analysis_provider = make_provider(variant, settings)
     context = WorkerContext(
-        make_session_factory(engine), provider, settings, storage, mailer, analysis_provider
+        make_session_factory(engine),
+        provider,
+        settings,
+        storage,
+        mailer,
+        analysis_provider,
+        variant,
+        code_commit(settings),
     )
     logger.info(
         "worker_started",
-        extra={"concurrency": settings.worker_concurrency, "tables": len(tables)},
+        extra={
+            "concurrency": settings.worker_concurrency,
+            "tables": len(tables),
+            "variant": variant.name,
+            "code_commit": context.code_commit,
+        },
     )
     try:
         await run_worker(context)

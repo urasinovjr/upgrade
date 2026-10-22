@@ -10,6 +10,7 @@ from app.provider import Provider
 
 if TYPE_CHECKING:
     from app.analysis.contract import DraftProvider
+    from app.analysis.variants import Variant
     from app.files.storage import Storage
     from app.mail.mailer import Mailer
 
@@ -22,3 +23,5 @@ class WorkerContext:
     storage: Storage
     mailer: Mailer
     analysis_provider: DraftProvider
+    analysis_variant: Variant
+    code_commit: str

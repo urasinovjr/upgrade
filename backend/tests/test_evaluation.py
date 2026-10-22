@@ -4,12 +4,14 @@ from pathlib import Path
 
 import pytest
 
+from app.analysis.variants import get_variant
 from app.cli import run
 from app.config import Settings
 from app.evaluation import IncompleteMarks, load_manifest, run_split, score, validate
 from tests.fakes import FakeDraftProvider
 from tests.samples import PNG_BYTES, picture
 
+SIM = get_variant("sim")
 NAME_MASK = {"x": 0, "y": 0, "width": 0.5, "height": 0.2}
 
 
@@ -100,7 +102,7 @@ async def test_run_saves_replies_and_compares_with_the_expert(
     provider = FakeDraftProvider()
 
     message = await run_split(
-        load_manifest(clean_set), clean_set, "acceptance", out, provider, test_settings
+        load_manifest(clean_set), clean_set, "acceptance", out, provider, test_settings, SIM
     )
     with (out / "expert.csv").open(encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
@@ -122,6 +124,8 @@ async def test_run_saves_replies_and_compares_with_the_expert(
         "fake-model",
     )
     assert run["error"] is None and run["review"]["tasks"][0]["task_id"] == "t1"
+    assert (meta["variant"], meta["currency"], run["variant"]) == ("sim", "RUB", "sim")
+    assert meta["codeCommit"]
 
 
 def mark(out: Path, explanation: list[str], recognition: list[str]) -> None:
@@ -142,7 +146,13 @@ async def test_score_needs_every_mark_and_counts_false_errors(
 ):
     out = tmp_path / "run"
     await run_split(
-        load_manifest(clean_set), clean_set, "acceptance", out, FakeDraftProvider(), test_settings
+        load_manifest(clean_set),
+        clean_set,
+        "acceptance",
+        out,
+        FakeDraftProvider(),
+        test_settings,
+        SIM,
     )
 
     with pytest.raises(IncompleteMarks):

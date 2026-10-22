@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
 from app.analysis.report import Period, analysis_report
-from app.analysis.sim_provider import SimDraftProvider
+from app.analysis.variants import UnknownVariant, get_variant, make_provider
 from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
@@ -63,6 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--root", type=Path, required=True)
     evaluate.add_argument("--split", choices=["dev", "acceptance"], required=True)
     evaluate.add_argument("--out", type=Path, required=True)
+    evaluate.add_argument("--variant", help="analysis variant, ANALYSIS_VARIANT by default")
 
     scoring = commands.add_parser("eval-score", help="compute quality metrics from expert marks")
     scoring.add_argument("--out", type=Path, required=True)
@@ -138,9 +139,15 @@ async def run_control_set(args: argparse.Namespace, settings: Settings) -> str:
     problems, _ = validate(manifest, args.root, [])
     if problems:
         raise SystemExit("\n".join(f"ошибка: {item}" for item in problems))
-    provider = SimDraftProvider(settings.provider_url, settings.analysis_timeout)
     try:
-        return await run_split(manifest, args.root, args.split, args.out, provider, settings)
+        variant = get_variant(args.variant or settings.analysis_variant)
+    except UnknownVariant as error:
+        raise SystemExit(f"неизвестный вариант разбора: {error.name}") from error
+    provider = make_provider(variant, settings)
+    try:
+        return await run_split(
+            manifest, args.root, args.split, args.out, provider, settings, variant
+        )
     finally:
         await provider.close()
 

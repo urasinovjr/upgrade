@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from app.analysis.contract import DraftProvider, InvalidReply
 from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft, elapsed_ms
+from app.analysis.variants import Variant, code_commit
 from app.config import Settings
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import sniff_type
@@ -106,9 +107,14 @@ def sources_of(root: Path, work: WorkCard) -> tuple[list[SourceFile], list[dict]
 
 
 async def run_work(
-    root: Path, work: WorkCard, provider: DraftProvider, settings: Settings, pages: Path
+    root: Path,
+    work: WorkCard,
+    provider: DraftProvider,
+    settings: Settings,
+    pages: Path,
+    variant: Variant,
 ) -> tuple[Draft | None, RunRecord, str | None]:
-    record = RunRecord()
+    record = RunRecord(variant=variant.name, code_commit=code_commit(settings))
     sources, layout = sources_of(root, work)
     started = time.monotonic()
     try:
@@ -127,7 +133,7 @@ async def run_work(
         draft, error = None, failure.reason
     except (ProviderError, PageUnreadable) as failure:
         draft, error = None, failure.code
-    record.price(settings)
+    record.price(variant)
     return draft, record, error
 
 
@@ -184,6 +190,7 @@ async def run_split(
     out: Path,
     provider: DraftProvider,
     settings: Settings,
+    variant: Variant,
 ) -> str:
     out.mkdir(parents=True, exist_ok=True)
     (out / "runs").mkdir(exist_ok=True)
@@ -197,13 +204,18 @@ async def run_split(
         "works": 0,
         "failedWorks": 0,
         "cost": "0",
+        "currency": variant.currency,
+        "variant": variant.name,
+        "codeCommit": code_commit(settings),
         "provider": "",
         "model": "",
         "promptVersion": "",
     }
     total_cost = Decimal(0)
     for work in [item for item in manifest.works if item.split == split]:
-        draft, record, error = await run_work(root, work, provider, settings, out / "pages")
+        draft, record, error = await run_work(
+            root, work, provider, settings, out / "pages", variant
+        )
         tasks = {task.id: task for task in draft.tasks} if draft else {}
         rows += [expert_row(work, card, tasks.get(card.task_id)) for card in admitted_tasks(work)]
         (out / "runs" / f"{work.work_id}.json").write_text(

@@ -10,6 +10,8 @@ SAFE = {
     "public_url": "https://upgrade.example",
     "s3_secret_key": "real-secret",
     "database_url": "postgresql+asyncpg://app:strong@db:5432/upgrade",
+    "analysis_variant": "real-model",
+    "analysis_api_key": "real-key",
 }
 
 
@@ -25,6 +27,8 @@ def test_production_settings_pass_when_safe():
         ("public_url", "http://upgrade.example"),
         ("s3_secret_key", "upgrade-secret"),
         ("database_url", "postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade"),
+        ("analysis_variant", "sim"),
+        ("analysis_api_key", ""),
     ],
 )
 def test_unsafe_production_settings_are_rejected(field, value):

@@ -12,6 +12,7 @@ from app.analysis.contract import (
     read_review,
 )
 from app.analysis.drafting import merge_review, review_tasks, task_input, tasks_to_recognize
+from app.analysis.variants import Variant
 from app.config import Settings
 from app.redaction import SanitizedPages
 from app.works.schemas import Draft
@@ -48,6 +49,8 @@ class RunRecord:
     cost_currency: str = ""
     sanitize_ms: int | None = None
     sent_pages: list = field(default_factory=list)
+    variant: str = ""
+    code_commit: str = ""
 
     def note(self, reply: ProviderReply) -> None:
         self.provider = reply.provider
@@ -56,13 +59,13 @@ class RunRecord:
         self.input_tokens += reply.input_tokens
         self.output_tokens += reply.output_tokens
 
-    def price(self, settings: Settings) -> None:
+    def price(self, variant: Variant) -> None:
         tokens_cost = (
-            self.input_tokens * settings.price_input_per_mtok
-            + self.output_tokens * settings.price_output_per_mtok
+            self.input_tokens * variant.price_input_per_mtok
+            + self.output_tokens * variant.price_output_per_mtok
         )
         self.cost = tokens_cost / 1_000_000
-        self.cost_currency = settings.price_currency
+        self.cost_currency = variant.currency
 
 
 def elapsed_ms(started: float) -> int:

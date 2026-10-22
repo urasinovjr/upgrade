@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import Literal, Self
 
 from pydantic import SecretStr, model_validator
@@ -14,7 +13,10 @@ class Settings(BaseSettings):
     db_pool_size: int = 20
     provider_url: str = "http://localhost:8011"
     provider_timeout: float = 6.0
-    analysis_timeout: float = 60.0
+    analysis_variant: str = "sim"
+    analysis_api_key: SecretStr = SecretStr("")
+    analysis_folder_id: str = ""
+    analysis_timeout: float = 180.0
     analysis_max_bytes: int = 50 * 1024 * 1024
     redaction_dpi: int = 150
     redaction_max_side: int = 2000
@@ -29,9 +31,7 @@ class Settings(BaseSettings):
     stand_enabled: bool = True
     log_format: Literal["json", "text"] = "json"
     log_level: str = "info"
-    price_input_per_mtok: Decimal = Decimal(0)
-    price_output_per_mtok: Decimal = Decimal(0)
-    price_currency: str = "USD"
+    app_commit: str = ""
 
     allowed_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     session_cookie_name: str = "upgrade_session"
@@ -104,6 +104,10 @@ class Settings(BaseSettings):
             problems.append("S3_SECRET_KEY must be set")
         if "upgrade:upgrade@" in self.database_url:
             problems.append("DATABASE_URL must not use the development password")
+        if self.analysis_variant == "sim":
+            problems.append("ANALYSIS_VARIANT must name a real provider")
+        if not self.analysis_api_key.get_secret_value():
+            problems.append("ANALYSIS_API_KEY must be set")
         if problems:
             raise ValueError("; ".join(problems))
         return self

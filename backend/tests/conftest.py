@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from app.analysis.variants import Variant, get_variant
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.main import create_app
@@ -106,6 +107,7 @@ def worker_context(
     storage: MemoryStorage | None = None,
     mailer: MemoryMailer | None = None,
     analysis_provider: FakeDraftProvider | None = None,
+    variant: Variant | None = None,
 ) -> WorkerContext:
     return WorkerContext(
         sessions,
@@ -114,6 +116,8 @@ def worker_context(
         storage or MemoryStorage(),
         mailer or MemoryMailer(),
         analysis_provider or FakeDraftProvider(),
+        variant or get_variant("sim"),
+        "test",
     )
 
 

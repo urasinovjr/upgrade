@@ -107,7 +107,7 @@ def run_fields(run: AnalysisRun) -> dict:
 async def save_run(
     context: WorkerContext, job: Job, record: RunRecord, draft: Draft | None, error: str | None
 ) -> None:
-    record.price(context.settings)
+    record.price(context.analysis_variant)
     async with context.sessions() as session:
         work = await session.get(Work, job.subject_id, with_for_update=True)
         if work is not None:
@@ -133,7 +133,12 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
     source = await begin_analysis(context, job)
     if source is None:
         return
-    record = RunRecord(request_id=current_request_id(), queued_ms=queued_ms(job))
+    record = RunRecord(
+        request_id=current_request_id(),
+        queued_ms=queued_ms(job),
+        variant=context.analysis_variant.name,
+        code_commit=context.code_commit,
+    )
     try:
         draft = await build_draft(context.analysis_provider, source, context.settings, record)
     except ProviderError as error:

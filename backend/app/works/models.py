@@ -128,4 +128,6 @@ class AnalysisRun(Base):
     cost_currency: Mapped[str] = mapped_column(String(8))
     sanitize_ms: Mapped[int | None]
     sent_pages: Mapped[list] = mapped_column(JSONB, default=list)
+    variant: Mapped[str] = mapped_column(String(64), default="")
+    code_commit: Mapped[str] = mapped_column(String(40), default="")
     created_at: Mapped[datetime] = now_column()

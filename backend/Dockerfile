@@ -11,6 +11,7 @@ COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
 
-ENV PATH="/app/.venv/bin:$PATH"
+ARG APP_COMMIT=unknown
+ENV PATH="/app/.venv/bin:$PATH" APP_COMMIT=$APP_COMMIT
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

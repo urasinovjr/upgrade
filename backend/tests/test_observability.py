@@ -1,8 +1,10 @@
 import json
 import logging
+from dataclasses import replace
 from decimal import Decimal
 from uuid import UUID
 
+from app.analysis.variants import get_variant
 from app.observability import configure_logging, request_id_var
 from app.observability.logging import JsonFormatter, TextFormatter
 from app.observability.request_id import read_request_id
@@ -75,8 +77,8 @@ def test_json_line_has_event_fields_and_request_id():
 
 
 async def test_run_keeps_request_id_tokens_and_cost(teacher, sessions, test_settings, storage):
-    settings = test_settings.model_copy(
-        update={"price_input_per_mtok": Decimal(3), "price_output_per_mtok": Decimal(15)}
+    variant = replace(
+        get_variant("sim"), price_input_per_mtok=Decimal(3), price_output_per_mtok=Decimal(15)
     )
     work = await checked_work(teacher, await create_student(teacher))
     response = await teacher.post(
@@ -84,7 +86,7 @@ async def test_run_keeps_request_id_tokens_and_cost(teacher, sessions, test_sett
     )
     assert response.status_code == 200, response.text
 
-    job = await run_next_job(sessions, settings, storage)
+    job = await run_next_job(sessions, test_settings, storage, variant=variant)
     [run] = await stored_runs(sessions, work["id"])
 
     assert job.payload["request_id"] == REQUEST_ID
@@ -92,4 +94,5 @@ async def test_run_keeps_request_id_tokens_and_cost(teacher, sessions, test_sett
     assert run.queued_ms is not None and run.queued_ms >= 0
     assert (run.input_tokens, run.output_tokens) == (2000, 400)
     assert run.cost == Decimal("0.012")
-    assert run.cost_currency == "USD"
+    assert run.cost_currency == "RUB"
+    assert (run.variant, run.code_commit) == ("sim", "test")

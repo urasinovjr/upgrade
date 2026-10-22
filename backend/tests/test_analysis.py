@@ -16,7 +16,7 @@ from tests.students import create_student
 from tests.works import act, checked_work, create_work, save
 
 
-async def run_next_job(sessions, settings, storage, provider=None) -> Job:
+async def run_next_job(sessions, settings, storage, provider=None, variant=None) -> Job:
     async with sessions() as session:
         await session.execute(
             update(Job).where(Job.kind != WORK_ANALYSIS_JOB).values(status="done")
@@ -24,7 +24,9 @@ async def run_next_job(sessions, settings, storage, provider=None) -> Job:
         await session.commit()
         job = await claim_job(session, lease_seconds=5)
     assert job is not None
-    context = worker_context(sessions, settings, storage=storage, analysis_provider=provider)
+    context = worker_context(
+        sessions, settings, storage=storage, analysis_provider=provider, variant=variant
+    )
     await handle_job(context, job)
     return job
 
