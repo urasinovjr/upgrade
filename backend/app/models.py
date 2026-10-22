@@ -16,9 +16,11 @@ from app.knowledge.models import Closure
 from app.queue.models import Job
 from app.stand.models import StandResult, StandWork
 from app.students.models import Student
+from app.timing.models import ActiveInterval, ManualSession, PilotParticipant
 from app.works.models import AnalysisRun, Work, WorkFile, WorkRevision
 
 __all__ = [
+    "ActiveInterval",
     "AnalysisRun",
     "AuthSession",
     "Base",
@@ -26,8 +28,10 @@ __all__ = [
     "Consent",
     "EmailToken",
     "Job",
+    "ManualSession",
     "OAuthIdentity",
     "OAuthState",
+    "PilotParticipant",
     "Plan",
     "RateLimit",
     "StandResult",

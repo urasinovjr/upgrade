@@ -19,6 +19,7 @@ from app.provider import Provider
 from app.snapshot import router as snapshot_router
 from app.stand.router import router as stand_router
 from app.students.router import router as students_router
+from app.timing import router as timing_router
 from app.works.router import router as works_router
 
 
@@ -59,6 +60,7 @@ def create_app(
     api.include_router(students_router)
     api.include_router(knowledge_router)
     api.include_router(works_router)
+    api.include_router(timing_router)
     app.include_router(api)
     if app_settings.stand_enabled:
         app.include_router(stand_router)

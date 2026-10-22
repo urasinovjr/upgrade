@@ -12,6 +12,8 @@ from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.errors import DomainError
+from app.timing import enroll, leave
+from app.timing.report import timing_report
 
 Command = Callable[[AsyncSession, argparse.Namespace], Awaitable[str]]
 
@@ -38,6 +40,16 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--since", type=date.fromisoformat)
     report.add_argument("--until", type=date.fromisoformat)
     report.add_argument("--csv", action="store_true")
+
+    pilot = commands.add_parser("pilot-enroll", help="turn time measurement on for a teacher")
+    pilot.add_argument("--email", required=True)
+    pilot.add_argument("--note", default="")
+    pilot.add_argument("--remove", action="store_true")
+
+    timing = commands.add_parser("timing-report", help="active review time and savings")
+    timing.add_argument("--since", type=date.fromisoformat)
+    timing.add_argument("--until", type=date.fromisoformat)
+    timing.add_argument("--csv", action="store_true")
     return parser
 
 
@@ -74,10 +86,29 @@ async def report_runs(session: AsyncSession, args: argparse.Namespace) -> str:
     return await analysis_report(session, period_of(args), args.csv)
 
 
+async def enroll_teacher(session: AsyncSession, args: argparse.Namespace) -> str:
+    user = await find_user_by_email(session, args.email)
+    if user is None:
+        raise DomainError("user_not_found")
+    if args.remove:
+        await leave(session, user.id)
+    else:
+        await enroll(session, user.id, args.note)
+    await session.commit()
+    return f"time measurement for {user.email} is {'off' if args.remove else 'on'}"
+
+
+async def report_timing(session: AsyncSession, args: argparse.Namespace) -> str:
+    period = period_of(args)
+    return await timing_report(session, period.since, period.until, args.csv)
+
+
 COMMANDS: dict[str, Command] = {
     "plan-upsert": save_plan,
     "grant-subscription": extend_subscription,
     "analysis-report": report_runs,
+    "pilot-enroll": enroll_teacher,
+    "timing-report": report_timing,
 }
 
 
