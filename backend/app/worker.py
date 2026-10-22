@@ -68,7 +68,9 @@ async def handle_job(context: WorkerContext, job: Job) -> None:
         logger.info("job_done", extra=job_fields(job))
     except JobFailure as error:
         async with context.sessions() as session:
-            failed = await retry_or_fail(session, job, error.code, context.settings.retry_delay)
+            failed = await retry_or_fail(
+                session, job, error.code, context.settings.retry_delay, error.retryable
+            )
         logger.info("job_retry", extra={**job_fields(job), "error": error.code, "failed": failed})
         if failed:
             await report_failure(context, job)

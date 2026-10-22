@@ -21,6 +21,8 @@ from app.works.actions import (
     read_report,
     run_action,
     save_draft,
+    sent_page,
+    sent_pages,
     update_attachments,
 )
 from app.works.deletion import delete_student, delete_work
@@ -29,6 +31,7 @@ from app.works.schemas import (
     DraftSavedOut,
     DraftSaveIn,
     ReportOut,
+    SentPageOut,
     WorkAction,
     WorkCreateMeta,
     WorkOut,
@@ -133,6 +136,30 @@ async def get_report(
     revision_id: Annotated[UUID | None, Query(alias="revisionId")] = None,
 ) -> ReportOut:
     return await read_report(session, current.user.id, work_id, revision_id)
+
+
+@router.get("/works/{work_id}/analysis/pages")
+async def get_sent_pages(
+    work_id: UUID, current: CurrentAccountDep, session: SessionDep
+) -> list[SentPageOut]:
+    pages = await sent_pages(session, current.user.id, work_id)
+    return [
+        SentPageOut.model_validate({key: value for key, value in page.items() if key != "key"})
+        for page in pages
+    ]
+
+
+@router.get("/works/{work_id}/analysis/pages/{index}")
+async def get_sent_page(
+    work_id: UUID, index: int, current: CurrentAccountDep, session: SessionDep, storage: StorageDep
+) -> StreamingResponse:
+    page = await sent_page(session, current.user.id, work_id, index)
+    try:
+        chunks = await storage.open(page["key"])
+    except StorageError as error:
+        raise DomainError(error.code) from error
+    headers = {"X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=3600"}
+    return StreamingResponse(chunks, media_type=page["contentType"], headers=headers)
 
 
 @router.get("/files/{file_id}", status_code=status.HTTP_200_OK)

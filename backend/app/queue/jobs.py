@@ -10,9 +10,10 @@ from app.queue.retry import retry_delay
 
 
 class JobFailure(Exception):
-    def __init__(self, code: str):
+    def __init__(self, code: str, retryable: bool = True):
         super().__init__(code)
         self.code = code
+        self.retryable = retryable
 
 
 def seconds_from_now(seconds: float):
@@ -87,9 +88,9 @@ async def complete_job(session: AsyncSession, job_id: UUID, payload: dict | None
 
 
 async def retry_or_fail(
-    session: AsyncSession, job: Job, error_code: str, base_delay: float
+    session: AsyncSession, job: Job, error_code: str, base_delay: float, retryable: bool = True
 ) -> bool:
-    failed = job.attempts >= job.max_attempts
+    failed = not retryable or job.attempts >= job.max_attempts
     if failed:
         values = {"status": "failed", "finished_at": func.clock_timestamp()}
     else:

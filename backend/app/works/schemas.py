@@ -69,6 +69,16 @@ class AttachmentOut(ApiModel):
     checked_pages: list[int] = Field(default_factory=list)
 
 
+class SentPageOut(ApiModel):
+    index: int
+    file_id: UUID
+    page: int
+    content_type: str
+    width: int
+    height: int
+    sha256: str
+
+
 class AnalysisInfo(ApiModel):
     run_id: UUID
     provider: str

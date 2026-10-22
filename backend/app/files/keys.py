@@ -9,5 +9,9 @@ def work_prefix(teacher_id: UUID, work_id: UUID) -> str:
     return f"{teacher_prefix(teacher_id)}works/{work_id}/"
 
 
+def sanitized_key(teacher_id: UUID, work_id: UUID, name: str) -> str:
+    return f"{work_prefix(teacher_id, work_id)}sanitized/{name}"
+
+
 def file_key(teacher_id: UUID, work_id: UUID, file_id: UUID) -> str:
     return f"{work_prefix(teacher_id, work_id)}{file_id}"

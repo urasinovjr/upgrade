@@ -4,6 +4,7 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, Field, ValidationError
 
 from app.knowledge.topics import TOPIC_IDS
+from app.redaction import PageImage
 
 Verdict = Literal["correct", "error", "uncertain"]
 
@@ -12,13 +13,6 @@ class InvalidReply(Exception):
     def __init__(self, reason: str):
         super().__init__(reason)
         self.reason = reason
-
-
-class FileSource(BaseModel):
-    file_id: str
-    content_type: str
-    data: bytes
-    page_order: list[int]
 
 
 class TaskInput(BaseModel):
@@ -89,7 +83,7 @@ class Review(BaseModel):
 
 
 class DraftProvider(Protocol):
-    async def recognize(self, files: list[FileSource], tasks: list[TaskInput]) -> ProviderReply: ...
+    async def recognize(self, pages: list[PageImage], tasks: list[TaskInput]) -> ProviderReply: ...
 
     async def review(self, tasks: list[ReviewTask]) -> ProviderReply: ...
 

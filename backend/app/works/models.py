@@ -126,4 +126,6 @@ class AnalysisRun(Base):
     output_tokens: Mapped[int]
     cost: Mapped[Decimal] = mapped_column(Numeric(12, 6))
     cost_currency: Mapped[str] = mapped_column(String(8))
+    sanitize_ms: Mapped[int | None]
+    sent_pages: Mapped[list] = mapped_column(JSONB, default=list)
     created_at: Mapped[datetime] = now_column()

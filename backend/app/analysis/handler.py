@@ -1,4 +1,5 @@
 import logging
+import time
 from dataclasses import asdict
 from datetime import UTC, datetime
 from uuid import UUID
@@ -6,14 +7,15 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.analysis.contract import FileSource, InvalidReply
+from app.analysis.contract import InvalidReply
 from app.analysis.drafting import layout_signature
-from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft
+from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft, elapsed_ms
 from app.analysis.service import accept_draft, mark_failed
 from app.files.storage import Storage, StorageError
 from app.observability import current_request_id
 from app.provider import ProviderError
 from app.queue import Job, JobFailure, WorkerContext, complete_job
+from app.redaction import PageUnreadable, SourceFile, sanitize_pages
 from app.works.models import AnalysisRun, Work, WorkFile
 from app.works.schemas import Draft
 from app.works.service import files_of, read_draft
@@ -40,13 +42,15 @@ async def last_layout(session: AsyncSession, work_id: UUID) -> list[dict] | None
     return run_input["layout"] if run_input else None
 
 
-async def read_file(storage: Storage, file: WorkFile) -> FileSource:
+async def read_file(storage: Storage, file: WorkFile) -> SourceFile:
     chunks = [chunk async for chunk in await storage.open(file.storage_key)]
-    return FileSource(
+    return SourceFile(
         file_id=str(file.id),
         content_type=file.content_type,
         data=b"".join(chunks),
         page_order=file.page_order,
+        crops=file.crops,
+        masks=file.masks,
     )
 
 
@@ -58,18 +62,26 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
             await session.commit()
             return None
         work.status = "processing"
+        teacher_id = work.teacher_id
         files = await files_of(session, [work.id])
         draft = read_draft(work)
         previous_layout = await last_layout(session, work.id)
         await session.commit()
+    started = time.monotonic()
     try:
         sources = [await read_file(context.storage, file) for file in files]
+        sanitized = await sanitize_pages(
+            context.storage, context.settings, teacher_id, job.subject_id, sources
+        )
     except StorageError as error:
         raise JobFailure(error.code) from error
+    except PageUnreadable as error:
+        raise JobFailure(error.code, retryable=False) from error
     return AnalysisSource(
         input_revision=job.payload["input_revision"],
         draft=draft,
-        files=sources,
+        sanitized=sanitized,
+        sanitize_ms=elapsed_ms(started),
         layout=layout_signature(files),
         last_layout=previous_layout,
     )

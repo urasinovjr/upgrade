@@ -2,9 +2,10 @@ import base64
 
 import httpx
 
-from app.analysis.contract import FileSource, ProviderReply, ReviewTask, TaskInput
+from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
 from app.knowledge.topics import TOPICS
 from app.provider import ProviderError
+from app.redaction import PageImage
 
 PROVIDER_NAME = "provider-sim"
 MODEL = "sim-draft"
@@ -12,12 +13,10 @@ PROMPT_VERSION = "sim-1"
 RAW_TEXT_LIMIT = 2000
 
 
-def file_payload(file: FileSource) -> dict:
+def page_payload(page: PageImage) -> dict:
     return {
-        "file_id": file.file_id,
-        "content_type": file.content_type,
-        "data": base64.b64encode(file.data).decode(),
-        "page_order": file.page_order,
+        **page.model_dump(exclude={"data"}),
+        "data": base64.b64encode(page.data).decode(),
     }
 
 
@@ -52,9 +51,9 @@ class SimDraftProvider:
     def __init__(self, base_url: str, timeout: float):
         self.client = httpx.AsyncClient(base_url=base_url, timeout=timeout, trust_env=False)
 
-    async def recognize(self, files: list[FileSource], tasks: list[TaskInput]) -> ProviderReply:
+    async def recognize(self, pages: list[PageImage], tasks: list[TaskInput]) -> ProviderReply:
         payload = {
-            "files": [file_payload(file) for file in files],
+            "pages": [page_payload(page) for page in pages],
             "tasks": [task.model_dump() for task in tasks],
         }
         return await self.post("/draft/recognize", payload)

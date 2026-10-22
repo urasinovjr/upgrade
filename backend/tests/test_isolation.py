@@ -44,6 +44,8 @@ async def test_other_teacher_cannot_reach_work_or_files(teacher, other_teacher):
         await other_teacher.post(f"/api/works/{work_id}/actions/analyse"),
         await other_teacher.get(f"/api/works/{work_id}/report"),
         await other_teacher.get(f"/api/files/{file_id}"),
+        await other_teacher.get(f"/api/works/{work_id}/analysis/pages"),
+        await other_teacher.get(f"/api/works/{work_id}/analysis/pages/0"),
         await upload_work(other_teacher, student_id),
     ]
     own = await teacher.get(f"/api/works/{work_id}")

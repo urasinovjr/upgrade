@@ -1105,3 +1105,25 @@
     scrollbar-gutter: auto;
   }
 }
+.sent-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--ug-space-3);
+  margin-top: var(--ug-space-2);
+}
+.sent-page {
+  display: grid;
+  gap: var(--ug-space-1);
+  margin: 0;
+}
+.sent-page img {
+  width: 100%;
+  border: 1px solid var(--ug-line);
+  border-radius: var(--ug-radius-sm);
+  background: var(--ug-surface);
+}
+.sent-page figcaption {
+  font-size: var(--ug-fs-caption);
+  color: var(--ug-muted);
+  overflow-wrap: anywhere;
+}

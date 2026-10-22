@@ -8,7 +8,7 @@ from app.analysis import start_analysis
 from app.config import Settings
 from app.errors import DomainError
 from app.students import StudentOut, owned_student
-from app.works.models import Work, WorkFile, WorkRevision
+from app.works.models import AnalysisRun, Work, WorkFile, WorkRevision
 from app.works.page_checks import kept_checks, stored_crops, stored_masks, valid_masks
 from app.works.review import apply_draft, keep_known_attachments, reopened_draft, review_blockers
 from app.works.schemas import AttachmentLayout, Draft, ReportOut
@@ -103,6 +103,21 @@ def mark_inputs_changed(work: Work) -> None:
     for task in draft.tasks:
         task.reviewed = False
     work.draft = dump(draft)
+
+
+async def sent_pages(session: AsyncSession, teacher_id: UUID, work_id: UUID) -> list[dict]:
+    work = await owned_work(session, teacher_id, work_id)
+    if work.analysis_run_id is None:
+        return []
+    run = await session.get(AnalysisRun, work.analysis_run_id)
+    return run.sent_pages if run is not None else []
+
+
+async def sent_page(session: AsyncSession, teacher_id: UUID, work_id: UUID, index: int) -> dict:
+    pages = await sent_pages(session, teacher_id, work_id)
+    if not 0 <= index < len(pages):
+        raise DomainError("file_not_found")
+    return pages[index]
 
 
 async def confirm(session: AsyncSession, work: Work) -> None:

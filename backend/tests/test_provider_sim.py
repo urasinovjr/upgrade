@@ -2,16 +2,21 @@ import httpx
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.analysis.contract import FileSource, read_recognition, read_review
+from app.analysis.contract import read_recognition, read_review
 from app.analysis.drafting import review_tasks, task_input
 from app.analysis.sim_provider import SimDraftProvider
 from app.provider import ProviderError
+from app.redaction import PageImage
 from app.works.review import initial_draft
 from app.works.schemas import Task
 from provider_sim import sim
 from tests.works import task
 
-FILES = [FileSource(file_id="f1", content_type="image/png", data=b"png", page_order=[1])]
+FILES = [
+    PageImage(
+        index=0, file_id="f1", page=1, content_type="image/png", data=b"png", width=1, height=1
+    )
+]
 
 
 @pytest.fixture

@@ -6,7 +6,6 @@ from pydantic import ValidationError
 
 from app.analysis.contract import (
     DraftProvider,
-    FileSource,
     InvalidReply,
     ProviderReply,
     read_recognition,
@@ -14,6 +13,7 @@ from app.analysis.contract import (
 )
 from app.analysis.drafting import merge_review, review_tasks, task_input, tasks_to_recognize
 from app.config import Settings
+from app.redaction import SanitizedPages
 from app.works.schemas import Draft
 from app.works.service import draft_too_large, dump
 
@@ -22,7 +22,8 @@ from app.works.service import draft_too_large, dump
 class AnalysisSource:
     input_revision: int
     draft: Draft
-    files: list[FileSource]
+    sanitized: SanitizedPages
+    sanitize_ms: int
     layout: list[dict]
     last_layout: list[dict] | None
 
@@ -45,6 +46,8 @@ class RunRecord:
     output_tokens: int = 0
     cost: Decimal = Decimal(0)
     cost_currency: str = ""
+    sanitize_ms: int | None = None
+    sent_pages: list = field(default_factory=list)
 
     def note(self, reply: ProviderReply) -> None:
         self.provider = reply.provider
@@ -79,6 +82,8 @@ def checked_draft(draft: Draft, settings: Settings) -> Draft:
 async def build_draft(
     provider: DraftProvider, source: AnalysisSource, settings: Settings, record: RunRecord
 ) -> Draft:
+    record.sanitize_ms = source.sanitize_ms
+    record.sent_pages = source.sanitized.sent
     targets = tasks_to_recognize(source.draft, source.layout, source.last_layout)
     record.input = {
         "layout": source.layout,
@@ -89,7 +94,7 @@ async def build_draft(
     if targets:
         inputs = [task_input(task) for task in targets]
         started = time.monotonic()
-        reply = await provider.recognize(source.files, inputs)
+        reply = await provider.recognize(source.sanitized.pages, inputs)
         record.recognize_ms = elapsed_ms(started)
         record.note(reply)
         record.recognized = True

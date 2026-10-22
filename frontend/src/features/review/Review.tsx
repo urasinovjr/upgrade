@@ -39,6 +39,7 @@ import { usePinnedActions } from "../../shared/layout";
 import { useReviewDraft, type SaveState } from "./useReviewDraft";
 import { DeleteWork } from "./DeleteWork";
 import { InitialAnalysis } from "./InitialAnalysis";
+import { SentPages } from "./SentPages";
 import { Reanalyse } from "./Reanalyse";
 import { uncheckedPages } from "../../domain/redaction";
 import { StepEditor, StepItem } from "./StepItem";
@@ -693,6 +694,11 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         <Disclosure title="Исходный разбор">
           <InitialAnalysis task={initial} analysis={work.analysis} />
         </Disclosure>
+        {serverMode && work.analysis && (
+          <Disclosure title="Что получил ИИ">
+            <SentPages workId={work.id} runId={work.analysis.runId} files={work.attachments} />
+          </Disclosure>
+        )}
         <Disclosure title={"История редакций · " + work.published.length}>
           {work.published.length ? (
             work.published.map((revision) => (

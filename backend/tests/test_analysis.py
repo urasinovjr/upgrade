@@ -12,7 +12,6 @@ from app.works import Work
 from app.works.models import AnalysisRun
 from tests.conftest import worker_context
 from tests.fakes import FakeDraftProvider
-from tests.samples import PNG_BYTES
 from tests.students import create_student
 from tests.works import act, checked_work, create_work, save
 
@@ -100,20 +99,6 @@ async def test_every_run_is_stored_with_the_raw_reply(teacher, sessions, test_se
     assert run.input["layout"][0]["id"] == work["attachments"][0]["id"]
     assert run.draft == work["initialAnalysis"]
     assert run.recognize_ms is not None and run.review_ms is not None
-
-
-async def test_provider_receives_no_personal_data(teacher, sessions, test_settings, storage):
-    provider = FakeDraftProvider()
-    await analysed_work(teacher, sessions, test_settings, storage, provider)
-
-    [(files, tasks)] = provider.recognized
-    sent = str([file.model_dump(exclude={"data"}) for file in files]) + str(provider.reviewed)
-    sent += str([task.model_dump() for task in tasks])
-
-    assert files[0].data == PNG_BYTES
-    assert "Мария" not in sent
-    assert "Контрольная" not in sent
-    assert "solution.png" not in sent
 
 
 async def test_reanalysis_keeps_corrected_steps(teacher, sessions, test_settings, storage):

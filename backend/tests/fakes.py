@@ -2,10 +2,11 @@ from collections.abc import AsyncIterator
 from email.message import EmailMessage
 
 from app.access.oauth_client import OAuthError, OAuthProfile
-from app.analysis.contract import FileSource, ProviderReply, ReviewTask, TaskInput
+from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
 from app.files import StorageError
 from app.mail import MailError
 from app.provider import ProviderError
+from app.redaction import PageImage
 
 
 class MemoryStorage:
@@ -89,7 +90,7 @@ class FakeDraftProvider:
     def __init__(self, failures: int = 0, invalid: int = 0):
         self.failures = failures
         self.invalid = invalid
-        self.recognized: list[tuple[list[FileSource], list[TaskInput]]] = []
+        self.recognized: list[tuple[list[PageImage], list[TaskInput]]] = []
         self.reviewed: list[list[ReviewTask]] = []
 
     def reply(self, raw: dict) -> ProviderReply:
@@ -102,8 +103,8 @@ class FakeDraftProvider:
             output_tokens=200,
         )
 
-    async def recognize(self, files: list[FileSource], tasks: list[TaskInput]) -> ProviderReply:
-        self.recognized.append((files, tasks))
+    async def recognize(self, pages: list[PageImage], tasks: list[TaskInput]) -> ProviderReply:
+        self.recognized.append((pages, tasks))
         if self.failures > 0:
             self.failures -= 1
             raise ProviderError("provider_unavailable")

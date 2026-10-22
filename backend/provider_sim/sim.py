@@ -55,11 +55,14 @@ class AnalyzeRequest(BaseModel):
     text: str
 
 
-class DraftFile(BaseModel):
+class DraftPage(BaseModel):
+    index: int
     file_id: str
+    page: int
     content_type: str
     data: str
-    page_order: list[int]
+    width: int
+    height: int
 
 
 class DraftStep(BaseModel):
@@ -84,7 +87,7 @@ class DraftTopic(BaseModel):
 
 
 class RecognizeRequest(BaseModel):
-    files: list[DraftFile]
+    pages: list[DraftPage]
     tasks: list[DraftTask]
 
 
@@ -251,7 +254,7 @@ def usage(input_tokens: int, output_tokens: int) -> dict:
 @app.post("/draft/recognize")
 async def draft_recognize(request: RecognizeRequest) -> dict:
     profile = PROFILES[simulator.config.profile]
-    pages = max(1, sum(len(file.page_order) for file in request.files))
+    pages = max(1, len(request.pages))
     spent = usage(1000 * pages + 200 * len(request.tasks), 150 * len(request.tasks))
     if await draft_answer("draft_recognize", request.tasks, profile.ocr_median * pages):
         return {"tasks": "unreadable", "usage": spent}

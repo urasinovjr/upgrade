@@ -58,6 +58,8 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   });
   await page.getByRole("button", { name: "Исходный разбор" }).click();
   await expect(page.getByText(/Разбор ИИ: sim-draft · промпт sim-1/)).toBeVisible();
+  await page.getByRole("button", { name: "Что получил ИИ" }).click();
+  await expect(page.getByAltText("Страница 1 · solution.png")).toBeVisible();
 
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   await page
