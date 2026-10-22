@@ -44,7 +44,7 @@ export function PencilDemo() {
           </h3>
           <p className="dp-landing-gap-topic">Тема для повторения: область допустимых значений</p>
           <p>Повторить ограничения знаменателя и сохранение ОДЗ при сокращении дробей.</p>
-          <button type="button" aria-pressed={confirmed} onClick={() => setConfirmed(!confirmed)}>
+          <button type="button" onClick={() => setConfirmed(!confirmed)}>
             {confirmed ? "Вернуть в гипотезу" : "Подтвердить пробел"}
           </button>
         </section>

@@ -621,7 +621,7 @@
   color: var(--ug-muted);
 }
 .dp-app .dp-landing-node[aria-pressed="true"] {
-  outline: 3px solid var(--ug-marker);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 
@@ -814,6 +814,9 @@
   }
   .dp-landing-actions .dp-landing-button {
     flex: 1 1 auto;
+  }
+  .dp-app .dp-landing-button.is-small {
+    min-height: var(--ug-touch);
   }
   .dp-landing-map-side,
   .dp-landing-map-columns,
