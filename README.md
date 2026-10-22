@@ -18,6 +18,15 @@ docker compose up -d --build --wait
 
 Остановить: `docker compose down`. Данные PostgreSQL и файлов сохраняются в томах `db_data` и `s3_data`; `docker compose down -v` удаляет и их. После изменения кода пересобрать: `docker compose up -d --build --wait`.
 
+## CI
+
+GitHub Actions запускает две проверки при изменении соответствующего каталога:
+
+- `.github/workflows/backend.yml` — `ruff check`, `ruff format --check` и `pytest` с PostgreSQL 17 в сервисе; проверки настоящего S3 и SMTP пропускаются;
+- `.github/workflows/frontend.yml` — `format:check`, `lint`, `typecheck`, Vitest, сборки `build` и `build:server`, e2e в Chromium.
+
+Визуальная регрессия и серверные e2e выполняются локально: эталоны сняты на macOS, а серверным сценариям нужен весь стек.
+
 ## Frontend
 
 React 19, TypeScript, Vite. Два режима одного приложения:
