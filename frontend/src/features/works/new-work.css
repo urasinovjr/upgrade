@@ -76,10 +76,21 @@
     background var(--ug-dur-fast),
     border-color var(--ug-dur-fast);
 }
+.dp-nw-drop {
+  background-color: var(--ug-surface);
+  background-image:
+    linear-gradient(90deg, transparent 27px, var(--ug-margin-line) 27px 29px, transparent 29px),
+    linear-gradient(var(--ug-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ug-grid) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    16px 16px,
+    16px 16px;
+}
 .dp-nw-drop:hover,
 .dp-nw-attach:hover {
-  border-color: var(--ug-action-line);
-  background: var(--ug-action-soft);
+  border-color: var(--ug-action);
+  background-color: var(--ug-action-soft);
 }
 .dp-nw-drop:focus-within,
 .dp-nw-attach:focus-within {

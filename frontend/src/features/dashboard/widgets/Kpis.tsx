@@ -45,7 +45,7 @@ export function Kpis({ summary }: { summary: DashboardSummary }) {
       label: "Темы для повторения",
       value: summary.openGaps,
       Icon: Target,
-      tone: summary.openGaps ? "warning" : "neutral",
+      tone: summary.openGaps ? "danger" : "neutral",
       to: firstGap ? topicMapLink(firstGap.student.id, firstGap.gap.topicId) : "/students",
     },
   ];

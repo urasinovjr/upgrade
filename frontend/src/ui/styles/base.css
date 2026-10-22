@@ -254,9 +254,9 @@ body {
   min-width: 120px;
   max-width: 220px;
   margin-left: auto;
-  padding: 0 var(--ug-space-2);
-  border: 1px solid var(--ug-line);
-  border-radius: var(--ug-radius-md);
+  padding: 0 var(--ug-space-3);
+  border: 1px solid var(--ug-line-strong);
+  border-radius: var(--ug-radius-pill);
   color: var(--ug-muted);
   font-weight: 400;
 }
@@ -309,6 +309,8 @@ body {
 :is(.dp-app, .dp-dialog) select:not([multiple]) {
   appearance: none;
   -webkit-appearance: none;
+  border-radius: var(--ug-radius-pill);
+  padding-left: 14px;
   padding-right: var(--ug-space-7);
   background-image:
     linear-gradient(45deg, transparent 50%, var(--ug-muted) 50%),

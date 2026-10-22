@@ -11,7 +11,7 @@ const kinds: Record<Kind, { tone: Tone; Icon: LucideIcon }> = {
   created: { tone: "neutral", Icon: FilePlus2 },
   confirmed: { tone: statusMeta.confirmed.tone, Icon: statusMeta.confirmed.Icon },
   close: { tone: "success", Icon: CircleCheck },
-  reopen: { tone: "warning", Icon: Target },
+  reopen: { tone: "danger", Icon: Target },
 };
 
 type Event = {

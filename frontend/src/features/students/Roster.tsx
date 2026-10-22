@@ -88,7 +88,7 @@ export function Roster({
                     signals.map((signal) => {
                       const { Icon, tone } =
                         signal.key === "gaps"
-                          ? { Icon: Target, tone: "warning" }
+                          ? { Icon: Target, tone: "danger" }
                           : statusMeta[signal.key];
                       return (
                         <span key={signal.key} className={"dp-signal dp-tone-" + tone}>
