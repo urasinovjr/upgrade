@@ -4,6 +4,7 @@ import type { Attachment, Upload } from "../domain/models";
 import { keptChecks, pageMasks, withCheck, withMasks } from "../domain/redaction";
 import type { OriginFocus } from "../domain/stepOrigin";
 import { gateway } from "../data/gateway";
+import { useActiveTime } from "../features/timing/useActiveTime";
 import { CropControls } from "./CropControls";
 import { FocusBox, MaskControls, MaskLayer, PageCheck } from "./MaskEditor";
 import { ErrorMessage } from "./ui";
@@ -45,6 +46,7 @@ export function MediaViewer({
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [tool, setTool] = useState<"crop" | "mask">();
+  useActiveTime(tool === "mask" ? "masking" : undefined);
   const [shownFocus, setShownFocus] = useState<number>();
   const focusBox = useRef<HTMLDivElement>(null);
   if (focus && focus.nonce !== shownFocus) {

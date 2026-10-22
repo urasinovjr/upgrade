@@ -26,6 +26,7 @@ import { useCommand, useStore } from "../../shared/query";
 import { Callout, ErrorMessage, Modal, PageLoading, PageState, Panel } from "../../shared/ui";
 import { FormulaInput } from "../../shared/math";
 import { MediaViewer } from "../../shared/MediaViewer";
+import { useActiveTime } from "../timing/useActiveTime";
 import { StudentForm } from "../students/StudentForm";
 import { decodeUpload } from "../../shared/uploads";
 import { clearStagedUploads, readStagedUploads } from "../../shared/uploadHandoff";
@@ -33,6 +34,8 @@ import "./new-work.css";
 import { useWriteAccess } from "../../shared/session";
 
 export default function NewWork() {
+  const [id] = useState(() => crypto.randomUUID());
+  useActiveTime("preparation", id);
   const query = useStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -153,7 +156,6 @@ export default function NewWork() {
       );
       return;
     }
-    const id = crypto.randomUUID();
     const work: Work = {
       id,
       studentId: selectedStudent,

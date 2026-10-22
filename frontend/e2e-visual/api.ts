@@ -10,6 +10,7 @@ export interface Scenario {
   session: "guest" | "offline" | "pending" | Plan;
   providers: AuthConfig["providers"];
   state: "filled" | "empty" | "failed" | "pending";
+  pilot?: boolean;
 }
 
 export const defaultScenario: Scenario = {
@@ -19,6 +20,21 @@ export const defaultScenario: Scenario = {
 };
 
 const day = 86400000;
+
+function manualSessions(now: number) {
+  return [
+    {
+      id: "manual-1",
+      studentId: "anna",
+      taskCount: 4,
+      taskFamily: "equations",
+      activeSeconds: 1500,
+      correctedSeconds: 1440,
+      startedAt: new Date(now - day - 1500_000).toISOString(),
+      finishedAt: new Date(now - day).toISOString(),
+    },
+  ];
+}
 const unsafe = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 function subscription(plan: Plan, now: number): Subscription {
@@ -133,6 +149,8 @@ export async function mockApi(page: Page, scenario: Scenario, now: number) {
       if (path === "/account") return json(route, accountDetails(now));
       if (path === "/subscription") return json(route, subscription(plan, now));
       if (path === "/account/preferences/dashboard-layout") return json(route, null);
+      if (path === "/timing") return json(route, { enabled: Boolean(scenario.pilot) });
+      if (path === "/timing/manual" && scenario.pilot) return json(route, manualSessions(now));
       unhandled.push(method + " " + path);
       return failure(route, 501, "not_mocked");
     },

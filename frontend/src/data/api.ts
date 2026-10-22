@@ -30,16 +30,22 @@ export function onSubscriptionEnded(handler: () => void) {
   subscriptionEnded = handler;
 }
 
-type Options = { method?: string; json?: unknown; form?: FormData };
+type Options = { method?: string; json?: unknown; form?: FormData; keepalive?: boolean };
 
-async function send(path: string, { method = "GET", json, form }: Options) {
+async function send(path: string, { method = "GET", json, form, keepalive }: Options) {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (json !== undefined) headers["Content-Type"] = "application/json";
   if (unsafe.has(method) && csrfToken) headers["X-CSRF-Token"] = csrfToken;
   const body = form ?? (json === undefined ? undefined : JSON.stringify(json));
   let response: Response;
   try {
-    response = await fetch(apiBase + path, { method, headers, body, credentials: "include" });
+    response = await fetch(apiBase + path, {
+      method,
+      headers,
+      body,
+      credentials: "include",
+      keepalive,
+    });
   } catch {
     throw new Error("Нет связи с сервером. Проверьте подключение и повторите.");
   }

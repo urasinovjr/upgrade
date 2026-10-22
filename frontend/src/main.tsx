@@ -46,6 +46,7 @@ import { serverMode } from "./data/gateway";
 import { sessionKey, useSession, useSetSession, useWriteAccess } from "./shared/session";
 import { RequireSession } from "./features/auth/RequireSession";
 import { ReadOnlyBanner } from "./features/account/ReadOnlyBanner";
+import { TimingTracker } from "./features/timing/TimingTracker";
 
 const Works = lazy(() => import("./features/works/Works"));
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
@@ -63,6 +64,7 @@ const ResetPassword = lazy(() => import("./features/auth/ResetPassword"));
 const ProviderCallback = lazy(() => import("./features/auth/ProviderCallback"));
 const AccountSettings = lazy(() => import("./features/account/AccountSettings"));
 const Subscription = lazy(() => import("./features/account/Subscription"));
+const Stopwatch = lazy(() => import("./features/timing/Stopwatch"));
 
 const railQuery = "(min-width: 701px) and (max-width: 1199px)";
 
@@ -319,6 +321,7 @@ function Shell() {
           <div ref={setActions} className="dp-topbar-actions" />
         </header>
         <ReadOnlyBanner />
+        {serverMode && <TimingTracker />}
         <main id="main-content" className="dp-main" tabIndex={-1}>
           <TopbarSlots.Provider value={{ trail, actions }}>
             <Suspense fallback={<PageLoading variant={variant} />}>
@@ -409,6 +412,7 @@ const router = createRouter([
             ? [
                 { path: "settings", element: <AccountSettings /> },
                 { path: "subscription", element: <Subscription /> },
+                { path: "timing", element: <Stopwatch /> },
               ]
             : []),
           ...(import.meta.env.DEV ? [{ path: "dev/states", element: <States /> }] : []),

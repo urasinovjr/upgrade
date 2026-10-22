@@ -69,6 +69,21 @@ const screens: Screen[] = [
     widths: [phone, 1440],
     prepare: (page) => expect(page.getByRole("heading", { name: "Настройки" })).toBeVisible(),
   },
+  {
+    name: "settings-pilot",
+    path: "/settings",
+    widths: [1440],
+    scenario: { pilot: true },
+    prepare: (page) =>
+      expect(page.getByRole("heading", { name: "Замер времени для пилота" })).toBeVisible(),
+  },
+  {
+    name: "manual-stopwatch",
+    path: "/timing",
+    widths: [phone, 1440],
+    scenario: { pilot: true },
+    prepare: (page) => expect(page.getByText(/задач: 4 · Уравнения · 24 мин/)).toBeVisible(),
+  },
   { name: "subscription-trial", path: "/subscription", widths: [1440] },
   {
     name: "subscription-active",

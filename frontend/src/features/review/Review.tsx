@@ -40,6 +40,7 @@ import { useReviewDraft, type SaveState } from "./useReviewDraft";
 import { DeleteWork } from "./DeleteWork";
 import { InitialAnalysis } from "./InitialAnalysis";
 import { SentPages } from "./SentPages";
+import { useActiveTime } from "../timing/useActiveTime";
 import { Reanalyse } from "./Reanalyse";
 import { uncheckedPages } from "../../domain/redaction";
 import type { OriginFocus } from "../../domain/stepOrigin";
@@ -291,6 +292,7 @@ export default function Review() {
 function ReviewEditor({ work, student, works }: { work: Work; student: Student; works: Work[] }) {
   const review = useReviewDraft(work);
   const { draft, change, canEdit, busy, needsRecheck, blockers, action } = review;
+  useActiveTime("review", work.id);
   const navigate = useNavigate();
   const narrow = useMediaQuery(narrowQuery);
   const pinnedActions = usePinnedActions();

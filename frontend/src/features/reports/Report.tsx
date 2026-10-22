@@ -23,11 +23,13 @@ import { verdictMeta } from "../../shared/status";
 import { date, errorText } from "../../shared/text";
 import { MediaViewer } from "../../shared/MediaViewer";
 import "./report.css";
+import { useActiveTime } from "../timing/useActiveTime";
 export default function Report() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const revisionId = params.get("revision") || undefined;
+  useActiveTime("export", id);
   const query = useQuery({
     queryKey: ["report", id, revisionId],
     queryFn: () => gateway.report(id!, revisionId),

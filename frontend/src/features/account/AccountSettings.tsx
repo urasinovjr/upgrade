@@ -5,6 +5,7 @@ import { account, providerTitles, type Provider } from "../../data/account";
 import { useAuthConfig } from "../../shared/session";
 import { ErrorMessage, PageLoading } from "../../shared/ui";
 import "./account.css";
+import { useTiming } from "../timing/useTiming";
 
 function Providers({ linked }: { linked: Provider[] }) {
   const config = useAuthConfig();
@@ -91,6 +92,7 @@ function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
 
 export default function AccountSettings() {
   const details = useQuery({ queryKey: ["account"], queryFn: account.details });
+  const timingEnabled = useTiming();
   if (details.isPending) return <PageLoading variant="list" />;
   if (details.isError) return <ErrorMessage error={details.error} />;
   const { displayName, email, hasPassword, identities } = details.data;
@@ -113,6 +115,17 @@ export default function AccountSettings() {
         </div>
         <Providers linked={identities.map((item) => item.provider)} />
       </section>
+      {timingEnabled && (
+        <section className="dp-account-section" aria-labelledby="timing-title">
+          <h2 id="timing-title">Замер времени для пилота</h2>
+          <p>
+            Вы участвуете в пилоте: UpGrade записывает, сколько времени вы активно работаете с
+            каждой работой (подготовка, маски, проверка, отчёт). Ожидание ИИ и время без действий
+            дольше двух минут не учитываются. Цифры видит только исследователь пилота.
+          </p>
+          <Link to="/timing">Секундомер ручной проверки</Link>
+        </section>
+      )}
       <section className="dp-account-section dp-account-danger" aria-labelledby="delete-title">
         <h2 id="delete-title">Удаление аккаунта</h2>
         <DeleteAccount hasPassword={hasPassword} />

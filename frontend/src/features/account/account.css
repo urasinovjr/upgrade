@@ -55,3 +55,15 @@
   border-bottom: 1px solid var(--ug-warning-line);
   color: var(--ug-ink);
 }
+.dp-stopwatch-clock {
+  font-size: 2.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dp-manual-list {
+  display: grid;
+  gap: var(--ug-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
