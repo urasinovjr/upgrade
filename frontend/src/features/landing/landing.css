@@ -90,11 +90,14 @@
   box-shadow: var(--ug-shadow-md);
 }
 .dp-app .dp-landing-hero h1 {
-  max-width: 11ch;
-  font-size: clamp(40px, 5.4vw, var(--ug-fs-display-lg));
+  max-width: 14ch;
+  font-size: clamp(34px, 4vw, 60px);
   line-height: var(--ug-lh-display);
   letter-spacing: -0.035em;
   color: var(--ug-ink);
+}
+.dp-landing-hero h1 .dp-landing-keep {
+  white-space: nowrap;
 }
 .dp-landing-hero h1 mark {
   position: relative;
@@ -741,6 +744,9 @@
   }
 }
 @media (max-width: 900px) {
+  .dp-app .dp-landing-hero h1 {
+    font-size: 44px;
+  }
   .dp-landing-header nav {
     display: none;
   }
@@ -779,6 +785,9 @@
   }
 }
 @media (max-width: 560px) {
+  .dp-app .dp-landing-hero h1 {
+    font-size: 30px;
+  }
   .dp-landing-sheet {
     margin-bottom: 0;
   }

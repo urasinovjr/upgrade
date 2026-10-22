@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("the welcome page explains the review and leads into the demo", async ({ page }) => {
   await page.goto("/welcome");
   await expect(page.locator("h1")).toHaveCount(1);
-  await expect(page.locator("h1")).toHaveText("Разбор решения за минуты");
+  await expect(page.locator("h1")).toHaveText("ИИ пишет карандашом, вы — ручкой");
 
   const gap = page.locator(".dp-landing-gap");
   await expect(gap).toHaveAttribute("data-decision", "hypothesis");
@@ -17,7 +17,7 @@ test("the welcome page explains the review and leads into the demo", async ({ pa
   await expect(page.getByText("Свойства логарифмов с учётом ограничений.")).toBeVisible();
 
   await page.getByRole("button", { name: "Что, если ИИ ошибся?" }).click();
-  await expect(page.getByText(/исправляются прямо рядом с оригиналом/)).toBeVisible();
+  await expect(page.getByText(/прямо рядом с фото/)).toBeVisible();
 
   await page.getByRole("main").getByRole("link", { name: "Открыть демо" }).first().click();
   await expect(page).toHaveURL(/\/dashboard$/);

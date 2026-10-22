@@ -19,7 +19,7 @@ const columns = [
 
 const legend: { state: PreviewState; label: string }[] = [
   { state: "gap", label: "Пробел подтверждён" },
-  { state: "path", label: "Путь к пробелу" },
+  { state: "path", label: "Ведёт к пробелу" },
   { state: "closed", label: "Пробел закрыт" },
   { state: "none", label: "Нет данных" },
 ];

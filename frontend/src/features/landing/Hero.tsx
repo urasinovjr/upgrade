@@ -7,11 +7,11 @@ export function Hero({ links }: { links: LandingLinks }) {
     <section className="dp-landing-hero" aria-labelledby="landing-title">
       <div className="dp-landing-hero-text">
         <h1 id="landing-title">
-          Разбор решения <mark>за минуты</mark>
+          ИИ пишет <span className="dp-landing-keep">карандашом,</span> вы — <mark>ручкой</mark>
         </h1>
         <p className="dp-landing-lead">
-          Загрузите фото тетради. UpGrade разложит решение на шаги, найдёт место ошибки и предложит
-          тему для повторения. Подтверждаете вы.
+          Загрузите фото тетради. UpGrade разложит решение по шагам, отметит ошибку и предложит,
+          какую тему повторить. В отчёт попадёт только то, что вы подтвердили.
         </p>
         <div className="dp-landing-actions">
           <Link className="dp-landing-button is-marker" to={links.start}>
@@ -24,7 +24,7 @@ export function Hero({ links }: { links: LandingLinks }) {
           )}
         </div>
         <p className="dp-landing-note">
-          Алгебра 9–11 класса. Имена учеников скрываются до анализа.
+          Алгебра 9–11 класса. Имя ученика закрашивается до разбора.
         </p>
       </div>
       <figure className="dp-landing-sheet">
@@ -49,12 +49,10 @@ export function Hero({ links }: { links: LandingLinks }) {
         <figcaption className="dp-landing-verdict">
           <strong>
             <AlertCircle size={16} aria-hidden="true" />
-            Шаг 3: ошибка
+            Ошибка в шаге 3
           </strong>
-          <span>
-            При x&nbsp;=&nbsp;3 исходное выражение не определено. Нужно ограничение x&nbsp;≠&nbsp;3.
-          </span>
-          <em>Тема: область допустимых значений</em>
+          <span>При x&nbsp;=&nbsp;3 знаменатель равен нулю. Добавьте условие x&nbsp;≠&nbsp;3.</span>
+          <em>Повторить: область допустимых значений</em>
         </figcaption>
       </figure>
     </section>
