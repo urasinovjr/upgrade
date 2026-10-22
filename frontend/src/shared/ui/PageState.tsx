@@ -32,7 +32,12 @@ export function PageState({
     <div className="dp-state-page">
       {failedLoad && <Heading className="dp-visually-hidden">{title}</Heading>}
       <div className="dp-empty dp-page-state">
-        <Icon size={32} aria-hidden="true" />
+        <span className="dp-empty-mark" aria-hidden="true">
+          <Icon size={28} />
+          <svg viewBox="0 0 80 64">
+            <path d="M18 40C14 24 30 10 46 9c16-1 28 9 27 24-1 16-18 25-36 24C21 56 9 46 13 32c2-8 9-14 17-17" />
+          </svg>
+        </span>
         {failedLoad ? (
           <SubHeading>Не удалось загрузить данные</SubHeading>
         ) : (

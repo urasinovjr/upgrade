@@ -4,6 +4,8 @@
   --ug-topbar-h: 48px;
   --ug-bottom-nav-h: 0px;
   --ug-safe-left: env(safe-area-inset-left, 0px);
+  --ug-shell-gap: 12px;
+  --ug-shell-offset: calc(var(--ug-sidebar-w) + 2 * var(--ug-shell-gap) + var(--ug-safe-left));
 }
 
 .dp-skip {
@@ -31,11 +33,13 @@
 
 .dp-sidebar {
   position: fixed;
-  inset: 0 auto 0 0;
-  width: calc(var(--ug-sidebar-w) + var(--ug-safe-left));
-  background: var(--ug-bg);
-  padding: var(--ug-space-1) var(--ug-space-2) var(--ug-space-3)
-    calc(var(--ug-space-2) + var(--ug-safe-left));
+  inset: var(--ug-shell-gap) auto var(--ug-shell-gap)
+    calc(var(--ug-shell-gap) + var(--ug-safe-left));
+  width: var(--ug-sidebar-w);
+  background: var(--ug-surface);
+  border-radius: var(--ug-radius-lg);
+  box-shadow: var(--ug-shadow-md);
+  padding: var(--ug-space-2) var(--ug-space-2) var(--ug-space-2);
   display: flex;
   flex-direction: column;
   gap: var(--ug-space-2);
@@ -150,10 +154,10 @@ a.dp-workspace:hover {
   display: flex;
   align-items: center;
   gap: var(--ug-space-2);
-  height: 32px;
+  height: 36px;
   padding: 0 var(--ug-space-2);
-  border-radius: var(--ug-radius-sm);
-  color: var(--ug-text);
+  border-radius: 10px;
+  color: var(--ug-ink);
   font-weight: 500;
   transition:
     background var(--ug-dur-fast),
@@ -164,14 +168,15 @@ a.dp-workspace:hover {
 }
 .dp-sidebar nav a:hover {
   color: var(--ug-ink);
-  background: var(--ug-soft);
+  background: var(--ug-hover);
 }
 .dp-sidebar nav a.active {
-  color: var(--ug-action-strong);
-  background: var(--ug-action-soft);
+  color: var(--ug-on-marker);
+  background: var(--ug-marker);
+  font-weight: 600;
 }
 .dp-sidebar nav a.active > svg {
-  color: var(--ug-action-strong);
+  color: var(--ug-on-marker);
 }
 .dp-sidebar a.active.dp-nav-parent {
   background: transparent;
@@ -184,9 +189,12 @@ a.dp-workspace:hover {
   font-size: var(--ug-fs-caption);
   line-height: 20px;
   text-align: center;
-  color: var(--ug-action-strong);
+  color: var(--ug-muted);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+.dp-sidebar nav a.active .dp-nav-count {
+  color: var(--ug-on-marker);
 }
 
 .dp-sidebar-group {
@@ -212,10 +220,10 @@ a.dp-workspace:hover {
   display: flex;
   align-items: center;
   gap: var(--ug-space-2);
-  height: 32px;
+  height: 34px;
   padding: 0 var(--ug-space-2);
-  border-radius: var(--ug-radius-sm);
-  color: var(--ug-text);
+  border-radius: 10px;
+  color: var(--ug-ink);
   transition:
     background var(--ug-dur-fast),
     color var(--ug-dur-fast);
@@ -225,12 +233,12 @@ a.dp-workspace:hover {
 }
 .dp-sidebar-group a:hover {
   color: var(--ug-ink);
-  background: var(--ug-soft);
+  background: var(--ug-hover);
 }
 .dp-sidebar-group a.active {
-  color: var(--ug-action-strong);
-  background: var(--ug-action-soft);
-  font-weight: 500;
+  color: var(--ug-on-marker);
+  background: var(--ug-marker);
+  font-weight: 600;
 }
 .dp-sidebar-initial {
   flex-shrink: 0;
@@ -252,10 +260,12 @@ a.dp-workspace:hover {
   display: flex;
   align-items: center;
   gap: var(--ug-space-2);
-  height: 40px;
-  padding: 0 var(--ug-space-2);
-  color: var(--ug-text);
-  font-weight: 500;
+  min-height: 48px;
+  padding: var(--ug-space-1) var(--ug-space-2);
+  border-radius: var(--ug-radius-md);
+  background: var(--ug-bg);
+  color: var(--ug-ink);
+  font-weight: 600;
 }
 .dp-sidebar-person {
   min-width: 0;
@@ -274,9 +284,8 @@ a.dp-workspace:hover {
   width: 24px;
   height: 24px;
   border-radius: var(--ug-radius-pill);
-  background: var(--ug-soft);
-  border: 1px solid var(--ug-line);
-  color: var(--ug-text);
+  background: var(--ug-action-soft);
+  color: var(--ug-action);
   font-size: var(--ug-fs-caption);
   font-weight: 600;
   line-height: 1;
@@ -285,7 +294,7 @@ a.dp-workspace:hover {
 .dp-workspace-main {
   display: flex;
   flex-direction: column;
-  margin-left: calc(var(--ug-sidebar-w) + var(--ug-safe-left));
+  margin-left: var(--ug-shell-offset);
   padding-right: env(safe-area-inset-right, 0px);
   min-width: 0;
   min-height: 100vh;
@@ -313,7 +322,7 @@ a.dp-workspace:hover {
   content: "";
   position: fixed;
   top: 0;
-  left: calc(var(--ug-sidebar-w) + var(--ug-safe-left));
+  left: var(--ug-shell-offset);
   z-index: 19;
   width: var(--ug-radius-lg);
   height: var(--ug-radius-lg);
@@ -421,7 +430,7 @@ a.dp-workspace:hover {
     position: absolute;
     top: 2px;
     right: 2px;
-    box-shadow: 0 0 0 2px var(--ug-bg);
+    box-shadow: 0 0 0 2px var(--ug-surface);
     min-width: 16px;
     padding: 0 var(--ug-space-1);
     line-height: 16px;
@@ -430,7 +439,10 @@ a.dp-workspace:hover {
     background: var(--ug-action);
   }
   .dp-nav-collapsed .dp-sidebar a.active.dp-nav-parent {
-    background: var(--ug-action-soft);
+    background: var(--ug-marker);
+  }
+  .dp-nav-collapsed .dp-sidebar-bottom {
+    background: transparent;
   }
   .dp-nav-collapsed .dp-rail-mark {
     display: block;
@@ -463,6 +475,8 @@ a.dp-workspace:hover {
     height: var(--ug-bottom-nav-h);
     padding: 0 var(--ug-space-2) env(safe-area-inset-bottom, 0px);
     border-top: 1px solid var(--ug-line);
+    border-radius: 0;
+    box-shadow: none;
     background: var(--ug-surface);
   }
   .dp-sidebar > :not(nav) {
@@ -517,6 +531,6 @@ a.dp-workspace:hover {
     line-height: 44px;
   }
   .dp-app .dp-sidebar a.active.dp-nav-parent {
-    background: var(--ug-action-soft);
+    background: var(--ug-marker);
   }
 }
