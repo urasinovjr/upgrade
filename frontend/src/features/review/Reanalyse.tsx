@@ -7,15 +7,18 @@ export function Reanalyse({
   work,
   busy,
   unchecked,
+  nameIssues,
   run,
 }: {
   work: Work;
   busy: boolean;
   unchecked: number;
+  nameIssues: string[];
   run: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const noteId = useId();
+  const blocked = unchecked > 0 || nameIssues.length > 0;
   const start = () => {
     setOpen(false);
     run();
@@ -23,16 +26,17 @@ export function Reanalyse({
   return (
     <>
       <button
-        disabled={busy || unchecked > 0}
-        aria-describedby={unchecked > 0 ? noteId : undefined}
+        disabled={busy || blocked}
+        aria-describedby={blocked ? noteId : undefined}
         onClick={() => (work.analysis ? setOpen(true) : run())}
       >
         <RefreshCw size={14} aria-hidden="true" />
         {work.demo ? "Повторить разбор" : "Запустить разбор"}
       </button>
-      {unchecked > 0 && (
+      {blocked && (
         <span id={noteId} className="dp-reanalyse-note">
-          Перед разбором проверьте страницы оригинала: осталось {unchecked}.
+          {unchecked > 0 && `Перед разбором проверьте страницы оригинала: осталось ${unchecked}. `}
+          {nameIssues.length > 0 && `Имя ученика в тексте: ${nameIssues.join("; ")}.`}
         </span>
       )}
       <Modal

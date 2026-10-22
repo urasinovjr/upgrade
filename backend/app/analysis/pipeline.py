@@ -12,6 +12,7 @@ from app.analysis.contract import (
     read_review,
 )
 from app.analysis.drafting import merge_review, review_tasks, task_input, tasks_to_recognize
+from app.analysis.names import hide_names
 from app.analysis.variants import Variant
 from app.config import Settings
 from app.redaction import SanitizedPages
@@ -27,6 +28,7 @@ class AnalysisSource:
     sanitize_ms: int
     layout: list[dict]
     last_layout: list[dict] | None
+    student_name: str = ""
 
 
 @dataclass
@@ -104,13 +106,14 @@ async def build_draft(
         record.recognition = reply.raw
         recognition = read_recognition(reply.raw, inputs)
     tasks, origins = review_tasks(source.draft, recognition, source.sanitized.pages, source.layout)
-    record.input["review"] = [task.model_dump() for task in tasks]
+    sent = hide_names(tasks, source.student_name)
+    record.input["review"] = [task.model_dump() for task in sent]
     started = time.monotonic()
-    reply = await provider.review(tasks)
+    reply = await provider.review(sent)
     record.review_ms = elapsed_ms(started)
     record.note(reply)
     record.review = reply.raw
-    review = read_review(reply.raw, tasks)
+    review = read_review(reply.raw, sent)
     draft = checked_draft(merge_review(source.draft, tasks, review, origins), settings)
     record.draft = dump(draft)
     return draft

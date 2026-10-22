@@ -1,3 +1,5 @@
+import { nameMessage } from "../domain/nameGuard";
+
 const messages: Record<string, string> = {
   not_authenticated: "Войдите в UpGrade, чтобы продолжить.",
   invalid_credentials: "Неверная почта или пароль.",
@@ -27,6 +29,7 @@ const messages: Record<string, string> = {
   draft_conflict: "Работа изменилась в другой вкладке. Обновите страницу, чтобы продолжить.",
   analysis_in_progress: "Дождитесь завершения обработки.",
   redaction_unchecked: "Перед разбором отметьте проверенными все страницы оригинала.",
+  name_in_text: nameMessage,
   editing_closed: "Откройте новую редакцию работы.",
   closure_note_required: "Укажите основание закрытия пробела.",
   file_too_large: "Файл больше допустимого размера.",

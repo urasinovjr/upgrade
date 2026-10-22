@@ -87,10 +87,17 @@ def correct_task(task: ReviewTask) -> dict:
 
 
 class FakeDraftProvider:
-    def __init__(self, failures: int = 0, invalid: int = 0, error: str = "provider_unavailable"):
+    def __init__(
+        self,
+        failures: int = 0,
+        invalid: int = 0,
+        error: str = "provider_unavailable",
+        latex: str = "x=\\pm 2",
+    ):
         self.failures = failures
         self.invalid = invalid
         self.error = error
+        self.latex = latex
         self.recognized: list[tuple[list[PageImage], list[TaskInput]]] = []
         self.reviewed: list[list[ReviewTask]] = []
 
@@ -110,7 +117,7 @@ class FakeDraftProvider:
             self.failures -= 1
             raise ProviderError(self.error)
         region = {"x": 0.1, "y": 0.5, "width": 0.8, "height": 0.2}
-        steps = [{"latex": "x=\\pm 2", "legible": True, "page": 0, "region": region}]
+        steps = [{"latex": self.latex, "legible": True, "page": 0, "region": region}]
         return self.reply(
             {"tasks": [{"task_id": task.id, "matched": True, "steps": steps} for task in tasks]}
         )

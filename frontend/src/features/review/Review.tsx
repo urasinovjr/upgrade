@@ -43,6 +43,7 @@ import { SentPages } from "./SentPages";
 import { useActiveTime } from "../timing/useActiveTime";
 import { Reanalyse } from "./Reanalyse";
 import { uncheckedPages } from "../../domain/redaction";
+import { namePlaceLabels, namePlaces } from "../../domain/nameGuard";
 import type { OriginFocus } from "../../domain/stepOrigin";
 import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
@@ -445,6 +446,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       work={work}
       busy={busy}
       unchecked={uncheckedPages(work.attachments).length}
+      nameIssues={namePlaceLabels(namePlaces(student.name, draft.tasks), draft.tasks)}
       run={() => void action("analyse")}
     />
   );

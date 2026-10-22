@@ -6,6 +6,7 @@ from PIL import Image
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
+from app.analysis.names import mentions
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import JPEG, PDF, PNG, sniff_type
 from app.knowledge.topics import TOPIC_IDS
@@ -69,8 +70,8 @@ def file_problems(root: Path, work: WorkCard, names: list[str]) -> list[str]:
 
 def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]:
     where = f"{work.work_id}/{task.task_id}"
-    text = " ".join([task.condition, task.explanation, *task.transcription]).lower()
-    problems = [f"{where}: имя ученика в тексте карточки" for name in names if name.lower() in text]
+    text = " ".join([task.condition, task.formula, task.explanation, *task.transcription])
+    problems = [f"{where}: имя ученика в тексте карточки" for name in names if mentions(name, text)]
     if task.admission == "excluded":
         if not task.exclusion_reason.strip():
             problems.append(f"{where}: укажите причину исключения")

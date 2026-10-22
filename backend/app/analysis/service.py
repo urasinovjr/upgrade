@@ -2,10 +2,12 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.analysis.names import name_places
 from app.config import Settings
 from app.errors import DomainError
 from app.observability import current_request_id
 from app.queue import enqueue
+from app.students.models import Student
 from app.works.models import Work
 from app.works.page_checks import unchecked_pages
 from app.works.schemas import Draft
@@ -22,6 +24,10 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
     if unchecked:
         raise DomainError("redaction_unchecked", {"pages": unchecked})
     draft = read_draft(work)
+    student = await session.get(Student, work.student_id)
+    places = name_places(student.name if student else "", draft.tasks)
+    if places:
+        raise DomainError("name_in_text", {"places": places})
     job = await enqueue(
         session,
         WORK_ANALYSIS_JOB,

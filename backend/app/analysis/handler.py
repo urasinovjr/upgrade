@@ -16,6 +16,7 @@ from app.observability import current_request_id
 from app.provider import ProviderError
 from app.queue import Job, JobFailure, WorkerContext, complete_job
 from app.redaction import PageUnreadable, SourceFile, sanitize_pages
+from app.students.models import Student
 from app.works.models import AnalysisRun, Work, WorkFile
 from app.works.schemas import Draft
 from app.works.service import files_of, read_draft
@@ -64,6 +65,8 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
             return None
         work.status = "processing"
         teacher_id = work.teacher_id
+        student = await session.get(Student, work.student_id)
+        student_name = student.name if student else ""
         files = await files_of(session, [work.id])
         draft = read_draft(work)
         previous_layout = await last_layout(session, work.id)
@@ -85,6 +88,7 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         sanitize_ms=elapsed_ms(started),
         layout=layout_signature(files),
         last_layout=previous_layout,
+        student_name=student_name,
     )
 
 

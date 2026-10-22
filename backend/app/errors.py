@@ -39,6 +39,7 @@ REGISTRY: dict[str, int] = {
     "draft_conflict": status.HTTP_409_CONFLICT,
     "analysis_in_progress": status.HTTP_409_CONFLICT,
     "redaction_unchecked": status.HTTP_409_CONFLICT,
+    "name_in_text": status.HTTP_409_CONFLICT,
     "analysis_too_large": status.HTTP_413_CONTENT_TOO_LARGE,
     "editing_closed": status.HTTP_409_CONFLICT,
     "review_blocked": status.HTTP_409_CONFLICT,
