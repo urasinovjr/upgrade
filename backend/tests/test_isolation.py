@@ -32,6 +32,7 @@ async def test_other_teacher_cannot_reach_work_or_files(teacher, other_teacher):
     work = await confirmed_work(teacher, student_id)
     work_id = work["id"]
     file_id = work["attachments"][0]["id"]
+    revision = work["published"][0]["id"]
     layout = [{"id": file_id, "pageOrder": [1], "crops": {}}]
     draft = {"baseRevision": work["draft"]["revision"], "draft": work["draft"]}
 
@@ -42,7 +43,10 @@ async def test_other_teacher_cannot_reach_work_or_files(teacher, other_teacher):
         await other_teacher.post(f"/api/works/{work_id}/actions/edit"),
         await other_teacher.post(f"/api/works/{work_id}/actions/withdraw"),
         await other_teacher.post(f"/api/works/{work_id}/actions/analyse"),
+        await other_teacher.post(f"/api/works/{work_id}/actions/confirm"),
+        await other_teacher.post(f"/api/works/{work_id}/actions/manual"),
         await other_teacher.get(f"/api/works/{work_id}/report"),
+        await other_teacher.get(f"/api/works/{work_id}/report", params={"revisionId": revision}),
         await other_teacher.get(f"/api/files/{file_id}"),
         await other_teacher.get(f"/api/works/{work_id}/analysis/pages"),
         await other_teacher.get(f"/api/works/{work_id}/analysis/pages/0"),
@@ -63,3 +67,14 @@ async def test_work_id_of_other_teacher_cannot_be_reused(teacher, other_teacher)
     response = await upload_work(other_teacher, own_student, work_id=work["id"])
 
     assert response.status_code == 409
+
+
+async def test_foreign_revision_is_not_reachable_through_own_work(teacher, other_teacher):
+    foreign = await confirmed_work(teacher, await create_student(teacher))
+    own = await confirmed_work(other_teacher, await create_student(other_teacher))
+
+    response = await other_teacher.get(
+        f"/api/works/{own['id']}/report", params={"revisionId": foreign["published"][0]["id"]}
+    )
+
+    assert response.status_code == 404

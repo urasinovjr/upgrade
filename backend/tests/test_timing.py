@@ -158,3 +158,25 @@ async def test_report_compares_confirmed_works_with_manual_checks(teacher, test_
     assert "Этап preparation: n=1 медиана 4.0 мин" in text
     assert len(table.splitlines()) == 4
     assert table.splitlines()[1].startswith("upgrade,")
+
+
+async def test_other_teacher_cannot_change_or_delete_a_manual_session(
+    teacher, other_teacher, test_settings
+):
+    await enroll(test_settings)
+    await enroll(test_settings, "second@example.com")
+    student_id = await create_student(teacher)
+    own_student = await create_student(other_teacher)
+    session_id = str(uuid4())
+    await teacher.put(f"/api/timing/manual/{session_id}", json=manual(student_id, 900))
+
+    overwrite = await other_teacher.put(
+        f"/api/timing/manual/{session_id}", json=manual(own_student, 60)
+    )
+    removed = await other_teacher.delete(f"/api/timing/manual/{session_id}")
+    listed = (await teacher.get("/api/timing/manual")).json()
+
+    assert overwrite.status_code == 404
+    assert removed.status_code == 404
+    assert [(item["id"], item["activeSeconds"]) for item in listed] == [(session_id, 900)]
+    assert (await other_teacher.get("/api/timing/manual")).json() == []
