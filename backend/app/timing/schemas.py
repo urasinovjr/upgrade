@@ -5,9 +5,9 @@ from uuid import UUID
 from pydantic import Field
 
 from app.api_model import ApiModel
+from app.knowledge.families import Family
 
 Stage = Literal["preparation", "masking", "review", "export"]
-Family = Literal["expressions", "fractions", "powers_roots", "equations", "inequalities", "mixed"]
 
 
 class TimingOut(ApiModel):

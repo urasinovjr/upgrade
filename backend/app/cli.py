@@ -3,19 +3,23 @@ import asyncio
 import sys
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, time, timedelta
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
 from app.analysis.report import Period, analysis_report
+from app.analysis.sim_provider import SimDraftProvider
 from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.errors import DomainError
+from app.evaluation import IncompleteMarks, load_manifest, run_split, score, validate
 from app.timing import enroll, leave
 from app.timing.report import timing_report
 
 Command = Callable[[AsyncSession, argparse.Namespace], Awaitable[str]]
+FileCommand = Callable[[argparse.Namespace, Settings], Awaitable[str]]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -50,6 +54,18 @@ def build_parser() -> argparse.ArgumentParser:
     timing.add_argument("--since", type=date.fromisoformat)
     timing.add_argument("--until", type=date.fromisoformat)
     timing.add_argument("--csv", action="store_true")
+
+    check = commands.add_parser("eval-validate", help="check a control set before a run")
+    check.add_argument("--root", type=Path, required=True)
+    check.add_argument("--names", type=Path, help="file with student names, one per line")
+
+    evaluate = commands.add_parser("eval-run", help="run the pipeline on a control set split")
+    evaluate.add_argument("--root", type=Path, required=True)
+    evaluate.add_argument("--split", choices=["dev", "acceptance"], required=True)
+    evaluate.add_argument("--out", type=Path, required=True)
+
+    scoring = commands.add_parser("eval-score", help="compute quality metrics from expert marks")
+    scoring.add_argument("--out", type=Path, required=True)
     return parser
 
 
@@ -103,6 +119,45 @@ async def report_timing(session: AsyncSession, args: argparse.Namespace) -> str:
     return await timing_report(session, period.since, period.until, args.csv)
 
 
+def names_of(path: Path | None) -> list[str]:
+    if path is None:
+        return []
+    return [line.strip() for line in path.read_text("utf-8").splitlines() if line.strip()]
+
+
+async def check_control_set(args: argparse.Namespace, settings: Settings) -> str:
+    problems, warnings = validate(load_manifest(args.root), args.root, names_of(args.names))
+    lines = [f"ошибка: {item}" for item in problems] + [f"внимание: {item}" for item in warnings]
+    if problems:
+        raise SystemExit("\n".join(lines))
+    return "\n".join([*lines, "набор готов к прогону"])
+
+
+async def run_control_set(args: argparse.Namespace, settings: Settings) -> str:
+    manifest = load_manifest(args.root)
+    problems, _ = validate(manifest, args.root, [])
+    if problems:
+        raise SystemExit("\n".join(f"ошибка: {item}" for item in problems))
+    provider = SimDraftProvider(settings.provider_url, settings.analysis_timeout)
+    try:
+        return await run_split(manifest, args.root, args.split, args.out, provider, settings)
+    finally:
+        await provider.close()
+
+
+async def score_control_set(args: argparse.Namespace, settings: Settings) -> str:
+    try:
+        return score(args.out)
+    except IncompleteMarks as error:
+        raise SystemExit("не заполнены оценки эксперта: " + ", ".join(error.rows)) from error
+
+
+FILE_COMMANDS: dict[str, FileCommand] = {
+    "eval-validate": check_control_set,
+    "eval-run": run_control_set,
+    "eval-score": score_control_set,
+}
+
 COMMANDS: dict[str, Command] = {
     "plan-upsert": save_plan,
     "grant-subscription": extend_subscription,
@@ -114,6 +169,8 @@ COMMANDS: dict[str, Command] = {
 
 async def run(argv: list[str], settings: Settings) -> str:
     args = build_parser().parse_args(argv)
+    if args.command in FILE_COMMANDS:
+        return await FILE_COMMANDS[args.command](args, settings)
     engine = make_engine(settings.database_url)
     try:
         async with make_session_factory(engine)() as session:
