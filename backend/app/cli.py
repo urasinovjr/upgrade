@@ -15,7 +15,15 @@ from app.billing import grant_subscription, upsert_plan
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.errors import DomainError
-from app.evaluation import IncompleteMarks, load_manifest, run_split, score, validate
+from app.evaluation import (
+    AcceptanceRun,
+    IncompleteMarks,
+    compare,
+    load_manifest,
+    run_split,
+    score,
+    validate,
+)
 from app.timing import enroll, leave
 from app.timing.report import timing_report
 
@@ -68,6 +76,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     scoring = commands.add_parser("eval-score", help="compute quality metrics from expert marks")
     scoring.add_argument("--out", type=Path, required=True)
+
+    versus = commands.add_parser("eval-compare", help="compare variant runs on the dev split")
+    versus.add_argument("outs", type=Path, nargs="+")
+    versus.add_argument("--report", type=Path, required=True)
     return parser
 
 
@@ -148,11 +160,26 @@ async def run_control_set(args: argparse.Namespace, settings: Settings) -> str:
     except ProviderNotConfigured as error:
         raise SystemExit(str(error)) from error
     try:
-        return await run_split(
+        message = await run_split(
             manifest, args.root, args.split, args.out, provider, settings, variant
         )
     finally:
         await provider.close()
+    if args.split == "acceptance" and variant.name != settings.analysis_variant:
+        message += (
+            f"\nвнимание: контрольный набор прогнан вариантом {variant.name}, "
+            f"а зафиксирован {settings.analysis_variant}"
+        )
+    return message
+
+
+async def compare_runs(args: argparse.Namespace, settings: Settings) -> str:
+    try:
+        return compare(args.outs, args.report)
+    except AcceptanceRun as error:
+        raise SystemExit(
+            f"{error.out}: сравнивать можно только прогоны набора для разработки"
+        ) from error
 
 
 async def score_control_set(args: argparse.Namespace, settings: Settings) -> str:
@@ -166,6 +193,7 @@ FILE_COMMANDS: dict[str, FileCommand] = {
     "eval-validate": check_control_set,
     "eval-run": run_control_set,
     "eval-score": score_control_set,
+    "eval-compare": compare_runs,
 }
 
 COMMANDS: dict[str, Command] = {

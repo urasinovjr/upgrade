@@ -13,6 +13,7 @@ from app.analysis.contract import DraftProvider, InvalidReply
 from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft, elapsed_ms
 from app.analysis.variants import Variant, code_commit
 from app.config import Settings
+from app.evaluation.auto import ai_view, summarize, task_row
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import sniff_type
 from app.knowledge.topics import TOPICS
@@ -137,21 +138,6 @@ async def run_work(
     return draft, record, error
 
 
-def ai_view(task: Task | None) -> dict:
-    if task is None or task.omitted:
-        return {"verdict": "refused", "first_error": "", "topic": "", "explanation": ""}
-    verdicts = [step.verdict for step in task.steps]
-    errors = [index for index, verdict in enumerate(verdicts, start=1) if verdict == "error"]
-    verdict = "error" if errors else "uncertain" if "uncertain" in verdicts else "correct"
-    explanation = task.steps[errors[0] - 1].explanation if errors else task.feedback
-    return {
-        "verdict": verdict,
-        "first_error": errors[0] if errors else "",
-        "topic": task.topic_id,
-        "explanation": explanation,
-    }
-
-
 def expert_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
     view = ai_view(task)
     expert_first = card.first_error_step if card.correct is False else ""
@@ -183,6 +169,10 @@ def run_summary(record: RunRecord, error: str | None) -> dict:
     return data
 
 
+def write_json(path: Path, data) -> None:
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
+
+
 async def run_split(
     manifest: Manifest,
     root: Path,
@@ -212,12 +202,18 @@ async def run_split(
         "promptVersion": "",
     }
     total_cost = Decimal(0)
+    task_rows = []
+    runs = []
     for work in [item for item in manifest.works if item.split == split]:
         draft, record, error = await run_work(
             root, work, provider, settings, out / "pages", variant
         )
         tasks = {task.id: task for task in draft.tasks} if draft else {}
         rows += [expert_row(work, card, tasks.get(card.task_id)) for card in admitted_tasks(work)]
+        task_rows += [
+            task_row(work, card, tasks.get(card.task_id)) for card in admitted_tasks(work)
+        ]
+        runs.append((record, error))
         (out / "runs" / f"{work.work_id}.json").write_text(
             json.dumps(run_summary(record, error), ensure_ascii=False, indent=2), "utf-8"
         )
@@ -234,6 +230,8 @@ async def run_split(
         writer.writeheader()
         writer.writerows(rows)
     (out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), "utf-8")
+    write_json(out / "tasks.json", task_rows)
+    write_json(out / "auto.json", summarize(task_rows, runs))
     return (
         f"{split}: работ {meta['works']}, без ответа {meta['failedWorks']}, задач {len(rows)}. "
         f"Заполните explanation_ok и recognition_ok в {out / 'expert.csv'}"

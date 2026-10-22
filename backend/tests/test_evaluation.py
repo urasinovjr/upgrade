@@ -7,7 +7,16 @@ import pytest
 from app.analysis.variants import get_variant
 from app.cli import run
 from app.config import Settings
-from app.evaluation import IncompleteMarks, load_manifest, run_split, score, validate
+from app.evaluation import (
+    AcceptanceRun,
+    IncompleteMarks,
+    compare,
+    load_manifest,
+    run_split,
+    score,
+    validate,
+)
+from app.evaluation.auto import normalize_latex, recognition_score, similarity
 from tests.fakes import FakeDraftProvider
 from tests.samples import PNG_BYTES, picture
 
@@ -177,3 +186,54 @@ async def test_cli_checks_the_set_without_a_database(clean_set: Path, tmp_path: 
 
     assert report.endswith("набор готов к прогону")
     assert "внимание: в acceptance допущено задач: 2, нужно 100" in report
+
+
+def test_latex_is_compared_without_spacing_and_synonyms():
+    assert normalize_latex("$\\dfrac{1}{2} \\cdot x$") == "\\frac{1}{2}*x"
+    assert similarity("\\left( x+1 \\right)^2", "(x+1)^2") == 1
+    assert recognition_score(["x^2=4", "x=2"], ["x^2=4"]) == 0.5
+    assert recognition_score(["x=2"], ["x=2", "x=3"]) == 0.5
+    assert recognition_score([], ["x=2"]) is None
+
+
+async def test_dev_run_scores_itself_and_runs_compare(
+    clean_set: Path, tmp_path: Path, test_settings
+):
+    manifest = load_manifest(clean_set)
+    for name in ("first", "second"):
+        await run_split(
+            manifest, clean_set, "dev", tmp_path / name, FakeDraftProvider(), test_settings, SIM
+        )
+    [row] = json.loads((tmp_path / "first" / "tasks.json").read_text("utf-8"))
+    total = json.loads((tmp_path / "first" / "auto.json").read_text("utf-8"))["total"]
+
+    table = compare([tmp_path / "first", tmp_path / "second"], tmp_path / "report")
+
+    assert (row["verdictMatch"], row["falseError"], row["stepCount"]) == (True, False, [2, 1])
+    assert 0 < row["recognition"] < 0.5
+    assert (total["tasks"], total["autoOk"], total["correctSolutions"]) == (1, 1.0, 1)
+    assert (total["works"], total["failedWorks"], total["inputTokens"]) == (1, 0, 2000)
+    assert "| first | sim |" in table and "| second | sim |" in table
+    assert {path.name for path in (tmp_path / "report").iterdir()} == {
+        "compare.json",
+        "compare.csv",
+        "compare.md",
+    }
+
+
+async def test_acceptance_runs_are_not_compared(clean_set: Path, tmp_path: Path, test_settings):
+    out = tmp_path / "acceptance"
+    await run_split(
+        load_manifest(clean_set),
+        clean_set,
+        "acceptance",
+        out,
+        FakeDraftProvider(),
+        test_settings,
+        SIM,
+    )
+
+    with pytest.raises(AcceptanceRun):
+        compare([out], tmp_path / "report")
+    with pytest.raises(SystemExit):
+        await run(["eval-compare", str(out), "--report", str(tmp_path / "report")], test_settings)
