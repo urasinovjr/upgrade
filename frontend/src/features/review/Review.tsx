@@ -12,7 +12,6 @@ import {
   PauseCircle,
   Pencil,
   Plus,
-  RefreshCw,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -39,6 +38,8 @@ import { errorText, wordForCount } from "../../shared/text";
 import { usePinnedActions } from "../../shared/layout";
 import { useReviewDraft, type SaveState } from "./useReviewDraft";
 import { DeleteWork } from "./DeleteWork";
+import { InitialAnalysis } from "./InitialAnalysis";
+import { Reanalyse } from "./Reanalyse";
 import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
 import { useMediaQuery } from "../../shared/useMediaQuery";
@@ -428,10 +429,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
     </Link>
   );
   const reanalyse = (work.demo || serverMode) && (
-    <button disabled={busy} onClick={() => void action("analyse")}>
-      <RefreshCw size={14} aria-hidden="true" />
-      {work.demo ? "Повторить разбор" : "Запустить разбор"}
-    </button>
+    <Reanalyse work={work} busy={busy} run={() => void action("analyse")} />
   );
   const finishSync = (
     <button disabled={busy} onClick={() => void action("manual")}>
@@ -686,16 +684,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           {task.reference ? <Formula value={task.reference} /> : <p>Эталон не задан.</p>}
         </Disclosure>
         <Disclosure title="Исходный разбор">
-          {initial ? (
-            initial.steps.map((item) => (
-              <div key={item.id}>
-                <Formula value={item.latex} />
-                <p>{item.explanation}</p>
-              </div>
-            ))
-          ) : (
-            <p>Работа добавлена для ручной проверки.</p>
-          )}
+          <InitialAnalysis task={initial} analysis={work.analysis} />
         </Disclosure>
         <Disclosure title={"История редакций · " + work.published.length}>
           {work.published.length ? (
@@ -978,7 +967,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         open={conditionEdit && !!task}
         onOpenChange={setConditionEdit}
         title={task ? "Условие · " + task.title : "Условие"}
-        description="Текст, формула и эталонный ответ. После изменения понадобится повторная сверка."
+        description="Текст, формула, эталонный ответ и тема. После изменения условия понадобится повторная сверка."
       >
         {task && (
           <ConditionEditor

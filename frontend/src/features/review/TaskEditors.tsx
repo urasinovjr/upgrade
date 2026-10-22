@@ -5,7 +5,7 @@ import type { GapProposal, Task } from "../../domain/models";
 import { FormulaInput } from "../../shared/math";
 import { DialogKeyboard } from "./StepItem";
 
-type Condition = Pick<Task, "condition" | "formula" | "reference">;
+type Condition = Pick<Task, "condition" | "formula" | "reference" | "topicId">;
 
 export function ConditionEditor({
   task,
@@ -24,6 +24,7 @@ export function ConditionEditor({
     condition: task.condition,
     formula: task.formula,
     reference: task.reference,
+    topicId: task.topicId,
   });
   return (
     <form
@@ -55,6 +56,19 @@ export function ConditionEditor({
           value={draft.reference}
           onChange={(reference) => setDraft({ ...draft, reference })}
         />
+      </label>
+      <label>
+        Тема задачи
+        <select
+          value={draft.topicId}
+          onChange={(event) => setDraft({ ...draft, topicId: event.target.value })}
+        >
+          {topics.map((topic) => (
+            <option value={topic.id} key={topic.id}>
+              {topic.name}
+            </option>
+          ))}
+        </select>
       </label>
       <DialogKeyboard />
       <div className="dp-dialog-actions">

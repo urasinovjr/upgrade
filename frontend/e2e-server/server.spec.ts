@@ -50,6 +50,8 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await expect(page.getByRole("button", { name: "Запустить разбор" })).toHaveCount(0, {
     timeout: 30_000,
   });
+  await page.getByRole("button", { name: "Исходный разбор" }).click();
+  await expect(page.getByText(/Разбор ИИ: sim-draft · промпт sim-1/)).toBeVisible();
 
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   await page
@@ -65,6 +67,11 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
     .getByRole("radiogroup", { name: "Вердикт шага 1" })
     .getByRole("radio", { name: "Верно" })
     .click();
+  await page.getByRole("button", { name: "Запустить разбор" }).first().click();
+  const rerun = page.getByRole("dialog", { name: "Запустить разбор заново?" });
+  await expect(rerun).toBeVisible();
+  await rerun.getByRole("button", { name: "Отмена" }).click();
+  await expect(rerun).toHaveCount(0);
   await page.getByRole("button", { name: "Завершить сверку" }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();

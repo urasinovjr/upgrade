@@ -61,12 +61,20 @@ export interface Draft {
   tasks: Task[];
   feedback: string;
 }
+export interface AnalysisInfo {
+  runId: string;
+  provider: string;
+  model: string;
+  promptVersion: string;
+  finishedAt: string;
+}
 export interface PublishedRevision {
   id: string;
   number: number;
   confirmedAt: string;
   draft: Draft;
   attachments: Attachment[];
+  analysis?: AnalysisInfo;
 }
 export interface Job {
   token: string;
@@ -90,6 +98,7 @@ export interface Work {
   manual: boolean;
   job?: Job;
   initialAnalysis?: Draft;
+  analysis?: AnalysisInfo;
 }
 export interface Topic {
   id: string;
