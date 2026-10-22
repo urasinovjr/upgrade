@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { StoreState, Upload, Work } from "../domain/models";
+import type { Attachment, StoreState, Upload, Work } from "../domain/models";
 import { defaultLayout, normalizeLayout } from "../domain/dashboardLayout";
 import {
   applyDraft,
@@ -8,6 +8,7 @@ import {
   finishJob,
   publishWork,
 } from "../domain/review";
+import { keptChecks, layoutChanged, redactionMessage, uncheckedPages } from "../domain/redaction";
 import { fixtureUploads, seedState } from "./fixtures";
 import type { Gateway } from "./gateway";
 
@@ -45,6 +46,35 @@ async function storedFile(upload: Upload) {
     type: upload.type,
   };
 }
+function needsMigration(state: StoreState) {
+  return state.works.some(
+    (work) =>
+      work.attachments.some((file) => !file.masks || !file.checkedPages) ||
+      work.published.some((revision) => !revision.attachments),
+  );
+}
+function migratedFile(file: Attachment, demo: boolean): Attachment {
+  return {
+    ...file,
+    masks: file.masks ?? {},
+    checkedPages: file.checkedPages ?? (demo ? [...file.pageOrder] : []),
+  };
+}
+function migrated(state: StoreState): StoreState {
+  return {
+    ...state,
+    works: state.works.map((work) => {
+      const attachments = work.attachments.map((file) => migratedFile(file, work.demo));
+      const published = work.published.map((revision) => ({
+        ...revision,
+        attachments: (revision.attachments ?? attachments).map((file) =>
+          migratedFile(file, work.demo),
+        ),
+      }));
+      return { ...work, attachments, published };
+    }),
+  };
+}
 let initialization: Promise<void> | undefined;
 async function initialize() {
   if (initialization) return initialization;
@@ -60,14 +90,8 @@ async function initialize() {
         await tx.objectStore("state").put(seed, "root");
         for (const file of files)
           await tx.objectStore("files").put({ bytes: file.bytes, type: file.type }, file.id);
-      } else if (
-        existing.works.some((work) => work.published.some((revision) => !revision.attachments))
-      ) {
-        for (const work of existing.works)
-          for (const revision of work.published) {
-            revision.attachments ??= structuredClone(work.attachments);
-          }
-        await tx.objectStore("state").put(existing, "root");
+      } else if (needsMigration(existing)) {
+        await tx.objectStore("state").put(migrated(existing), "root");
       }
       await tx.done;
     } catch (cause) {
@@ -207,6 +231,7 @@ export const localGateway: Gateway = {
           throw new Error(
             "Автоматический анализ пользовательских файлов будет доступен после подключения сервера. Сейчас доступен ручной разбор.",
           );
+        if (uncheckedPages(work.attachments).length) throw new Error(redactionMessage);
         const now = Date.now();
         return {
           ...work,
@@ -242,9 +267,15 @@ export const localGateway: Gateway = {
       updateWork(state, id, (work) => {
         if (!work.editing || work.job)
           throw new Error("Редактирование оригинала сейчас недоступно.");
+        const stored = new Map(work.attachments.map((file) => [file.id, file]));
+        const next = attachments.map((file) => {
+          const before = stored.get(file.id);
+          return { ...file, checkedPages: before ? keptChecks(before, file) : [] };
+        });
+        if (!layoutChanged(work.attachments, next)) return { ...work, attachments: next };
         return {
           ...work,
-          attachments,
+          attachments: next,
           draft: {
             ...work.draft,
             inputRevision: work.draft.inputRevision + 1,

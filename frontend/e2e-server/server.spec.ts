@@ -43,8 +43,14 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await page.getByRole("textbox", { name: "Название работы" }).fill("Контрольная по уравнениям");
   await page.getByLabel("Загрузить решение").setInputFiles("e2e/fixtures/solution.png");
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
+  await page.getByRole("button", { name: "Скрыть данные" }).click();
+  await page.getByRole("button", { name: "Добавить маску" }).click();
+  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
+  await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await expect(page).toHaveURL(/\/works\/[0-9a-f-]{36}$/);
+  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await expect(page.locator(".mask-box")).toHaveCount(1);
 
   await page.getByRole("button", { name: "Запустить разбор" }).first().click();
   await expect(page.getByRole("button", { name: "Запустить разбор" })).toHaveCount(0, {

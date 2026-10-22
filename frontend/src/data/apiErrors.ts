@@ -26,6 +26,7 @@ const messages: Record<string, string> = {
   revision_not_found: "Подтверждённый отчёт не найден.",
   draft_conflict: "Работа изменилась в другой вкладке. Обновите страницу, чтобы продолжить.",
   analysis_in_progress: "Дождитесь завершения обработки.",
+  redaction_unchecked: "Перед разбором отметьте проверенными все страницы оригинала.",
   editing_closed: "Откройте новую редакцию работы.",
   closure_note_required: "Укажите основание закрытия пробела.",
   file_too_large: "Файл больше допустимого размера.",

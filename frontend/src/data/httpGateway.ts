@@ -1,4 +1,14 @@
-import type { Closure, Draft, Report, StoreState, Student, Upload, Work } from "../domain/models";
+import type {
+  Attachment,
+  Closure,
+  Draft,
+  Report,
+  StoreState,
+  Student,
+  Upload,
+  Work,
+} from "../domain/models";
+import { layoutChanged } from "../domain/redaction";
 import { defaultLayout, normalizeLayout, type DashboardLayout } from "../domain/dashboardLayout";
 import { request, requestBlob } from "./api";
 import type { Gateway } from "./gateway";
@@ -13,6 +23,17 @@ function remember(work: Work) {
 
 async function workRequest(path: string, method: string, json?: unknown) {
   remember(await request<Work>(path, { method, json }));
+}
+
+async function putLayout(id: string, attachments: Attachment[]) {
+  const layout = attachments.map(({ id, pageOrder, crops, masks, checkedPages }) => ({
+    id,
+    pageOrder,
+    crops,
+    masks,
+    checkedPages,
+  }));
+  await workRequest("/works/" + id + "/attachments", "PUT", layout);
 }
 
 export const httpGateway: Gateway = {
@@ -42,7 +63,17 @@ export const httpGateway: Gateway = {
     const form = new FormData();
     form.append("meta", JSON.stringify(meta));
     for (const upload of uploads) form.append(upload.id, upload.blob, upload.name);
-    remember(await request<Work>("/works", { method: "POST", form }));
+    const created = remember(await request<Work>("/works", { method: "POST", form }));
+    const files: Attachment[] = uploads.map(({ blob, ...file }) => {
+      void blob;
+      return file;
+    });
+    if (layoutChanged(created.attachments, files))
+      await putLayout(
+        work.id,
+        files.map((file) => ({ ...file, checkedPages: [] })),
+      );
+    if (files.some((file) => file.checkedPages.length)) await putLayout(work.id, files);
   },
   async draft(id: string, draft: Draft) {
     const saved = await request<{ revision: number }>("/works/" + id + "/draft", {
@@ -66,8 +97,7 @@ export const httpGateway: Gateway = {
     return request<Report>("/works/" + id + "/report" + query);
   },
   async attachments(id, attachments) {
-    const layout = attachments.map(({ id, pageOrder, crops }) => ({ id, pageOrder, crops }));
-    await workRequest("/works/" + id + "/attachments", "PUT", layout);
+    await putLayout(id, attachments);
   },
   async archiveStudent(id: string, archived: boolean) {
     await request("/students/" + id + "/archive", { method: "POST", json: { archived } });

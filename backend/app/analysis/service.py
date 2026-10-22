@@ -7,6 +7,7 @@ from app.errors import DomainError
 from app.observability import current_request_id
 from app.queue import enqueue
 from app.works.models import Work
+from app.works.page_checks import unchecked_pages
 from app.works.schemas import Draft
 from app.works.service import dump, files_of, read_draft
 
@@ -17,6 +18,9 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
     files = await files_of(session, [work.id])
     if sum(file.size for file in files) > settings.analysis_max_bytes:
         raise DomainError("analysis_too_large")
+    unchecked = unchecked_pages(files)
+    if unchecked:
+        raise DomainError("redaction_unchecked", {"pages": unchecked})
     draft = read_draft(work)
     job = await enqueue(
         session,

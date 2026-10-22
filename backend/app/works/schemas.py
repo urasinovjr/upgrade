@@ -48,10 +48,13 @@ class Draft(ApiModel):
 
 
 class CropRect(ApiModel):
-    x: float
-    y: float
-    width: float
-    height: float
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    width: float = Field(gt=0, le=1)
+    height: float = Field(gt=0, le=1)
+
+
+PageMasks = dict[str, list[CropRect]]
 
 
 class AttachmentOut(ApiModel):
@@ -62,6 +65,8 @@ class AttachmentOut(ApiModel):
     pages: int
     page_order: list[int]
     crops: dict[str, CropRect]
+    masks: PageMasks = Field(default_factory=dict)
+    checked_pages: list[int] = Field(default_factory=list)
 
 
 class AnalysisInfo(ApiModel):
@@ -134,6 +139,8 @@ class AttachmentLayout(ApiModel):
     id: UUID
     page_order: list[int] = Field(min_length=1, max_length=1000)
     crops: dict[str, CropRect]
+    masks: PageMasks = Field(default_factory=dict)
+    checked_pages: list[int] = Field(default_factory=list, max_length=1000)
 
 
 class ReportOut(ApiModel):

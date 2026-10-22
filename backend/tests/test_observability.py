@@ -8,7 +8,7 @@ from app.observability.logging import JsonFormatter, TextFormatter
 from app.observability.request_id import read_request_id
 from tests.students import create_student
 from tests.test_analysis import run_next_job, stored_runs
-from tests.works import create_work
+from tests.works import checked_work
 
 REQUEST_ID = "check-request-0001"
 
@@ -78,7 +78,7 @@ async def test_run_keeps_request_id_tokens_and_cost(teacher, sessions, test_sett
     settings = test_settings.model_copy(
         update={"price_input_per_mtok": Decimal(3), "price_output_per_mtok": Decimal(15)}
     )
-    work = await create_work(teacher, await create_student(teacher))
+    work = await checked_work(teacher, await create_student(teacher))
     response = await teacher.post(
         f"/api/works/{work['id']}/actions/analyse", headers={"X-Request-ID": REQUEST_ID}
     )

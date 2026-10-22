@@ -66,6 +66,8 @@ def attachment_out(file: WorkFile) -> AttachmentOut:
         pages=file.pages,
         page_order=file.page_order,
         crops=file.crops,
+        masks=file.masks,
+        checked_pages=file.checked_pages,
     )
 
 

@@ -50,6 +50,8 @@ export interface Attachment {
   pages: number;
   pageOrder: number[];
   crops: Record<string, CropRect>;
+  masks: Record<string, CropRect[]>;
+  checkedPages: number[];
 }
 export interface Upload extends Attachment {
   blob: Blob;

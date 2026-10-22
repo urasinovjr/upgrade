@@ -95,6 +95,8 @@ async def create_work(
                 pages=pages,
                 page_order=list(range(1, pages + 1)),
                 crops={},
+                masks={},
+                checked_pages=[],
                 storage_key=key,
             )
         )

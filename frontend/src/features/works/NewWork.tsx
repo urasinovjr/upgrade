@@ -319,6 +319,7 @@ export default function NewWork() {
             <MediaViewer
               files={uploads}
               uploads={uploads}
+              redaction
               lead={
                 <span className="dp-nw-preview-title">
                   <Eye size={16} aria-hidden="true" />

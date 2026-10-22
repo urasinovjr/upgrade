@@ -78,6 +78,8 @@ class WorkFile(Base):
     pages: Mapped[int]
     page_order: Mapped[list] = mapped_column(JSONB)
     crops: Mapped[dict] = mapped_column(JSONB)
+    masks: Mapped[dict] = mapped_column(JSONB, default=dict)
+    checked_pages: Mapped[list] = mapped_column(JSONB, default=list)
     storage_key: Mapped[str] = mapped_column(String(300), unique=True)
     created_at: Mapped[datetime] = now_column()
 

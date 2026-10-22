@@ -44,6 +44,8 @@ describe("demo persistence", () => {
         pages: 1,
         pageOrder: [1],
         crops: {},
+        masks: {},
+        checkedPages: [],
       },
     ];
     await gateway.create(work, [{ ...work.attachments[0], blob }]);
@@ -79,6 +81,8 @@ describe("demo persistence", () => {
       pages: 1,
       pageOrder: [1],
       crops: {},
+      masks: {},
+      checkedPages: [],
       blob,
     };
     const original = IDBObjectStore.prototype.put;
@@ -99,6 +103,25 @@ describe("demo persistence", () => {
     await gateway.create(work, [file]);
     expect((await gateway.read()).works.find((item) => item.id === work.id)).toBeDefined();
   });
+  it("keeps the draft on a page check and waits for checks before the demo analysis", async () => {
+    const before = (await gateway.read()).works.find((item) => item.id === "demo-ready")!;
+    const [sheet] = before.attachments;
+    const mask = { x: 0, y: 0, width: 0.4, height: 0.1 };
+
+    await gateway.attachments(before.id, [{ ...sheet, masks: { "1": [mask] } }]);
+    const masked = (await gateway.read()).works.find((item) => item.id === before.id)!;
+    const blocked = gateway.action(before.id, "analyse");
+    await expect(blocked).rejects.toThrow("отметьте проверенными все страницы");
+    await gateway.attachments(before.id, [{ ...masked.attachments[0], checkedPages: [1] }]);
+    const checked = (await gateway.read()).works.find((item) => item.id === before.id)!;
+
+    expect(masked.attachments[0].checkedPages).toEqual([]);
+    expect(masked.draft.inputRevision).toBe(before.draft.inputRevision + 1);
+    expect(checked.attachments[0].checkedPages).toEqual([1]);
+    expect(checked.draft.inputRevision).toBe(masked.draft.inputRevision);
+    await gateway.action(before.id, "analyse");
+  });
+
   it("requires an explanation when closing a gap", async () => {
     await expect(
       gateway.closure({
@@ -137,6 +160,8 @@ describe("demo persistence", () => {
         pages: 1,
         pageOrder: [1],
         crops: {},
+        masks: {},
+        checkedPages: [],
       },
     ];
     await gateway.create(work, [{ ...work.attachments[0], blob }]);

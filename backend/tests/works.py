@@ -56,6 +56,35 @@ async def create_work(client: AsyncClient, student_id: str, **options) -> dict:
     return response.json()
 
 
+def layout_of(work: dict, **changes) -> list[dict]:
+    return [
+        {
+            "id": item["id"],
+            "pageOrder": item["pageOrder"],
+            "crops": item["crops"],
+            "masks": item["masks"],
+            "checkedPages": item["checkedPages"],
+            **changes,
+        }
+        for item in work["attachments"]
+    ]
+
+
+async def put_layout(client: AsyncClient, work: dict, layout: list[dict]) -> Response:
+    return await client.put(f"/api/works/{work['id']}/attachments", json=layout)
+
+
+async def check_all_pages(client: AsyncClient, work: dict) -> dict:
+    layout = [{**item, "checkedPages": item["pageOrder"]} for item in layout_of(work)]
+    response = await put_layout(client, work, layout)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+async def checked_work(client: AsyncClient, student_id: str, **options) -> dict:
+    return await check_all_pages(client, await create_work(client, student_id, **options))
+
+
 async def save(client: AsyncClient, work: dict, draft: dict, base: int | None = None) -> Response:
     revision = work["draft"]["revision"] if base is None else base
     return await client.put(

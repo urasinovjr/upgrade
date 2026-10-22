@@ -16,7 +16,8 @@ from app.works.schemas import Draft, GapProposal, Step, Task
 
 def layout_signature(files: list[WorkFile]) -> list[dict]:
     return [
-        {"id": str(file.id), "pageOrder": file.page_order, "crops": file.crops} for file in files
+        {"id": str(file.id), "pageOrder": file.page_order, "crops": file.crops, "masks": file.masks}
+        for file in files
     ]
 
 

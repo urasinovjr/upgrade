@@ -1,7 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, Crop, ImageUp, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
-import type { Attachment, CropRect, Upload } from "../domain/models";
+import { ArrowDown, ArrowUp, Crop, EyeOff, ImageUp, ZoomIn, ZoomOut } from "lucide-react";
+import type { Attachment, Upload } from "../domain/models";
+import { keptChecks, pageMasks, withCheck, withMasks } from "../domain/redaction";
 import { gateway } from "../data/gateway";
+import { CropControls } from "./CropControls";
+import { MaskControls, MaskLayer, PageCheck } from "./MaskEditor";
 import { ErrorMessage } from "./ui";
 import "./media.css";
 const PdfPage = lazy(() => import("./PdfPage"));
@@ -19,16 +22,18 @@ export function MediaViewer({
   update,
   uploads,
   lead,
+  redaction = false,
 }: {
   files: Attachment[];
   update?: (files: Attachment[]) => void;
   uploads?: Upload[];
   lead?: ReactNode;
+  redaction?: boolean;
 }) {
   const [selected, setSelected] = useState(files[0]?.id || "");
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [cropping, setCropping] = useState(false);
+  const [tool, setTool] = useState<"crop" | "mask">();
   const file = files.find((item) => item.id === selected) || files[0];
   const fileId = file?.id;
   const [source, setSource] = useState<{ id: string; url: string }>();
@@ -85,8 +90,12 @@ export function MediaViewer({
     : Array.from({ length: file.pages }, (_, index) => index + 1);
   const activePage = order.includes(page) ? page : order[0];
   const crop = file.crops[String(activePage)] || { x: 0, y: 0, width: 1, height: 1 };
-  const saveFile = (updated: Attachment) =>
-    update?.(files.map((item) => (item.id === file.id ? updated : item)));
+  const masks = pageMasks(file, activePage);
+  const saveFile = (updated: Attachment) => {
+    const next = { ...updated, checkedPages: keptChecks(file, updated) };
+    update?.(files.map((item) => (item.id === file.id ? next : item)));
+  };
+  const toggle = (name: "crop" | "mask") => setTool(tool === name ? undefined : name);
   const move = (direction: number) => {
     const index = files.findIndex((item) => item.id === file.id);
     const next = swapWithNeighbour(files, index, direction);
@@ -153,13 +162,25 @@ export function MediaViewer({
               </button>
             </>
           )}
-          <button onClick={() => setCropping(!cropping)} aria-expanded={cropping}>
+          {redaction && (
+            <button onClick={() => toggle("mask")} aria-expanded={tool === "mask"}>
+              <EyeOff size={14} />
+              Скрыть данные
+            </button>
+          )}
+          <button onClick={() => toggle("crop")} aria-expanded={tool === "crop"}>
             <Crop size={14} />
             Кадрировать
           </button>
         </div>
       )}
-      {cropping && update && (
+      {tool === "mask" && update && (
+        <MaskControls
+          masks={masks}
+          onChange={(next) => saveFile(withMasks(file, activePage, next))}
+        />
+      )}
+      {tool === "crop" && update && (
         <CropControls
           key={file.id + ":" + activePage + ":" + JSON.stringify(crop)}
           crop={crop}
@@ -204,14 +225,28 @@ export function MediaViewer({
           )}
         </div>
       )}
+      {redaction && (
+        <PageCheck
+          files={files}
+          file={file}
+          page={activePage}
+          onCheck={update && ((checked) => saveFile(withCheck(file, activePage, checked)))}
+        />
+      )}
       <ErrorMessage error={error} />
       <div className="media-canvas" ref={area}>
         <div
+          className="media-page"
           style={{
             width: width ? width * zoom : "100%",
             clipPath: `inset(${top}% ${right}% ${bottom}% ${left}%)`,
           }}
         >
+          <MaskLayer
+            masks={masks}
+            drawing={tool === "mask" && Boolean(update)}
+            onDraw={(mask) => saveFile(withMasks(file, activePage, [...masks, mask]))}
+          />
           {source?.id === file.id && width > 0 ? (
             file.type === "application/pdf" ? (
               <Suspense fallback={<MediaPlaceholder />}>
@@ -239,58 +274,6 @@ export function MediaViewer({
         {file.name} · {Math.round(file.size / 1024)} КБ
       </div>
     </section>
-  );
-}
-
-function CropControls({ crop, onApply }: { crop: CropRect; onApply: (crop: CropRect) => void }) {
-  const [values, setValues] = useState(() => ({
-    x: String(Math.round(crop.x * 100)),
-    y: String(Math.round(crop.y * 100)),
-    width: String(Math.round(crop.width * 100)),
-    height: String(Math.round(crop.height * 100)),
-  }));
-  return (
-    <form
-      className="crop-controls"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const x = Math.min(0.95, Math.max(0, Number(values.x) / 100));
-        const y = Math.min(0.95, Math.max(0, Number(values.y) / 100));
-        onApply({
-          x,
-          y,
-          width: Math.min(1 - x, Math.max(0.05, Number(values.width) / 100)),
-          height: Math.min(1 - y, Math.max(0.05, Number(values.height) / 100)),
-        });
-      }}
-    >
-      <p>Область просмотра, % · исходный файл сохраняется</p>
-      {(["x", "y", "width", "height"] as const).map((key, index) => {
-        const isSize = key === "width" || key === "height";
-        return (
-          <label key={key}>
-            {["Слева", "Сверху", "Ширина", "Высота"][index]}
-            <input
-              type="number"
-              required
-              min={isSize ? 5 : 0}
-              max={isSize ? 100 : 95}
-              value={values[key]}
-              onChange={(event) =>
-                setValues((current) => ({ ...current, [key]: event.target.value }))
-              }
-            />
-          </label>
-        );
-      })}
-      <button type="submit" className="dp-primary">
-        Применить область
-      </button>
-      <button type="button" onClick={() => onApply({ x: 0, y: 0, width: 1, height: 1 })}>
-        <RotateCcw size={14} />
-        Сбросить
-      </button>
-    </form>
   );
 }
 

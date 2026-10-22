@@ -178,6 +178,8 @@ export function seedState(now = Date.now()): StoreState {
           pages: 1,
           pageOrder: [1],
           crops: {},
+          masks: {},
+          checkedPages: [1],
         },
       ],
       draft,

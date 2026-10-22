@@ -5,6 +5,21 @@ import type { Upload, Work } from "../domain/models";
 
 type Call = { url: string; init: RequestInit };
 
+function photoUpload(): Upload {
+  return {
+    id: "f1",
+    name: "photo.png",
+    type: "image/png",
+    size: 3,
+    pages: 1,
+    pageOrder: [1],
+    crops: {},
+    masks: {},
+    checkedPages: [],
+    blob: new Blob(["png"], { type: "image/png" }),
+  };
+}
+
 function stubFetch(...responses: Response[]) {
   const calls: Call[] = [];
   vi.stubGlobal(
@@ -72,18 +87,10 @@ describe("http gateway", () => {
   });
 
   it("uploads metadata and files in one form", async () => {
-    const calls = stubFetch(json(work(1)));
-    const upload = {
-      id: "f1",
-      name: "photo.png",
-      type: "image/png",
-      size: 3,
-      pages: 1,
-      pageOrder: [1],
-      crops: {},
-      blob: new Blob(["png"], { type: "image/png" }),
-    } satisfies Upload;
-    await httpGateway.create(work(1), [upload]);
+    const { blob, ...stored } = photoUpload();
+    const calls = stubFetch(json({ ...work(1), attachments: [stored] }));
+    await httpGateway.create(work(1), [{ ...stored, blob }]);
+    expect(calls).toHaveLength(1);
     const form = calls[0].init.body as FormData;
     expect(JSON.parse(String(form.get("meta")))).toMatchObject({
       id: "w1",
@@ -91,6 +98,22 @@ describe("http gateway", () => {
       attachments: [{ id: "f1", name: "photo.png" }],
     });
     expect(form.get("f1")).toBeInstanceOf(Blob);
+  });
+
+  it("sends masks first and page checks second after creating a work", async () => {
+    const { blob, ...stored } = photoUpload();
+    const mask = { x: 0, y: 0, width: 0.5, height: 0.1 };
+    const upload = { ...stored, blob, masks: { "1": [mask] }, checkedPages: [1] };
+    const calls = stubFetch(
+      json({ ...work(1), attachments: [stored] }),
+      json(work(2)),
+      json(work(2)),
+    );
+    await httpGateway.create(work(1), [upload]);
+    const layouts = calls.slice(1).map((call) => JSON.parse(String(call.init.body)));
+    expect(calls.map((call) => call.init.method)).toEqual(["POST", "PUT", "PUT"]);
+    expect(layouts[0][0]).toMatchObject({ masks: { "1": [mask] }, checkedPages: [] });
+    expect(layouts[1][0]).toMatchObject({ masks: { "1": [mask] }, checkedPages: [1] });
   });
 
   it("turns server errors into readable messages", async () => {

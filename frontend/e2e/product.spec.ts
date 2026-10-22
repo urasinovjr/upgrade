@@ -92,6 +92,9 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   await expect(left).toBeFocused();
   await expect(left).toHaveValue("20");
   await page.getByRole("button", { name: "Применить область" }).click();
+  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
+  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
   if (testInfo.project.name.includes("mobile"))
     await page.getByRole("tab", { name: "Разбор", exact: true }).click();
   await expect(page.getByText("Нужна сверка с оригиналом.", { exact: true })).toBeVisible();
@@ -110,6 +113,52 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   await page.reload();
   await expect(page.getByText("Обработка… Можно вернуться к работе позже.")).toBeVisible();
   await expect(page.getByText("К проверке", { exact: true })).toBeVisible({ timeout: 10000 });
+});
+
+test("masks hide personal data and every page is checked before analysis", async ({
+  page,
+}, testInfo) => {
+  const mobile = testInfo.project.name.includes("mobile");
+  const toOriginal = () => page.getByRole("tab", { name: "Оригинал", exact: true }).click();
+  const toReview = () => page.getByRole("tab", { name: "Разбор", exact: true }).click();
+  await page.goto("/works/demo-ready");
+  if (mobile) await toOriginal();
+  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Скрыть данные" }).click();
+  await page.getByRole("spinbutton", { name: "Ширина", exact: true }).fill("40");
+  await page.getByRole("button", { name: "Добавить маску" }).click();
+  await expect(page.getByText(/^Маска 1: 0% слева, 0% сверху, 40×8%/)).toBeVisible();
+  await expect(page.locator(".mask-box")).toHaveCount(1);
+  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Проверено 0 из 1")).toBeVisible();
+  if (!mobile) {
+    const layer = await page.getByTestId("mask-layer").boundingBox();
+    expect(layer).not.toBeNull();
+    await page.mouse.move(layer!.x + layer!.width * 0.5, layer!.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(layer!.x + layer!.width * 0.8, layer!.y + 70, { steps: 4 });
+    await page.mouse.up();
+    await expect(page.locator(".mask-box")).toHaveCount(2);
+  }
+  if (mobile) await toReview();
+  const reanalyse = page.getByRole("button", { name: "Повторить разбор" });
+  await expect(reanalyse).toBeDisabled();
+  await expect(
+    page.getByText("Перед разбором проверьте страницы оригинала: осталось 1."),
+  ).toBeVisible();
+  if (mobile) await toOriginal();
+  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
+  await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
+  if (mobile) await toReview();
+  await expect(reanalyse).toBeEnabled();
+  await page.reload();
+  if (mobile) await toOriginal();
+  await expect(page.locator(".mask-box")).toHaveCount(mobile ? 1 : 2);
+  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Скрыть данные" }).click();
+  await page.getByRole("button", { name: "Удалить маску 1" }).click();
+  await expect(page.locator(".mask-box")).toHaveCount(mobile ? 0 : 1);
+  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
 });
 
 test("user upload remains manual; corrupted files are rejected", async ({ page }) => {

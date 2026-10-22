@@ -1,20 +1,40 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import type { Work } from "../../domain/models";
 import { Modal } from "../../shared/ui";
 
-export function Reanalyse({ work, busy, run }: { work: Work; busy: boolean; run: () => void }) {
+export function Reanalyse({
+  work,
+  busy,
+  unchecked,
+  run,
+}: {
+  work: Work;
+  busy: boolean;
+  unchecked: number;
+  run: () => void;
+}) {
   const [open, setOpen] = useState(false);
+  const noteId = useId();
   const start = () => {
     setOpen(false);
     run();
   };
   return (
     <>
-      <button disabled={busy} onClick={() => (work.analysis ? setOpen(true) : run())}>
+      <button
+        disabled={busy || unchecked > 0}
+        aria-describedby={unchecked > 0 ? noteId : undefined}
+        onClick={() => (work.analysis ? setOpen(true) : run())}
+      >
         <RefreshCw size={14} aria-hidden="true" />
         {work.demo ? "Повторить разбор" : "Запустить разбор"}
       </button>
+      {unchecked > 0 && (
+        <span id={noteId} className="dp-reanalyse-note">
+          Перед разбором проверьте страницы оригинала: осталось {unchecked}.
+        </span>
+      )}
       <Modal
         open={open}
         onOpenChange={setOpen}

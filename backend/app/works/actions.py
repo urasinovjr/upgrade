@@ -9,6 +9,7 @@ from app.config import Settings
 from app.errors import DomainError
 from app.students import StudentOut, owned_student
 from app.works.models import Work, WorkFile, WorkRevision
+from app.works.page_checks import kept_checks, stored_crops, stored_masks, valid_masks
 from app.works.review import apply_draft, keep_known_attachments, reopened_draft, review_blockers
 from app.works.schemas import AttachmentLayout, Draft, ReportOut
 from app.works.service import (
@@ -75,21 +76,33 @@ async def update_attachments(
     files = {file.id: file for file in await files_of(session, [work_id])}
     if {item.id for item in layout} != set(files) or len(layout) != len(files):
         raise DomainError("attachments_mismatch")
+    changed = False
     for position, item in enumerate(layout):
         file = files[item.id]
-        if not valid_page_order(item.page_order, file.pages):
+        if not valid_page_order(item.page_order, file.pages) or not valid_masks(item, file.pages):
             raise DomainError("attachments_mismatch")
+        crops = stored_crops(item)
+        masks = stored_masks(item)
+        before = (file.position, file.page_order, file.crops, file.masks)
+        changed = changed or before != (position, item.page_order, crops, masks)
+        file.checked_pages = kept_checks(file, crops, masks, item.checked_pages)
         file.position = position
         file.page_order = item.page_order
-        file.crops = {key: crop.model_dump() for key, crop in item.crops.items()}
+        file.crops = crops
+        file.masks = masks
+    if changed:
+        mark_inputs_changed(work)
+    await session.commit()
+    return work
+
+
+def mark_inputs_changed(work: Work) -> None:
     draft = read_draft(work)
     draft.revision += 1
     draft.input_revision += 1
     for task in draft.tasks:
         task.reviewed = False
     work.draft = dump(draft)
-    await session.commit()
-    return work
 
 
 async def confirm(session: AsyncSession, work: Work) -> None:

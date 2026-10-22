@@ -40,6 +40,7 @@ import { useReviewDraft, type SaveState } from "./useReviewDraft";
 import { DeleteWork } from "./DeleteWork";
 import { InitialAnalysis } from "./InitialAnalysis";
 import { Reanalyse } from "./Reanalyse";
+import { uncheckedPages } from "../../domain/redaction";
 import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
 import { useMediaQuery } from "../../shared/useMediaQuery";
@@ -429,7 +430,12 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
     </Link>
   );
   const reanalyse = (work.demo || serverMode) && (
-    <Reanalyse work={work} busy={busy} run={() => void action("analyse")} />
+    <Reanalyse
+      work={work}
+      busy={busy}
+      unchecked={uncheckedPages(work.attachments).length}
+      run={() => void action("analyse")}
+    />
   );
   const finishSync = (
     <button disabled={busy} onClick={() => void action("manual")}>
@@ -449,6 +455,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       <MediaViewer
         files={work.attachments}
         update={canEdit ? review.updateAttachments : undefined}
+        redaction={work.editing}
         lead={
           <>
             {paneSwitch}

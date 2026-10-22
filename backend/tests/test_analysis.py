@@ -14,7 +14,7 @@ from tests.conftest import worker_context
 from tests.fakes import FakeDraftProvider
 from tests.samples import PNG_BYTES
 from tests.students import create_student
-from tests.works import act, create_work, save
+from tests.works import act, checked_work, create_work, save
 
 
 async def run_next_job(sessions, settings, storage, provider=None) -> Job:
@@ -38,7 +38,7 @@ async def retry_now(sessions, job: Job) -> None:
 
 async def queued_work(teacher) -> dict:
     student_id = await create_student(teacher)
-    work = await create_work(teacher, student_id)
+    work = await checked_work(teacher, student_id)
     response = await act(teacher, work["id"], "analyse")
     assert response.status_code == 200, response.text
     return response.json()
@@ -153,7 +153,7 @@ async def test_invalid_reply_is_stored_retried_then_failed(
 ):
     settings = test_settings.model_copy(update={"job_attempts": 2})
     student_id = await create_student(teacher)
-    work = await create_work(teacher, student_id)
+    work = await checked_work(teacher, student_id)
     async with sessions() as session:
         stored = await session.get(Work, UUID(work["id"]))
         await start_analysis(session, settings, stored)
@@ -178,7 +178,7 @@ async def test_invalid_reply_is_stored_retried_then_failed(
 async def test_provider_failure_is_retried_then_failed(teacher, sessions, test_settings, storage):
     settings = test_settings.model_copy(update={"job_attempts": 2})
     student_id = await create_student(teacher)
-    work = await create_work(teacher, student_id)
+    work = await checked_work(teacher, student_id)
     async with sessions() as session:
         stored = await session.get(Work, UUID(work["id"]))
         await start_analysis(session, settings, stored)

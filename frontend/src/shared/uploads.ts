@@ -33,6 +33,8 @@ export async function decodeUpload(file: File): Promise<Upload> {
     pages,
     pageOrder: Array.from({ length: pages }, (_, index) => index + 1),
     crops: {},
+    masks: {},
+    checkedPages: [],
     blob: file,
   };
 }
