@@ -48,6 +48,7 @@ import { sessionKey, useSession, useSetSession, useWriteAccess } from "./shared/
 import { RequireSession } from "./features/auth/RequireSession";
 import { ReadOnlyBanner } from "./features/account/ReadOnlyBanner";
 import { TimingTracker } from "./features/timing/TimingTracker";
+import { GuestHome } from "./features/landing/GuestHome";
 
 const Works = lazy(() => import("./features/works/Works"));
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
@@ -66,6 +67,7 @@ const ProviderCallback = lazy(() => import("./features/auth/ProviderCallback"));
 const AccountSettings = lazy(() => import("./features/account/AccountSettings"));
 const Subscription = lazy(() => import("./features/account/Subscription"));
 const Stopwatch = lazy(() => import("./features/timing/Stopwatch"));
+const Landing = lazy(() => import("./features/landing/Landing"));
 
 const railQuery = "(min-width: 701px) and (max-width: 1199px)";
 
@@ -376,6 +378,23 @@ const authRoutes = serverMode
       ),
     }))
   : [];
+const landingPage = (
+  <Suspense fallback={null}>
+    <Landing />
+  </Suspense>
+);
+const landingRoutes = [
+  { path: "welcome", errorElement: <ShellError />, element: landingPage },
+  ...(serverMode
+    ? [
+        {
+          index: true,
+          errorElement: <ShellError />,
+          element: <GuestHome>{landingPage}</GuestHome>,
+        },
+      ]
+    : []),
+];
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
@@ -383,6 +402,7 @@ onAuthLost(() => queryClient.setQueryData(sessionKey, null));
 onSubscriptionEnded(() => void queryClient.invalidateQueries({ queryKey: sessionKey }));
 const router = createRouter([
   ...authRoutes,
+  ...landingRoutes,
   {
     element: (
       <RequireSession>
@@ -394,7 +414,7 @@ const router = createRouter([
       {
         errorElement: <RouteError />,
         children: [
-          { index: true, element: <Navigate to="/dashboard" replace /> },
+          ...(serverMode ? [] : [{ index: true, element: <Navigate to="/dashboard" replace /> }]),
           { path: "dashboard", element: <Dashboard /> },
           { path: "works", element: <Works /> },
           { path: "works/new", element: <NewWork /> },
