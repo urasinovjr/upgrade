@@ -157,8 +157,8 @@
   box-shadow: none;
 }
 .dp-topic-cell.is-path {
-  background: var(--ug-violet-soft);
-  box-shadow: inset 0 0 0 1px var(--ug-violet);
+  background: var(--ug-pencil-soft);
+  box-shadow: inset 0 0 0 1px var(--ug-pencil);
 }
 .dp-roster-chevron {
   grid-area: chevron;
@@ -174,7 +174,7 @@
   border-bottom: 1px solid var(--ug-line);
 }
 .dp-roster-empty a {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
   font-weight: 500;
 }
 .dp-strip-legend {

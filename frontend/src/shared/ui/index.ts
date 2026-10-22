@@ -1,5 +1,6 @@
 export { Avatar } from "./Avatar";
 export { Badge } from "./Badge";
+export { BrandMark, Wordmark } from "./Brand";
 export { Callout, type CalloutTone } from "./Callout";
 export { ConfirmDelete } from "./ConfirmDelete";
 export { Disclosure } from "./Disclosure";

@@ -7,13 +7,13 @@ math-field {
   background: var(--ug-surface);
   color: var(--ug-ink);
   font-size: var(--ug-fs-h2);
-  --caret-color: var(--ug-blue);
-  --selection-background-color: var(--ug-blue-soft);
+  --caret-color: var(--ug-action);
+  --selection-background-color: var(--ug-action-soft);
   scroll-margin-block: 32px
     calc(var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px);
 }
 math-field:focus-within {
-  outline: 2px solid var(--ug-blue);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 math-field::part(container) {

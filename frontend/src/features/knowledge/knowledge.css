@@ -218,9 +218,9 @@
 .dp-student-gap.is-next {
   margin-top: var(--ug-space-3);
   padding: var(--ug-space-3) var(--ug-space-4) var(--ug-space-4);
-  border: 1px solid var(--ug-violet-line);
+  border: 1px solid var(--ug-pencil-line);
   border-radius: var(--ug-radius-lg);
-  background: var(--ug-violet-soft);
+  background: var(--ug-pencil-soft);
 }
 .dp-student-gap.is-next + .dp-student-gap {
   margin-top: var(--ug-space-2);
@@ -234,7 +234,7 @@
   gap: var(--ug-space-1);
   font-size: var(--ug-fs-caption);
   font-weight: 500;
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-student-gap-meta {
   margin-left: auto;
@@ -356,7 +356,7 @@
   padding: 0 var(--ug-space-2);
   margin-right: calc(-1 * var(--ug-space-2));
   border-radius: var(--ug-radius-sm);
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
   font-size: var(--ug-fs-caption);
   font-weight: 500;
   white-space: nowrap;
@@ -490,14 +490,14 @@
   transition: stroke var(--ug-dur);
 }
 .dp-map-edge.is-path {
-  stroke: var(--ug-violet);
+  stroke: var(--ug-pencil);
   stroke-width: 2;
 }
 .dp-map-arrow path {
   stroke: var(--ug-faint);
 }
 .dp-map-arrow-path path {
-  stroke: var(--ug-violet);
+  stroke: var(--ug-pencil);
 }
 .dp-map-node {
   cursor: pointer;
@@ -507,7 +507,7 @@
 }
 .dp-map-focus {
   fill: none;
-  stroke: var(--ug-blue);
+  stroke: var(--ug-action);
   stroke-width: 2;
   opacity: 0;
 }
@@ -531,14 +531,14 @@
   stroke: var(--ug-success-line);
 }
 .dp-map-node:hover .dp-map-box {
-  stroke: var(--ug-blue-line);
+  stroke: var(--ug-action-line);
 }
 .dp-map-node.is-prerequisite .dp-map-box {
-  stroke: var(--ug-violet);
+  stroke: var(--ug-pencil);
   stroke-width: 1.5;
 }
 .dp-map-node.selected .dp-map-box {
-  stroke: var(--ug-blue);
+  stroke: var(--ug-action);
   stroke-width: 2;
 }
 .dp-map-node text {
@@ -581,13 +581,13 @@
 .dp-map-legend-selected > span {
   width: 16px;
   height: 12px;
-  border: 2px solid var(--ug-blue);
+  border: 2px solid var(--ug-action);
   border-radius: var(--ug-radius-sm);
 }
 .dp-map-legend-path > span {
   width: 14px;
   height: 2px;
-  background: var(--ug-violet);
+  background: var(--ug-pencil);
 }
 
 .dp-student-map[data-mode="expanded"] .dp-map-layout {

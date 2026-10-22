@@ -34,7 +34,7 @@
   font-weight: 400;
 }
 .dp-auth-card :is(form, .dp-auth-footer) a:not([class]) {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

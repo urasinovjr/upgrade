@@ -194,11 +194,11 @@
   color: var(--ug-text);
 }
 .dp-report-recommendation {
-  border: 1px solid var(--ug-violet-line);
-  background: var(--ug-violet-soft);
+  border: 1px solid var(--ug-pencil-line);
+  background: var(--ug-pencil-soft);
 }
 .dp-app .dp-report-recommendation h4 {
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-report-note {
   display: flex;

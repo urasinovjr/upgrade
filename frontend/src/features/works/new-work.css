@@ -78,12 +78,12 @@
 }
 .dp-nw-drop:hover,
 .dp-nw-attach:hover {
-  border-color: var(--ug-blue-line);
-  background: var(--ug-blue-soft);
+  border-color: var(--ug-action-line);
+  background: var(--ug-action-soft);
 }
 .dp-nw-drop:focus-within,
 .dp-nw-attach:focus-within {
-  outline: 2px solid var(--ug-blue);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 .dp-nw-drop:has(input:disabled),
@@ -114,14 +114,14 @@
 }
 .dp-nw-drop svg {
   margin-bottom: var(--ug-space-1);
-  color: var(--ug-blue);
+  color: var(--ug-action);
 }
 .dp-nw-drop strong {
   font-weight: 500;
 }
 .dp-nw-drop.is-busy {
-  border-color: var(--ug-blue-line);
-  background: var(--ug-blue-soft);
+  border-color: var(--ug-action-line);
+  background: var(--ug-action-soft);
 }
 .dp-nw-attach {
   display: flex;

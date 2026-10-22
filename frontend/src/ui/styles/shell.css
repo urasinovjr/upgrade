@@ -11,8 +11,8 @@
   top: var(--ug-space-2);
   left: var(--ug-space-2);
   z-index: 200;
-  color: var(--ug-on-blue);
-  background: var(--ug-blue);
+  color: var(--ug-on-action);
+  background: var(--ug-action);
   border-radius: var(--ug-radius-sm);
   font-weight: 500;
   clip-path: inset(50%);
@@ -83,20 +83,58 @@ a.dp-workspace {
 a.dp-workspace:hover {
   background: var(--ug-soft);
 }
-.dp-workspace-name {
-  font-size: var(--ug-fs-body);
-  font-weight: 600;
-  letter-spacing: -0.2px;
+.dp-wordmark {
+  display: inline-flex;
+  align-items: flex-start;
+  color: var(--ug-ink);
+  font-family: var(--ug-font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--ug-tracking-display);
+  white-space: nowrap;
+}
+.dp-wordmark-grade {
+  position: relative;
+  z-index: 0;
+}
+.dp-wordmark-grade::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -2px;
+  right: -3px;
+  bottom: -1px;
+  height: 0.52em;
+  border-radius: 3px 6px 4px 7px;
+  background: var(--ug-marker);
+  transform: rotate(-1.5deg);
+}
+.dp-wordmark-tick {
+  flex-shrink: 0;
+  width: 0.8em;
+  height: 0.8em;
+  margin: -0.35em 0 0 1px;
+  fill: none;
+  stroke: var(--ug-danger);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .dp-brand-mark {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--ug-radius-sm);
-  background: var(--ug-brand-gradient);
-  color: var(--ug-on-blue);
+  width: 24px;
+  height: 24px;
+}
+.dp-brand-mark rect {
+  fill: var(--ug-action);
+}
+.dp-brand-mark path {
+  fill: none;
+  stroke: var(--ug-marker);
+  stroke-width: 3.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .dp-rail-mark,
 .dp-rail-open {
@@ -129,11 +167,11 @@ a.dp-workspace:hover {
   background: var(--ug-soft);
 }
 .dp-sidebar nav a.active {
-  color: var(--ug-blue-strong);
-  background: var(--ug-blue-soft);
+  color: var(--ug-action-strong);
+  background: var(--ug-action-soft);
 }
 .dp-sidebar nav a.active > svg {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
 }
 .dp-sidebar a.active.dp-nav-parent {
   background: transparent;
@@ -146,7 +184,7 @@ a.dp-workspace:hover {
   font-size: var(--ug-fs-caption);
   line-height: 20px;
   text-align: center;
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -190,8 +228,8 @@ a.dp-workspace:hover {
   background: var(--ug-soft);
 }
 .dp-sidebar-group a.active {
-  color: var(--ug-blue-strong);
-  background: var(--ug-blue-soft);
+  color: var(--ug-action-strong);
+  background: var(--ug-action-soft);
   font-weight: 500;
 }
 .dp-sidebar-initial {
@@ -388,14 +426,14 @@ a.dp-workspace:hover {
     padding: 0 var(--ug-space-1);
     line-height: 16px;
     border-radius: var(--ug-radius-pill);
-    color: var(--ug-on-blue);
-    background: var(--ug-blue);
+    color: var(--ug-on-action);
+    background: var(--ug-action);
   }
   .dp-nav-collapsed .dp-sidebar a.active.dp-nav-parent {
-    background: var(--ug-blue-soft);
+    background: var(--ug-action-soft);
   }
   .dp-nav-collapsed .dp-rail-mark {
-    display: grid;
+    display: block;
   }
   .dp-nav-collapsed .dp-sidebar-toggle:is(:hover, :focus-visible) .dp-rail-mark {
     display: none;
@@ -455,8 +493,8 @@ a.dp-workspace:hover {
     padding: 0 var(--ug-space-1);
     line-height: 16px;
     border-radius: var(--ug-radius-pill);
-    color: var(--ug-on-blue);
-    background: var(--ug-blue);
+    color: var(--ug-on-action);
+    background: var(--ug-action);
   }
   .dp-workspace-main {
     margin-left: 0;
@@ -479,6 +517,6 @@ a.dp-workspace:hover {
     line-height: 44px;
   }
   .dp-app .dp-sidebar a.active.dp-nav-parent {
-    background: var(--ug-blue-soft);
+    background: var(--ug-action-soft);
   }
 }

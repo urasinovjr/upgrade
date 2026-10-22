@@ -104,7 +104,7 @@ export function ReviewSpeed({ works }: { works: Work[] }) {
                 key={bucket.key}
                 label={bucketLabels[bucket.key]}
                 share={bucket.count / maximum}
-                tone="blue"
+                tone="action"
                 value={String(bucket.count)}
               />
             ))}

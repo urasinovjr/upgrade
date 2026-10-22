@@ -8,7 +8,7 @@
 }
 .dp-account-section a:not([class]),
 .dp-read-only a {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

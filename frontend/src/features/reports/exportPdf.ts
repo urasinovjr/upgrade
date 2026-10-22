@@ -14,22 +14,23 @@ function palette() {
   const token = (name: string, fallback: string) =>
     style.getPropertyValue("--ug-" + name).trim() || fallback;
   const tones: Record<Tone, string> = {
-    blue: token("blue-strong", "#2448d8"),
-    violet: token("violet-strong", "#6a2fd0"),
-    success: token("success", "#23704c"),
-    warning: token("warning", "#8a5a12"),
-    danger: token("danger", "#ad3d36"),
-    neutral: token("neutral", "#4f5b72"),
+    action: token("action", "#26348c"),
+    marker: token("on-marker", "#161a2c"),
+    pencil: token("pencil-strong", "#474e5f"),
+    success: token("success", "#1f7448"),
+    warning: token("warning", "#87570f"),
+    danger: token("danger", "#c8352a"),
+    neutral: token("neutral", "#4f5568"),
   };
   return {
-    brand: token("blue", "#315efb"),
-    ink: token("ink", "#20263b"),
-    text: token("text", "#43506a"),
-    muted: token("muted", "#5d6679"),
-    line: token("line", "#e5e7ee"),
-    bg: token("bg", "#f7f8fb"),
-    violetSoft: token("violet-soft", "#f5f1ff"),
-    warningSoft: token("warning-soft", "#fff4e2"),
+    brand: token("action", "#26348c"),
+    ink: token("ink", "#161a2c"),
+    text: token("text", "#3a4056"),
+    muted: token("muted", "#5f6578"),
+    line: token("line", "#e4e6e1"),
+    bg: token("bg", "#f5f6f3"),
+    pencilSoft: token("pencil-soft", "#eff0f2"),
+    warningSoft: token("warning-soft", "#fbf1df"),
     tones,
   };
 }
@@ -161,12 +162,12 @@ export async function downloadReport(report: Report) {
               text: "Что повторить" + (topic ? " · " + topic.name : ""),
               bold: true,
               fontSize: 11,
-              color: colors.tones.violet,
+              color: colors.tones.pencil,
               margin: [0, 0, 0, 4],
             },
             { text: gap.reason, color: colors.text },
           ],
-          colors.violetSoft,
+          colors.pencilSoft,
         ),
       );
     }

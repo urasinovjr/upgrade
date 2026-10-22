@@ -94,9 +94,9 @@
   gap: var(--ug-space-3) var(--ug-space-4);
   margin-bottom: var(--ug-space-6);
   padding: var(--ug-space-3) var(--ug-space-4);
-  border: 1px solid var(--ug-blue-line);
+  border: 1px solid var(--ug-action-line);
   border-radius: var(--ug-radius-lg);
-  background: var(--ug-blue-soft);
+  background: var(--ug-action-soft);
 }
 .dp-app .dp-layout-bar:focus:not(:focus-visible) {
   outline: none;
@@ -140,11 +140,11 @@
   transition: border-color var(--ug-dur-fast);
 }
 .dp-widget-grid[data-editing] .dp-widget:is(:hover, :focus-within) {
-  border-color: var(--ug-blue-line);
+  border-color: var(--ug-action-line);
 }
 .dp-widget-grid[data-editing] .dp-widget[data-dragging] {
-  border-color: var(--ug-blue);
-  background: var(--ug-blue-soft);
+  border-color: var(--ug-action);
+  background: var(--ug-action-soft);
   opacity: 0.4;
 }
 .dp-widget-grid[data-editing] .dp-kpis {
@@ -268,19 +268,19 @@
   background: transparent;
 }
 .dp-widget-resize[data-axis="xy"]:is(:hover, :active)::after {
-  border-color: var(--ug-blue);
+  border-color: var(--ug-action);
   background: transparent;
 }
 .dp-widget-resize:hover::after,
 .dp-widget-resize:active::after {
-  background: var(--ug-blue);
+  background: var(--ug-action);
 }
 .dp-widget-overlay {
   display: inline-flex;
   align-items: center;
   gap: var(--ug-space-2);
   padding: var(--ug-space-2) var(--ug-space-3);
-  border: 1px solid var(--ug-blue-line);
+  border: 1px solid var(--ug-action-line);
   border-radius: var(--ug-radius-md);
   background: var(--ug-surface);
   box-shadow: var(--ug-shadow-overlay);
@@ -290,7 +290,7 @@
   cursor: grabbing;
 }
 .dp-widget-overlay svg {
-  color: var(--ug-blue);
+  color: var(--ug-action);
 }
 
 .dp-widget-grid[data-breakpoint="narrow"] .dp-widget-handle {
@@ -330,8 +330,8 @@
   width: 32px;
   height: 32px;
   border-radius: var(--ug-radius-md);
-  background: var(--ug-blue-soft);
-  color: var(--ug-blue-strong);
+  background: var(--ug-action-soft);
+  color: var(--ug-action-strong);
 }
 .dp-catalog-text strong {
   display: block;
@@ -348,7 +348,7 @@
   color: var(--ug-faint);
 }
 .dp-catalog-item:hover .dp-catalog-plus {
-  color: var(--ug-blue);
+  color: var(--ug-action);
 }
 .dp-catalog-empty {
   margin-top: var(--ug-space-4);

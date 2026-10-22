@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
-  ArrowUpRight,
   Check,
   CircleHelp,
   Copy,
@@ -18,7 +17,16 @@ import { gateway } from "../../data/gateway";
 import { topics } from "../../data/fixtures";
 import { reportText } from "../../domain/review";
 import { Formula } from "../../shared/math";
-import { Avatar, Callout, Modal, PageBar, PageLoading, PageState, Panel } from "../../shared/ui";
+import {
+  Avatar,
+  Callout,
+  Modal,
+  PageBar,
+  PageLoading,
+  PageState,
+  Panel,
+  Wordmark,
+} from "../../shared/ui";
 import { verdictMeta } from "../../shared/status";
 import { date, errorText } from "../../shared/text";
 import { MediaViewer } from "../../shared/MediaViewer";
@@ -150,12 +158,7 @@ export default function Report() {
         <div className="dp-report-canvas">
           <article className="dp-report-sheet report-paper">
             <header className="dp-report-head">
-              <span className="dp-report-brand">
-                <span className="dp-brand-mark" aria-hidden="true">
-                  <ArrowUpRight size={14} strokeWidth={2.5} />
-                </span>
-                UpGrade
-              </span>
+              <Wordmark className="dp-report-brand" />
               <span className="dp-caption">Обратная связь ученику</span>
             </header>
             <h2>{work.title}</h2>

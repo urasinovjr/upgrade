@@ -1,59 +1,70 @@
 :where(:root, .dp-app, .dp-dialog) {
-  --ug-ink: #20263b;
-  --ug-text: #43506a;
-  --ug-muted: #5d6679;
-  --ug-faint: #8b94a7;
-  --ug-line: #e5e7ee;
-  --ug-line-strong: #d6dce8;
-  --ug-bg: #f7f8fb;
-  --ug-surface: #fff;
-  --ug-soft: #f1f3f8;
-  --ug-hover: #f4f6fb;
-  --ug-scrim: rgb(32 38 59 / 40%);
+  --ug-ink: #161a2c;
+  --ug-text: #3a4056;
+  --ug-muted: #5f6578;
+  --ug-faint: #8a8f9e;
+  --ug-line: #e4e6e1;
+  --ug-line-strong: #d3d6cf;
+  --ug-bg: #f5f6f3;
+  --ug-surface: #fdfdfb;
+  --ug-soft: #eeefeb;
+  --ug-hover: #f1f2ee;
+  --ug-scrim: rgb(22 26 44 / 40%);
+  --ug-grid: #dde6ee;
+  --ug-margin-line: #e9a3a0;
 
-  --ug-blue: #315efb;
-  --ug-on-blue: #fff;
-  --ug-blue-soft: #edf2ff;
-  --ug-blue-strong: #2448d8;
-  --ug-blue-line: #ccd8fd;
-  --ug-violet: #7c3aed;
-  --ug-violet-soft: #f5f1ff;
-  --ug-violet-strong: #6a2fd0;
-  --ug-violet-line: #e4d9fb;
-  --ug-brand-gradient: linear-gradient(135deg, var(--ug-blue), var(--ug-violet));
+  --ug-action: #26348c;
+  --ug-on-action: #fdfdfb;
+  --ug-action-soft: #e8ebf7;
+  --ug-action-strong: #1b2670;
+  --ug-action-line: #c5cbe9;
+  --ug-marker: #d4f04a;
+  --ug-on-marker: #161a2c;
+  --ug-marker-soft: #eef9c4;
+  --ug-marker-strong: #c9e83a;
+  --ug-pencil: #5d6475;
+  --ug-pencil-soft: #eff0f2;
+  --ug-pencil-strong: #474e5f;
+  --ug-pencil-line: #b9bdc7;
 
-  --ug-chart-created: var(--ug-blue);
-  --ug-chart-confirmed: #9b6cf0;
-  --ug-chart-grid: #edf0f6;
-  --ug-chart-ready: var(--ug-blue);
+  --ug-chart-created: var(--ug-action);
+  --ug-chart-confirmed: var(--ug-chart-success);
+  --ug-chart-grid: #e9ebe6;
+  --ug-chart-ready: var(--ug-action);
   --ug-chart-danger: var(--ug-danger);
   --ug-chart-warning: #b7791f;
   --ug-chart-success: #2f8a5b;
   --ug-chart-neutral: var(--ug-faint);
 
-  --ug-success: #23704c;
-  --ug-success-soft: #ebf7f0;
-  --ug-success-line: #cfe8da;
-  --ug-warning: #8a5a12;
-  --ug-warning-soft: #fff4e2;
-  --ug-warning-line: #f0debb;
-  --ug-danger: #ad3d36;
-  --ug-danger-soft: #fdeeec;
-  --ug-danger-line: #efd5d1;
-  --ug-neutral: #4f5b72;
-  --ug-neutral-soft: #f1f3f8;
+  --ug-success: #1f7448;
+  --ug-success-soft: #e7f4ec;
+  --ug-success-line: #c9e5d4;
+  --ug-warning: #87570f;
+  --ug-warning-soft: #fbf1df;
+  --ug-warning-line: #eedbb5;
+  --ug-danger: #c8352a;
+  --ug-danger-soft: #fcebe8;
+  --ug-danger-line: #f1c9c3;
+  --ug-neutral: #4f5568;
+  --ug-neutral-soft: #eeefeb;
 
-  --ug-font: "Inter", sans-serif;
+  --ug-font: "Golos Text", sans-serif;
+  --ug-font-display: "Unbounded", sans-serif;
   --ug-fs-caption: 12px;
   --ug-fs-body: 14px;
   --ug-fs-lead: 16px;
   --ug-fs-h2: 20px;
   --ug-fs-h1: 28px;
+  --ug-fs-display-sm: 36px;
+  --ug-fs-display-md: 48px;
+  --ug-fs-display-lg: 64px;
   --ug-lh-caption: 1.5;
   --ug-lh-body: 1.55;
   --ug-lh-lead: 1.5;
   --ug-lh-h2: 1.4;
-  --ug-lh-h1: 1.25;
+  --ug-lh-h1: 1.2;
+  --ug-lh-display: 1.06;
+  --ug-tracking-display: -0.03em;
 
   --ug-space-1: 4px;
   --ug-space-2: 8px;
@@ -68,14 +79,16 @@
   --ug-control: 32px;
   --ug-touch: 44px;
 
-  --ug-radius-sm: 6px;
-  --ug-radius-md: 8px;
-  --ug-radius-lg: 12px;
+  --ug-radius-sm: 8px;
+  --ug-radius-md: 12px;
+  --ug-radius-lg: 20px;
+  --ug-radius-xl: 28px;
   --ug-radius-pill: 999px;
 
-  --ug-shadow-sm: 0 1px 3px rgb(23 37 68 / 4%);
-  --ug-shadow-md: 0 4px 20px rgb(23 37 68 / 6%);
-  --ug-shadow-overlay: 0 20px 70px rgb(32 38 59 / 19%);
+  --ug-shadow-sm: 0 1px 2px rgb(22 26 44 / 6%);
+  --ug-shadow-md: 0 4px 24px rgb(22 26 44 / 6%);
+  --ug-shadow-lift: 0 18px 50px rgb(22 26 44 / 12%);
+  --ug-shadow-overlay: 0 24px 70px rgb(22 26 44 / 18%);
 
   --ug-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ug-dur-fast: 140ms;
@@ -90,13 +103,17 @@
   }
 }
 
-.dp-tone-blue {
-  --ug-tone: var(--ug-blue-strong);
-  --ug-tone-soft: var(--ug-blue-soft);
+.dp-tone-action {
+  --ug-tone: var(--ug-action);
+  --ug-tone-soft: var(--ug-action-soft);
 }
-.dp-tone-violet {
-  --ug-tone: var(--ug-violet-strong);
-  --ug-tone-soft: var(--ug-violet-soft);
+.dp-tone-marker {
+  --ug-tone: var(--ug-on-marker);
+  --ug-tone-soft: var(--ug-marker);
+}
+.dp-tone-pencil {
+  --ug-tone: var(--ug-pencil-strong);
+  --ug-tone-soft: var(--ug-pencil-soft);
 }
 .dp-tone-success {
   --ug-tone: var(--ug-success);

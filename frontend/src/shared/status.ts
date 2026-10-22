@@ -11,18 +11,18 @@ import {
 } from "lucide-react";
 import type { Verdict, WorkStatus } from "../domain/models";
 
-export type Tone = "blue" | "success" | "warning" | "danger" | "neutral" | "violet";
+export type Tone = "action" | "marker" | "pencil" | "success" | "warning" | "danger" | "neutral";
 
 const studentTones: Record<string, Tone> = {
   teal: "success",
   sand: "warning",
-  lilac: "violet",
-  blue: "blue",
+  lilac: "marker",
+  blue: "action",
 };
 export const studentTone = (color: string): Tone => studentTones[color] ?? "neutral";
 
 export const statusMeta: Record<WorkStatus, { label: string; tone: Tone; Icon: LucideIcon }> = {
-  ready: { label: "К проверке", tone: "blue", Icon: FileEdit },
+  ready: { label: "К проверке", tone: "action", Icon: FileEdit },
   confirmed: { label: "Подтверждена", tone: "success", Icon: CheckCircle2 },
   needs_input: { label: "Нужно уточнить", tone: "warning", Icon: CircleHelp },
   failed: { label: "Ошибка обработки", tone: "danger", Icon: AlertCircle },

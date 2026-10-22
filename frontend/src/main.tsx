@@ -15,7 +15,6 @@ import {
 } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import {
-  ArrowUpRight,
   Files,
   LogOut,
   LayoutDashboard,
@@ -28,12 +27,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import "@fontsource/inter/400.css";
-import "@fontsource/inter/500.css";
-import "@fontsource/inter/600.css";
-import "@fontsource/inter/700.css";
+import "@fontsource/golos-text/400.css";
+import "@fontsource/golos-text/500.css";
+import "@fontsource/golos-text/600.css";
+import "@fontsource/golos-text/700.css";
+import "@fontsource/unbounded/600.css";
+import "@fontsource/unbounded/700.css";
 import "./styles.css";
-import { PageLoading, PageState } from "./shared/ui";
+import { BrandMark, PageLoading, PageState, Wordmark } from "./shared/ui";
 import { TopbarSlots } from "./shared/ui/topbar";
 import { useStore } from "./shared/query";
 import { wordForCount } from "./shared/text";
@@ -195,10 +196,7 @@ function Shell() {
       <aside id="app-sidebar" className="dp-sidebar sidebar">
         <div className="dp-sidebar-head">
           <Link to="/dashboard" className="dp-workspace">
-            <span className="dp-brand-mark" aria-hidden="true">
-              <ArrowUpRight size={14} strokeWidth={2.5} />
-            </span>
-            <span className="dp-nav-text dp-workspace-name">UpGrade</span>
+            <Wordmark className="dp-nav-text dp-workspace-name" />
           </Link>
           <button
             className="dp-icon dp-sidebar-tool"
@@ -227,9 +225,7 @@ function Shell() {
           >
             {collapsed ? (
               <>
-                <span className="dp-brand-mark dp-rail-mark" aria-hidden="true">
-                  <ArrowUpRight size={14} strokeWidth={2.5} />
-                </span>
+                <BrandMark className="dp-rail-mark" />
                 <PanelLeftOpen className="dp-rail-open" size={16} />
               </>
             ) : (

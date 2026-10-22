@@ -144,7 +144,7 @@
 .dp-task-state.is-reviewed {
   border: 0;
   background: var(--ug-success);
-  color: var(--ug-on-blue);
+  color: var(--ug-on-action);
 }
 .dp-task-state svg {
   stroke-width: 3;
@@ -422,15 +422,15 @@
 .dp-gap-proposal {
   padding: var(--ug-space-3) var(--ug-space-4);
   margin-bottom: var(--ug-space-5);
-  border: 1px solid var(--ug-violet-line);
+  border: 1px solid var(--ug-pencil-line);
   border-radius: var(--ug-radius-md);
-  background: var(--ug-violet-soft);
+  background: var(--ug-pencil-soft);
 }
 .dp-gap-proposal h3 {
   display: flex;
   align-items: center;
   gap: var(--ug-space-2);
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-gap-proposal p {
   margin: var(--ug-space-1) 0 var(--ug-space-3);
@@ -444,8 +444,8 @@
   color: var(--ug-muted);
 }
 .dp-app .dp-gap-proposal button[aria-pressed="true"] {
-  color: var(--ug-violet-strong);
-  border-color: var(--ug-violet-line);
+  color: var(--ug-pencil-strong);
+  border-color: var(--ug-pencil-line);
   background: var(--ug-surface);
 }
 .dp-feedback {
@@ -612,7 +612,7 @@
   overflow: auto;
 }
 .dp-dialog math-field:focus-within {
-  outline: 2px solid var(--ug-blue);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 .dp-dialog math-field::part(container) {
@@ -983,10 +983,10 @@
   font-weight: 400;
 }
 .dp-app .dp-gap-add svg {
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-app .dp-gap-proposal .dp-gap-empty {
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-app .dp-gap-proposal .dp-gap-edit {
   margin-left: auto;

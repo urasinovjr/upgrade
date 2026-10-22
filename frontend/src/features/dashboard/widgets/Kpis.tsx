@@ -38,7 +38,7 @@ export function Kpis({ summary }: { summary: DashboardSummary }) {
       label: "Ученики",
       value: summary.studentCount,
       Icon: Users,
-      tone: "violet",
+      tone: "pencil",
       to: "/students",
     },
     {

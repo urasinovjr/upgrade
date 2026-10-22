@@ -62,8 +62,8 @@
   color: var(--ug-text);
 }
 .dp-app .dp-kpi[aria-pressed="true"] {
-  background: var(--ug-blue-soft);
-  color: var(--ug-blue-strong);
+  background: var(--ug-action-soft);
+  color: var(--ug-action-strong);
 }
 .dp-kpi-head {
   display: flex;
@@ -88,7 +88,7 @@
   font-variant-numeric: tabular-nums;
 }
 .dp-kpi[aria-pressed="true"] strong {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
 }
 .dp-kpi-arrow {
   position: absolute;
@@ -98,18 +98,18 @@
   transition: color var(--ug-dur-fast);
 }
 .dp-kpi:is(:hover, [aria-pressed="true"]) .dp-kpi-arrow {
-  color: var(--ug-blue-strong);
+  color: var(--ug-action-strong);
 }
 
 .dp-recs {
   min-width: 0;
   padding: var(--ug-space-3) var(--ug-space-4) var(--ug-space-3);
-  border: 1px solid var(--ug-violet-line);
+  border: 1px solid var(--ug-pencil-line);
   border-radius: var(--ug-radius-lg);
-  background: var(--ug-violet-soft);
+  background: var(--ug-pencil-soft);
 }
 .dp-overview .dp-recs h2 {
-  color: var(--ug-violet-strong);
+  color: var(--ug-pencil-strong);
 }
 .dp-recs-lead {
   color: var(--ug-muted);
@@ -132,12 +132,12 @@
 }
 .dp-rec .dp-avatar {
   background: var(--ug-surface);
-  box-shadow: inset 0 0 0 1px var(--ug-violet-line);
-  color: var(--ug-violet-strong);
+  box-shadow: inset 0 0 0 1px var(--ug-pencil-line);
+  color: var(--ug-pencil-strong);
 }
 .dp-rec-arrow {
   margin-top: 3px;
-  color: var(--ug-violet);
+  color: var(--ug-pencil);
 }
 .dp-rec strong {
   display: block;

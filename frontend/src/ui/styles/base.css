@@ -27,10 +27,11 @@ body {
   margin: 0;
 }
 :where(.dp-app, .dp-dialog) h1 {
+  font-family: var(--ug-font-display);
   font-size: var(--ug-fs-h1);
   line-height: var(--ug-lh-h1);
-  letter-spacing: -0.9px;
-  font-weight: 600;
+  letter-spacing: var(--ug-tracking-display);
+  font-weight: 700;
 }
 :where(.dp-app, .dp-dialog) h2 {
   font-size: var(--ug-fs-lead);
@@ -89,8 +90,8 @@ body {
   color: var(--ug-text);
   line-height: 20px;
   border: 1px solid var(--ug-line-strong);
-  border-radius: var(--ug-radius-sm);
-  padding: var(--ug-space-1) var(--ug-space-3);
+  border-radius: var(--ug-radius-pill);
+  padding: var(--ug-space-1) 14px;
   min-height: var(--ug-control);
   background: var(--ug-surface);
   cursor: pointer;
@@ -110,15 +111,15 @@ body {
   cursor: default;
 }
 :where(.dp-app, .dp-dialog) button.dp-primary {
-  background: var(--ug-blue);
-  border-color: var(--ug-blue);
-  color: var(--ug-on-blue);
+  background: var(--ug-action);
+  border-color: var(--ug-action);
+  color: var(--ug-on-action);
   box-shadow: var(--ug-shadow-sm);
 }
 :where(.dp-app, .dp-dialog) button.dp-primary:hover {
-  background: var(--ug-blue-strong);
-  border-color: var(--ug-blue-strong);
-  color: var(--ug-on-blue);
+  background: var(--ug-action-strong);
+  border-color: var(--ug-action-strong);
+  color: var(--ug-on-action);
 }
 :where(.dp-app, .dp-dialog) :is(a, label).dp-primary {
   display: inline-flex;
@@ -128,12 +129,12 @@ body {
   font-weight: 500;
   line-height: 20px;
   white-space: nowrap;
-  border: 1px solid var(--ug-blue);
-  border-radius: var(--ug-radius-sm);
-  padding: var(--ug-space-1) var(--ug-space-3);
+  border: 1px solid var(--ug-action);
+  border-radius: var(--ug-radius-pill);
+  padding: var(--ug-space-1) 14px;
   min-height: var(--ug-control);
-  background: var(--ug-blue);
-  color: var(--ug-on-blue);
+  background: var(--ug-action);
+  color: var(--ug-on-action);
   box-shadow: var(--ug-shadow-sm);
   cursor: pointer;
   transition:
@@ -141,11 +142,11 @@ body {
     border-color var(--ug-dur-fast);
 }
 :where(.dp-app, .dp-dialog) :is(a, label).dp-primary:hover {
-  background: var(--ug-blue-strong);
-  border-color: var(--ug-blue-strong);
+  background: var(--ug-action-strong);
+  border-color: var(--ug-action-strong);
 }
 :where(.dp-app, .dp-dialog) label.dp-primary:has(:focus-visible) {
-  outline: 2px solid var(--ug-blue);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 :where(.dp-app, .dp-dialog) a.dp-button {
@@ -157,8 +158,8 @@ body {
   color: var(--ug-text);
   line-height: 20px;
   border: 1px solid var(--ug-line-strong);
-  border-radius: var(--ug-radius-sm);
-  padding: var(--ug-space-1) var(--ug-space-3);
+  border-radius: var(--ug-radius-pill);
+  padding: var(--ug-space-1) 14px;
   min-height: var(--ug-control);
   background: var(--ug-surface);
   transition:
@@ -169,15 +170,26 @@ body {
   background: var(--ug-hover);
   color: var(--ug-ink);
 }
+:where(.dp-app, .dp-dialog) :is(button, a).dp-marker {
+  border-color: var(--ug-marker);
+  background: var(--ug-marker);
+  color: var(--ug-on-marker);
+  font-weight: 600;
+}
+:where(.dp-app, .dp-dialog) :is(button, a).dp-marker:hover {
+  border-color: var(--ug-marker-strong);
+  background: var(--ug-marker-strong);
+  color: var(--ug-on-marker);
+}
 :where(.dp-app, .dp-dialog) button.dp-destructive {
   background: var(--ug-danger);
   border-color: var(--ug-danger);
-  color: var(--ug-on-blue);
+  color: var(--ug-on-action);
 }
 :where(.dp-app, .dp-dialog) button.dp-destructive:hover {
   background: color-mix(in oklab, var(--ug-danger) 86%, black);
   border-color: color-mix(in oklab, var(--ug-danger) 86%, black);
-  color: var(--ug-on-blue);
+  color: var(--ug-on-action);
 }
 :where(.dp-app, .dp-dialog) .dp-text {
   display: inline-flex;
@@ -202,6 +214,7 @@ body {
   min-height: var(--ug-control);
   padding: 0;
   border-color: transparent;
+  border-radius: var(--ug-radius-pill);
   background: transparent;
   color: var(--ug-text);
 }
@@ -215,8 +228,8 @@ body {
   width: fit-content;
   max-width: 100%;
   gap: 2px;
-  padding: 2px;
-  border-radius: var(--ug-radius-md);
+  padding: 3px;
+  border-radius: var(--ug-radius-pill);
   background: var(--ug-soft);
 }
 :where(.dp-app) :where(.dp-segment) button {
@@ -248,8 +261,8 @@ body {
   font-weight: 400;
 }
 .dp-search:focus-within {
-  border-color: var(--ug-blue-line);
-  outline: 2px solid var(--ug-blue);
+  border-color: var(--ug-action-line);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 .dp-app .dp-search input {
@@ -269,13 +282,13 @@ body {
   align-items: center;
 }
 .dp-inline-actions button[aria-pressed="true"] {
-  color: var(--ug-blue-strong);
-  border-color: var(--ug-blue-line);
-  background: var(--ug-blue-soft);
+  color: var(--ug-action-strong);
+  border-color: var(--ug-action-line);
+  background: var(--ug-action-soft);
 }
 
 :where(.dp-app, .dp-dialog) :focus-visible {
-  outline: 2px solid var(--ug-blue);
+  outline: 2px solid var(--ug-action);
   outline-offset: 2px;
 }
 
@@ -315,7 +328,7 @@ body {
   min-height: 0;
   margin: 2px 0 0;
   padding: 0;
-  accent-color: var(--ug-blue);
+  accent-color: var(--ug-action);
 }
 :where(.dp-app, .dp-dialog) :is(input, textarea, select):disabled {
   background-color: var(--ug-soft);
@@ -379,9 +392,9 @@ body {
   --ug-callout-line: var(--ug-danger-line);
 }
 .dp-callout-info {
-  --ug-callout-ink: var(--ug-blue-strong);
-  --ug-callout-soft: var(--ug-blue-soft);
-  --ug-callout-line: var(--ug-blue-line);
+  --ug-callout-ink: var(--ug-action-strong);
+  --ug-callout-soft: var(--ug-action-soft);
+  --ug-callout-line: var(--ug-action-line);
 }
 .dp-callout-neutral {
   --ug-callout-ink: var(--ug-text);
@@ -422,12 +435,12 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--ug-space-1);
-  height: 20px;
+  height: 22px;
   font-size: var(--ug-fs-caption);
-  line-height: 20px;
-  font-weight: 500;
+  line-height: 22px;
+  font-weight: 600;
   padding: 0 var(--ug-space-2);
-  border-radius: var(--ug-radius-sm);
+  border-radius: var(--ug-radius-pill);
   color: var(--ug-tone, var(--ug-neutral));
   background: var(--ug-tone-soft, var(--ug-neutral-soft));
   white-space: nowrap;
@@ -489,7 +502,7 @@ body {
 }
 .dp-tabs button[data-state="active"] {
   color: var(--ug-ink);
-  border-bottom-color: var(--ug-blue);
+  border-bottom-color: var(--ug-action);
 }
 .dp-tab-content {
   min-width: 0;
