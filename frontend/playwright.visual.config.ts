@@ -3,20 +3,22 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e-visual",
   fullyParallel: true,
+  timeout: 60_000,
   retries: 0,
-  ignoreSnapshots: process.platform !== "darwin",
+  snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "../output/playwright/visual-report" }],
   ],
   outputDir: "../output/playwright/visual-results",
   expect: {
+    timeout: 15_000,
     toHaveScreenshot: {
       animations: "disabled",
       caret: "hide",
       scale: "css",
       threshold: 0.2,
-      maxDiffPixels: 50,
+      maxDiffPixels: 0,
     },
   },
   use: {

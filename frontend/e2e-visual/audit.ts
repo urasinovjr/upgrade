@@ -28,6 +28,7 @@ interface Layout {
 }
 
 async function settleMedia() {
+  await Promise.all([...document.fonts].map((font) => font.load().catch(() => undefined)));
   await document.fonts.ready;
   await Promise.all([...document.images].map((image) => image.decode().catch(() => undefined)));
   if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
