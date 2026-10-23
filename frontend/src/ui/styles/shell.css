@@ -428,7 +428,8 @@ a.dp-workspace:hover {
   .dp-nav-collapsed .dp-sidebar nav a {
     position: relative;
   }
-  .dp-nav-collapsed .dp-nav-count {
+  .dp-nav-collapsed .dp-nav-count,
+  .dp-nav-collapsed .dp-sidebar nav a.active .dp-nav-count {
     position: absolute;
     top: 2px;
     right: 2px;
@@ -501,7 +502,8 @@ a.dp-workspace:hover {
     font-size: var(--ug-fs-caption);
     line-height: var(--ug-lh-caption);
   }
-  .dp-nav-count {
+  .dp-nav-count,
+  .dp-sidebar nav a.active .dp-nav-count {
     position: absolute;
     top: var(--ug-space-1);
     left: calc(50% + var(--ug-space-2));

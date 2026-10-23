@@ -12,6 +12,7 @@ import {
   Target,
 } from "lucide-react";
 import type { Closure, Evidence, StoreState, Student, StudentGap } from "../../domain/models";
+import { topicShortName } from "../../domain/analytics";
 import { currentRevision, deriveGaps } from "../../domain/review";
 import { topics } from "../../data/fixtures";
 import { gateway } from "../../data/gateway";
@@ -133,7 +134,10 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
     void changeContent(content, () => view.openMap(id)).then(() => {
       let frames = 0;
       const focus = () => {
-        const node = page.current?.querySelector<SVGGElement>(".dp-map-node.selected");
+        const nodes = page.current?.querySelectorAll<HTMLElement | SVGGElement>(
+          ".dp-map-node.selected, .dp-map-level-node.selected",
+        );
+        const node = [...(nodes ?? [])].find((item) => item.getClientRects().length > 0);
         if (node) {
           node.focus();
           return;
@@ -372,6 +376,9 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                         <span className="dp-student-topic-bar" aria-hidden="true" />
                         <span className="dp-student-topic-name" aria-hidden="true">
                           {item.name}
+                        </span>
+                        <span className="dp-student-topic-short" aria-hidden="true">
+                          {topicShortName(item)}
                         </span>
                       </button>
                     </li>

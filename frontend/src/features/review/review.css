@@ -1168,7 +1168,8 @@
   gap: var(--ug-space-1) var(--ug-space-3);
   font-size: var(--ug-fs-caption);
 }
-.dp-step-card .dp-step-origin {
+.dp-step-card .dp-step-origin,
+.dp-step-correct .dp-step-origin {
   grid-column: 1 / -1;
 }
 .dp-step-origin:empty {

@@ -66,7 +66,9 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   await page.getByRole("button", { name: "Открыть карту", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/tab=map&topic=/);
-  await expect(page.locator(".dp-map-node.selected")).toBeFocused();
+  await expect(
+    page.locator(".dp-map-node.selected, .dp-map-level-node.selected").filter({ visible: true }),
+  ).toBeFocused();
   await page.goto("/students/anna?topic=domain");
   await page.getByRole("button", { name: "Открыть пробел снова" }).click();
   await home.click();

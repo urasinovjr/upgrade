@@ -177,7 +177,8 @@ a.dp-window-meta:hover {
     row-gap: 0;
     padding: var(--ug-space-1) 0;
   }
-  .dp-window-hint {
+  .dp-window-hint,
+  .dp-window:not([data-mode="collapsed"]) .dp-window-collapse {
     display: none;
   }
   .dp-window[data-mode="expanded"] {

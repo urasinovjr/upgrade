@@ -24,6 +24,13 @@ export const graph = layoutKnowledgeMap(topics);
 export const topicOrder = [...topics].sort(
   (a, b) => graph.nodes[a.id].y - graph.nodes[b.id].y || graph.nodes[a.id].x - graph.nodes[b.id].x,
 );
+const levelTitles = ["Основа", "Ограничения и уравнения", "Дальше по программе"];
+export const mapLevels = [...new Set(topicOrder.map((topic) => graph.nodes[topic.id].y))].map(
+  (y, index) => ({
+    title: levelTitles[index] ?? "Уровень " + (index + 1),
+    topics: topicOrder.filter((topic) => graph.nodes[topic.id].y === y),
+  }),
+);
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const dateTime = new Intl.DateTimeFormat("ru-RU", {

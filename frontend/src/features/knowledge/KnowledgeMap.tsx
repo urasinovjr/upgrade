@@ -10,13 +10,37 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { StudentGap } from "../../domain/models";
 import { mapNode } from "../../domain/knowledgeLayout";
 import { topics } from "../../data/fixtures";
-import { graph, reducedMotion, statusOf, topicStatus, type TopicState } from "./knowledge";
+import {
+  graph,
+  mapLevels,
+  reducedMotion,
+  statusOf,
+  topicStatus,
+  type TopicState,
+} from "./knowledge";
 
 const nodeStateClass: Record<TopicState, string> = {
   open: "is-gap-open",
   closed: "is-gap-closed",
   none: "is-no-data",
 };
+
+function nodeClass(
+  base: string,
+  status: ReturnType<typeof statusOf>,
+  selected: boolean,
+  prerequisite: boolean,
+) {
+  return [
+    base,
+    "dp-tone-" + status.tone,
+    selected && "selected",
+    prerequisite && "is-prerequisite",
+    nodeStateClass[status.key],
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 export function KnowledgeMap({
   gaps,
@@ -73,143 +97,175 @@ export function KnowledgeMap({
       behavior: reducedMotion() ? "auto" : "smooth",
     });
   return (
-    <div className="dp-map-frame" data-scroll-start={edges.start} data-scroll-end={edges.end}>
-      <div
-        ref={scroller}
-        className="dp-map-scroll"
-        tabIndex={0}
-        aria-label="Карта связей тем. На узком экране прокручивается по горизонтали."
-        onScroll={updateFade}
-      >
-        <svg
-          viewBox={`0 0 ${graph.width} ${graph.height}`}
-          style={{ "--ug-map-width": graph.width + "px" } as CSSProperties}
-          role="group"
-          aria-label="Карта знаний по алгебре"
+    <>
+      <div className="dp-map-frame" data-scroll-start={edges.start} data-scroll-end={edges.end}>
+        <div
+          ref={scroller}
+          className="dp-map-scroll"
+          tabIndex={0}
+          aria-label="Карта связей тем. На узком экране прокручивается по горизонтали."
+          onScroll={updateFade}
         >
-          <defs>
-            {(["dp-map-arrow", "dp-map-arrow-path"] as const).map((id) => (
-              <marker
-                key={id}
-                id={id}
-                className={id}
-                viewBox="0 0 8 8"
-                markerWidth="8"
-                markerHeight="8"
-                refX="7"
-                refY="4"
-                orient="auto"
-                markerUnits="userSpaceOnUse"
-              >
-                <path d="M1 1L7 4L1 7" fill="none" strokeWidth="1.5" />
-              </marker>
-            ))}
-          </defs>
-          {graph.edges
-            .map((edge) => ({
-              ...edge,
-              onPath: (edge.to === selected || path.has(edge.to)) && path.has(edge.from),
-            }))
-            .sort((a, b) => Number(a.onPath) - Number(b.onPath))
-            .map((edge) => (
-              <path
-                key={edge.from + edge.to}
-                pathLength={1}
-                className={"dp-map-edge" + (edge.onPath ? " is-path" : "")}
-                d={edge.d}
-                fill="none"
-                markerEnd={edge.onPath ? "url(#dp-map-arrow-path)" : "url(#dp-map-arrow)"}
-              />
-            ))}
-          {topics.map((topic) => {
-            const { x, y, lines } = graph.nodes[topic.id];
-            const status = statusOf(gaps.find((item) => item.topicId === topic.id));
-            const blockTop = y + (mapNode.height - (lines.length * 18 + 20)) / 2;
-            const className = [
-              "dp-map-node",
-              "dp-tone-" + status.tone,
-              selected === topic.id && "selected",
-              path.has(topic.id) && "is-prerequisite",
-              nodeStateClass[status.key],
-            ]
-              .filter(Boolean)
-              .join(" ");
-            return (
-              <g
-                key={topic.id}
-                className={className}
-                role="button"
-                tabIndex={0}
-                aria-pressed={selected === topic.id}
-                aria-label={topic.name + " · " + status.label}
-                onClick={() => onSelect(topic.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelect(topic.id);
-                  }
-                }}
-              >
-                <rect
-                  className="dp-map-focus"
-                  x={x - 4}
-                  y={y - 4}
-                  width={mapNode.width + 8}
-                  height={mapNode.height + 8}
-                  rx={12}
-                />
-                <rect
-                  className="dp-map-box"
-                  x={x}
-                  y={y}
-                  width={mapNode.width}
-                  height={mapNode.height}
-                  rx={8}
-                />
-                {lines.map((line, index) => (
-                  <text key={line} x={x + 12} y={blockTop + 14 + index * 18} fontSize="14">
-                    {line}
-                  </text>
-                ))}
-                <status.Icon
-                  className="dp-map-status-icon"
-                  x={x + 12}
-                  y={blockTop + lines.length * 18 + 5}
-                  size={14}
-                  aria-hidden="true"
-                />
-                <text
-                  className="dp-map-status"
-                  x={x + 32}
-                  y={blockTop + lines.length * 18 + 16}
-                  fontSize="12"
+          <svg
+            viewBox={`0 0 ${graph.width} ${graph.height}`}
+            style={{ "--ug-map-width": graph.width + "px" } as CSSProperties}
+            role="group"
+            aria-label="Карта знаний по алгебре"
+          >
+            <defs>
+              {(["dp-map-arrow", "dp-map-arrow-path"] as const).map((id) => (
+                <marker
+                  key={id}
+                  id={id}
+                  className={id}
+                  viewBox="0 0 8 8"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
                 >
-                  {status.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+                  <path d="M1 1L7 4L1 7" fill="none" strokeWidth="1.5" />
+                </marker>
+              ))}
+            </defs>
+            {graph.edges
+              .map((edge) => ({
+                ...edge,
+                onPath: (edge.to === selected || path.has(edge.to)) && path.has(edge.from),
+              }))
+              .sort((a, b) => Number(a.onPath) - Number(b.onPath))
+              .map((edge) => (
+                <path
+                  key={edge.from + edge.to}
+                  pathLength={1}
+                  className={"dp-map-edge" + (edge.onPath ? " is-path" : "")}
+                  d={edge.d}
+                  fill="none"
+                  markerEnd={edge.onPath ? "url(#dp-map-arrow-path)" : "url(#dp-map-arrow)"}
+                />
+              ))}
+            {topics.map((topic) => {
+              const { x, y, lines } = graph.nodes[topic.id];
+              const status = statusOf(gaps.find((item) => item.topicId === topic.id));
+              const blockTop = y + (mapNode.height - (lines.length * 18 + 20)) / 2;
+              return (
+                <g
+                  key={topic.id}
+                  className={nodeClass(
+                    "dp-map-node",
+                    status,
+                    selected === topic.id,
+                    path.has(topic.id),
+                  )}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selected === topic.id}
+                  aria-label={topic.name + " · " + status.label}
+                  onClick={() => onSelect(topic.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelect(topic.id);
+                    }
+                  }}
+                >
+                  <rect
+                    className="dp-map-focus"
+                    x={x - 4}
+                    y={y - 4}
+                    width={mapNode.width + 8}
+                    height={mapNode.height + 8}
+                    rx={12}
+                  />
+                  <rect
+                    className="dp-map-box"
+                    x={x}
+                    y={y}
+                    width={mapNode.width}
+                    height={mapNode.height}
+                    rx={8}
+                  />
+                  {lines.map((line, index) => (
+                    <text key={line} x={x + 12} y={blockTop + 14 + index * 18} fontSize="14">
+                      {line}
+                    </text>
+                  ))}
+                  <status.Icon
+                    className="dp-map-status-icon"
+                    x={x + 12}
+                    y={blockTop + lines.length * 18 + 5}
+                    size={14}
+                    aria-hidden="true"
+                  />
+                  <text
+                    className="dp-map-status"
+                    x={x + 32}
+                    y={blockTop + lines.length * 18 + 16}
+                    fontSize="12"
+                  >
+                    {status.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        <button
+          type="button"
+          className="dp-map-more is-start"
+          tabIndex={-1}
+          aria-label="Прокрутить карту влево"
+          onClick={() => scrollBy(-1)}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          type="button"
+          className="dp-map-more is-end"
+          tabIndex={-1}
+          aria-label="Прокрутить карту вправо"
+          onClick={() => scrollBy(1)}
+        >
+          <ChevronRight size={16} />
+        </button>
       </div>
-      <button
-        type="button"
-        className="dp-map-more is-start"
-        tabIndex={-1}
-        aria-label="Прокрутить карту влево"
-        onClick={() => scrollBy(-1)}
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <button
-        type="button"
-        className="dp-map-more is-end"
-        tabIndex={-1}
-        aria-label="Прокрутить карту вправо"
-        onClick={() => scrollBy(1)}
-      >
-        <ChevronRight size={16} />
-      </button>
-    </div>
+      <div className="dp-map-levels" role="group" aria-label="Карта знаний по алгебре">
+        {mapLevels.map((level) => (
+          <section key={level.title}>
+            <h3>{level.title}</h3>
+            <ul>
+              {level.topics.map((topic) => {
+                const status = statusOf(gaps.find((item) => item.topicId === topic.id));
+                return (
+                  <li key={topic.id}>
+                    <button
+                      type="button"
+                      className={nodeClass(
+                        "dp-map-level-node",
+                        status,
+                        selected === topic.id,
+                        path.has(topic.id),
+                      )}
+                      aria-pressed={selected === topic.id}
+                      aria-label={topic.name + " · " + status.label}
+                      onClick={() => onSelect(topic.id)}
+                    >
+                      <span>{topic.name}</span>
+                      <span className="dp-map-level-status">
+                        <status.Icon size={14} aria-hidden="true" />
+                        {status.label}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </>
   );
 }
 
