@@ -159,6 +159,12 @@ a.dp-window-meta:hover {
   overscroll-behavior: contain;
 }
 
+@media (min-width: 701px) and (max-width: 900px) {
+  .dp-window-title {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+}
 @media (max-width: 700px) {
   .dp-window-header {
     gap: var(--ug-space-2);

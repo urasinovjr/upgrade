@@ -879,6 +879,10 @@ body {
     flex: 1 1 140px;
     padding-block: var(--ug-space-1);
   }
+  .dp-callout-actions {
+    flex-shrink: 1;
+    min-width: 0;
+  }
   .dp-app .dp-callout-actions :is(button, a) {
     min-height: 44px;
   }
@@ -927,5 +931,17 @@ body {
     position: relative;
     width: 44px;
     padding: 0;
+  }
+}
+@media (min-width: 701px) and (max-width: 900px) {
+  .dp-callout {
+    flex-wrap: wrap;
+  }
+  .dp-callout p {
+    flex: 1 1 240px;
+  }
+  .dp-callout-actions {
+    flex-shrink: 1;
+    min-width: 0;
   }
 }

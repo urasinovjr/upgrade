@@ -260,7 +260,13 @@ export function MediaViewer({
         />
       )}
       <ErrorMessage error={error} />
-      <div className="media-canvas" ref={area}>
+      <div
+        className="media-canvas"
+        ref={area}
+        role="region"
+        tabIndex={0}
+        aria-label="Просмотр страницы оригинала"
+      >
         <div
           className="media-page"
           style={{

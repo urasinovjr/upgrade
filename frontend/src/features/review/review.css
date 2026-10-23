@@ -1192,3 +1192,12 @@
     min-height: 44px;
   }
 }
+@media (min-width: 701px) and (max-width: 900px) {
+  .dp-review-actions {
+    flex-wrap: wrap;
+    row-gap: var(--ug-space-2);
+  }
+  .dp-review-buttons {
+    margin-left: auto;
+  }
+}
