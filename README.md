@@ -23,7 +23,7 @@ docker compose up -d --build --wait
 GitHub Actions запускает три проверки при изменении соответствующих каталогов:
 
 - `.github/workflows/backend.yml` — `ruff check`, `ruff format --check` и `pytest` с PostgreSQL 17 в сервисе; проверки настоящего S3 и SMTP пропускаются;
-- `.github/workflows/frontend.yml` — `format:check`, `lint`, `typecheck`, Vitest, сборки `build` и `build:server`, демо e2e в Chromium и мобильном WebKit;
+- `.github/workflows/frontend.yml` — `format:check`, `lint`, `typecheck`, Vitest, сборки `build` и `build:server`, демо e2e в Chromium и мобильном WebKit и визуальный набор; оба job идут в образе `mcr.microsoft.com/playwright:v1.63.0-noble`, где браузеры и их системные библиотеки уже установлены;
 - `.github/workflows/e2e.yml` — весь стек через `docker compose up --build --wait` и `npm run e2e:docker` в Chromium и мобильном WebKit; при падении сохраняются трассы и логи compose.
 
 Визуальная регрессия выполняется локально: эталоны сняты на macOS.

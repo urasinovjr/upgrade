@@ -16,16 +16,15 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
@@ -33,7 +32,6 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run build:server
-      - run: npx playwright install --with-deps chromium webkit
       - run: npm run e2e
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -44,6 +42,7 @@ jobs:
 
   visual:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --ipc=host
