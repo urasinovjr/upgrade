@@ -123,8 +123,8 @@ export default function Stopwatch() {
       <section className="dp-account-section" aria-labelledby="stopwatch-title">
         <h2 id="stopwatch-title">Секундомер</h2>
         <p className="dp-caption">
-          Замерьте проверку работы без UpGrade: на бумаге или в привычном редакторе. Эти замеры
-          сравниваются с активным временем в UpGrade.
+          Засеките, сколько уходит на проверку без UpGrade, на бумаге или в привычном редакторе. Эти
+          замеры сравним со временем работы в UpGrade.
         </p>
         {state ? (
           <>
@@ -221,7 +221,7 @@ export default function Stopwatch() {
               />
             </label>
             <label>
-              Семейство задач
+              Раздел задач
               <select
                 value={taskFamily}
                 onChange={(event) => setTaskFamily(event.target.value as FamilyId)}

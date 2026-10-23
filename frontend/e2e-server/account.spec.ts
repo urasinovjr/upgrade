@@ -27,7 +27,7 @@ test("expired subscription switches the workspace to read-only", async ({ page, 
   await page.reload();
 
   await expect(page.getByRole("heading", { name: "Подписка закончилась" })).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "только для просмотра" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "можно только смотреть" })).toBeVisible();
   await page.goto("/students");
   await expect(page.getByRole("button", { name: "Добавить ученика" }).first()).toBeDisabled();
   await expect(page.getByRole("button", { name: "Новая работа" })).toBeDisabled();

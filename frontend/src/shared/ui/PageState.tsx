@@ -44,14 +44,14 @@ export function PageState({
           <Heading>{title}</Heading>
         )}
         {(description || failedLoad) && (
-          <p>{description || "Попробуйте ещё раз. Вы сможете продолжить с того же места."}</p>
+          <p>{description || "Попробуйте ещё раз. Ваши данные не пропали."}</p>
         )}
         <ErrorMessage error={error} />
         {(retry || to) && (
           <div className="dp-page-state-actions">
             {retry && (
               <button onClick={retry}>
-                Повторить загрузку
+                Попробовать ещё раз
                 <ArrowRight size={16} aria-hidden="true" />
               </button>
             )}
@@ -90,7 +90,7 @@ export function PageLoading({
     <div className="dp-state-page dp-page-loading" role="status" aria-busy="true">
       <span className="dp-loading-caption">
         <LoaderCircle className="dp-spin" size={16} aria-hidden="true" />
-        Загружаем рабочее пространство
+        Открываем кабинет
       </span>
       {children ? (
         <div aria-hidden="true">{children}</div>

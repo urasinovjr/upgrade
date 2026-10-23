@@ -144,7 +144,7 @@ function Shell() {
   const session = useSession();
   const setSession = useSetSession();
   const writeAccess = useWriteAccess();
-  const displayName = session.data?.account.displayName ?? "Преподаватель";
+  const displayName = session.data?.account.displayName ?? "Репетитор";
   const railByDefault = useMediaQuery(railQuery);
   const [collapsedChoice, setCollapsedChoice] = useState<boolean | null>(null);
   const collapsed = collapsedChoice ?? railByDefault;
@@ -288,7 +288,7 @@ function Shell() {
           ) : (
             <span className="dp-sidebar-person">
               <span className="dp-nav-text">{displayName}</span>
-              <span className="dp-nav-text dp-sidebar-meta">Математика · 9–11 класс</span>
+              <span className="dp-nav-text dp-sidebar-meta">Алгебра · 9–11 класс</span>
             </span>
           )}
           {serverMode && (
@@ -342,7 +342,7 @@ function RouteError() {
   return (
     <PageState
       title="Не удалось открыть экран"
-      description="Обновите страницу или вернитесь к списку работ: сохранённые данные не пострадали."
+      description="Обновите страницу или вернитесь к списку работ. Всё, что вы сохранили, на месте."
       error={error}
       to="/works"
       linkLabel="К работам"

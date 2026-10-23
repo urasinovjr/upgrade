@@ -19,7 +19,7 @@ export function inputSignature(draft: Draft): string {
 
 export function applyDraft(work: Work, proposed: Draft): Work {
   if (!work.editing) throw new Error("Сначала начните новую версию разбора.");
-  if (work.job) throw new Error("Дождитесь завершения обработки.");
+  if (work.job) throw new Error("ИИ ещё разбирает работу. Подождите немного.");
   const changedInputs = inputSignature(work.draft) !== inputSignature(proposed);
   const draft = structuredClone(proposed);
   draft.revision = work.draft.revision + 1;

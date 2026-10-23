@@ -24,6 +24,7 @@ export function Modal({
         <Dialog.Overlay className="dp-overlay" />
         <Dialog.Content
           className="dp-dialog"
+          {...(description ? {} : { "aria-describedby": undefined })}
           onOpenAutoFocus={(event) => {
             opener.current =
               document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -38,9 +39,7 @@ export function Modal({
           }}
         >
           <Dialog.Title>{title}</Dialog.Title>
-          <Dialog.Description>
-            {description || "Заполните данные и сохраните изменения."}
-          </Dialog.Description>
+          {description && <Dialog.Description>{description}</Dialog.Description>}
           <Dialog.Close className="dp-icon dp-dialog-close" aria-label="Закрыть">
             <X size={18} />
           </Dialog.Close>

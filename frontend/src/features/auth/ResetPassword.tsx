@@ -16,7 +16,7 @@ export default function ResetPassword() {
     return (
       <AuthLayout
         title="Пароль обновлён"
-        lead="Войдите с новым паролем. Остальные устройства вышли из аккаунта."
+        lead="Войдите с новым паролем. На других устройствах придётся войти заново."
       >
         <Link className="dp-button dp-primary" to="/login">
           Войти

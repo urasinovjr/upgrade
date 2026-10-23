@@ -232,7 +232,7 @@ test("empty dashboard and reading error provide a useful next action", async ({ 
   await page.evaluate(() =>
     (window as Window & { restoreReading?: () => void }).restoreReading?.(),
   );
-  await page.getByRole("button", { name: "Повторить загрузку", exact: true }).click();
+  await page.getByRole("button", { name: "Попробовать ещё раз", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Обзор", level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ученики: 0", exact: true })).toBeVisible();
 });

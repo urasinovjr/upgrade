@@ -43,6 +43,6 @@ export function useWriteAccess() {
   const allowed = status === "trial" || status === "active";
   return {
     allowed,
-    reason: allowed ? "" : "Подписка закончилась: данные доступны только для просмотра.",
+    reason: allowed ? "" : "Подписка закончилась. Работы и отчёты можно только смотреть.",
   };
 }
