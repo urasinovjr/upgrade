@@ -33,7 +33,7 @@ test("unclear and unsupported tasks are marked and the rest is confirmed", async
   await waitForAnalysis(page);
   await taskTab(page, 3).click();
   await expect(page.getByText("Задача отложена для отдельной проверки")).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Причина / комментарий" })).toHaveValue(
+  await expect(page.getByRole("textbox", { name: "Почему задача отложена" })).toHaveValue(
     "Тип задачи не входит в согласованный охват пилота.",
   );
   await taskTab(page, 2).click();
@@ -51,10 +51,10 @@ test("unclear and unsupported tasks are marked and the rest is confirmed", async
   await confirmTask(page, 2);
   await confirmTask(page, 1);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Отчёт · v1" }).click();
   await expect(page.getByRole("main")).toContainText(
-    "Отложена для отдельной проверки: Тип задачи не входит в согласованный охват пилота.",
+    "Разберём отдельно. Тип задачи не входит в согласованный охват пилота.",
   );
 });
 
@@ -94,16 +94,16 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await waitForAnalysis(page);
   await confirmTask(page);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
-  await page.getByRole("button", { name: "Новая редакция" }).click();
+  await page.getByRole("button", { name: "Новая версия" }).click();
   await page
     .getByRole("textbox", { name: "Общий комментарий" })
     .fill("Комментарий второй редакции");
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await confirmTask(page);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 2 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Отчёт · v2" }).click();
   await expect(page.getByRole("main")).toContainText("Комментарий второй редакции");
 
@@ -111,8 +111,8 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await page.getByRole("button", { name: "Отозвать", exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
   await expect(page.getByRole("link", { name: "Отчёт · v2" })).toHaveCount(0);
-  await page.getByText("История редакций · 2").click();
-  await expect(page.getByRole("link", { name: "Редакция 1 · архивная" })).toBeVisible();
-  await page.getByRole("link", { name: "Редакция 2 · архивная" }).click();
+  await page.getByText("История версий · 2").click();
+  await expect(page.getByRole("link", { name: "Версия 1 · архивная" })).toBeVisible();
+  await page.getByRole("link", { name: "Версия 2 · архивная" }).click();
   await expect(page.getByRole("main")).toContainText("Комментарий второй редакции");
 });

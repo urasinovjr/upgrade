@@ -101,7 +101,10 @@ async function editStep(page, number) {
   await page.getByRole("dialog").waitFor();
 }
 async function saved(page) {
-  await page.locator(".dp-save-state").filter({ hasText: "Сохранено" }).waitFor();
+  await page
+    .locator(".dp-save-state")
+    .filter({ hasText: /^Сохранено$/ })
+    .waitFor();
 }
 
 const scenarios = {
@@ -158,7 +161,7 @@ const scenarios = {
     await editStep(page, 1);
     const dialog = page.getByRole("dialog");
     await dialog.getByRole("textbox", { name: "Объяснение" }).fill("Разложили на множители.");
-    await closeDialog(page, () => button(page, "Применить правку").click());
+    await closeDialog(page, () => button(page, "Сохранить шаг").click());
     check((await activeLabel(page)) === "Изменить шаг 1", "Focus not restored after save");
     await editStep(page, 2);
     await dialog.getByRole("textbox", { name: "Объяснение" }).fill("Не сохранять");
@@ -167,8 +170,8 @@ const scenarios = {
     check(!(await page.locator(".dp-callout-warning").count()), "Callout before a formula change");
     await editStep(page, 2);
     await setFormula(page, "Формула шага 2", "x=2\\lor x=3");
-    await closeDialog(page, () => button(page, "Применить правку").click());
-    await page.getByText("Нужна сверка с оригиналом.", { exact: true }).waitFor();
+    await closeDialog(page, () => button(page, "Сохранить шаг").click());
+    await page.getByText("Сверьте распознанное с оригиналом.", { exact: true }).waitFor();
     check(await confirmWork(page).isDisabled(), "Stale work can be confirmed");
     await saved(page);
     await reload(page);
@@ -181,10 +184,10 @@ const scenarios = {
     await page.locator(".dp-step-correct").first().locator(".dp-step-toggle").click();
     await page.getByText("Разложили на множители.").waitFor();
     check(!(await page.getByText("Не сохранять").count()), "Cancelled edit was saved");
-    await page.getByText("Нужна сверка с оригиналом.", { exact: true }).waitFor();
-    await button(page, "Завершить сверку").click();
+    await page.getByText("Сверьте распознанное с оригиналом.", { exact: true }).waitFor();
+    await button(page, "Всё сверено").click();
     await page
-      .getByText("Нужна сверка с оригиналом.", { exact: true })
+      .getByText("Сверьте распознанное с оригиналом.", { exact: true })
       .waitFor({ state: "detached" });
   },
 
@@ -202,7 +205,7 @@ const scenarios = {
     await dialog.waitFor();
     await page.waitForFunction(() => document.activeElement?.tagName === "TEXTAREA");
     check(
-      await button(page, "Применить правку").isDisabled(),
+      await button(page, "Сохранить шаг").isDisabled(),
       "Error without explanation can be saved",
     );
     await closeDialog(page, () => button(page, "Отмена").click());
@@ -214,7 +217,7 @@ const scenarios = {
     await dialog
       .getByRole("textbox", { name: "Объяснение" })
       .fill("Перед сокращением нужно учесть ОДЗ.");
-    await closeDialog(page, () => button(page, "Применить правку").click());
+    await closeDialog(page, () => button(page, "Сохранить шаг").click());
     await page.getByText("Перед сокращением нужно учесть ОДЗ.").waitFor();
     await saved(page);
     await reload(page);
@@ -234,7 +237,7 @@ const scenarios = {
       !(await dialog.getByRole("textbox", { name: "Объяснение" }).inputValue()),
       "Error explanation carried over to a correct step",
     );
-    await closeDialog(page, () => button(page, "Применить правку").click());
+    await closeDialog(page, () => button(page, "Сохранить шаг").click());
     await page.getByText("Перед сокращением нужно учесть ОДЗ.").waitFor({ state: "detached" });
   },
 
@@ -247,16 +250,16 @@ const scenarios = {
     await button(page, "Отметить задачу проверенной").click();
     await until(() => confirmWork(page).isEnabled(), "Confirm still blocked after both tasks");
     await confirmWork(page).click();
-    await page.getByText("Редакция 1 подтверждена", { exact: true }).waitFor();
+    await page.getByText("Версия 1 подтверждена", { exact: true }).waitFor();
     await reload(page);
-    await page.getByText("Редакция 1 подтверждена", { exact: true }).waitFor();
+    await page.getByText("Версия 1 подтверждена", { exact: true }).waitFor();
     await page.getByRole("link", { name: "Отчёт · v1" }).click();
     await heading(page, "Отчёт по работе");
     await page.getByRole("link", { name: "К разбору работы" }).click();
-    await button(page, "Новая редакция").click();
+    await button(page, "Новая версия").click();
     await confirmWork(page).waitFor();
-    await page.getByText("История редакций · 1", { exact: true }).click();
-    await page.getByRole("link", { name: "Редакция 1 · текущая" }).click();
+    await page.getByText("История версий · 1", { exact: true }).click();
+    await page.getByRole("link", { name: "Версия 1 · текущая" }).click();
     await heading(page, "Отчёт по работе");
     check(route(page).includes("revision="), "History link lost the revision");
   },
@@ -269,7 +272,7 @@ const scenarios = {
     check((await file.suggestedFilename()).endsWith(".pdf"), "Report is not a PDF");
     await button(page, "Скопировать текст").click();
     const copied = button(page, "Скопировано");
-    const manual = page.getByRole("textbox", { name: "Текст подтверждённого отчёта" });
+    const manual = page.getByRole("textbox", { name: "Текст отчёта" });
     await copied.or(manual).first().waitFor();
     if (await manual.isVisible()) {
       check(
@@ -425,18 +428,18 @@ const scenarios = {
     await heading(page, "Проверка загрузки png");
     await editStep(page, 1);
     await setFormula(page, "Формула шага 1", "x=1");
-    await closeDialog(page, () => button(page, "Применить правку").click());
+    await closeDialog(page, () => button(page, "Сохранить шаг").click());
     await page
       .getByRole("radiogroup", { name: "Вердикт шага 1" })
       .getByRole("radio", { name: "Верно" })
       .click();
     check(await confirmWork(page).isDisabled(), "Unreconciled upload can be confirmed");
-    await button(page, "Завершить сверку").click();
+    await button(page, "Всё сверено").click();
     await button(page, "Отметить задачу проверенной").click();
     await confirmWork(page).click();
-    await page.getByText("Редакция 1 подтверждена", { exact: true }).waitFor();
+    await page.getByText("Версия 1 подтверждена", { exact: true }).waitFor();
     await reload(page);
-    await page.getByText("Редакция 1 подтверждена", { exact: true }).waitFor();
+    await page.getByText("Версия 1 подтверждена", { exact: true }).waitFor();
   },
 
   async panel(page, { engine }) {

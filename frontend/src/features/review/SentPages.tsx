@@ -52,7 +52,10 @@ export function SentPages({
   const fileName = (id: string) => files.find((file) => file.id === id)?.name ?? "файл удалён";
   return (
     <>
-      <p>Провайдер получил только эти копии: с масками и кадром, без имён файлов и метаданных.</p>
+      <p>
+        ИИ получил только эти копии: с закрашенным именем и обрезкой, без названий файлов и данных о
+        съёмке.
+      </p>
       <div className="sent-pages">
         {query.data.map((page) => (
           <SentImage

@@ -26,7 +26,7 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".work-row")).toHaveCount(1);
   await page.locator(".work-row").click();
-  await page.getByRole("button", { name: "Новая редакция", exact: true }).click();
+  await page.getByRole("button", { name: "Новая версия", exact: true }).click();
   await home.click();
   await expect(page.getByRole("link", { name: "К проверке: 2", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
@@ -121,9 +121,9 @@ test("quick upload validates files and hands off a batch exactly once", async ({
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await page.waitForURL(/\/works\/[^/]+$/);
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   const original = page.getByRole("tab", { name: "Оригинал", exact: true });
   if (await original.isVisible()) await original.click();
   await expect(

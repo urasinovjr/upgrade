@@ -27,8 +27,8 @@ test("teacher uploads, checks the original, edits and confirms on a phone @mobil
   await expect(page.getByAltText("Оригинал: solution.png")).toBeVisible();
   await page.getByRole("tab", { name: "Разбор", exact: true }).click();
   await page.getByRole("textbox", { name: "Общий комментарий" }).fill("Проверено с телефона");
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 });

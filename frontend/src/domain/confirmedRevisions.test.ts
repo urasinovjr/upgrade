@@ -38,7 +38,7 @@ describe("confirmed revisions", () => {
     expect(summary.recommendations).toEqual([]);
     expect(commonGaps(state, topics)).toEqual([]);
     expect(topicStrip(state, "anna", topics).some((cell) => cell.status === "gap")).toBe(false);
-    expect(text).not.toContain("Рекомендация:");
+    expect(text).not.toContain("Что повторить:");
   });
 
   it("counts errors and evidence once after a new revision replaces the old one", () => {

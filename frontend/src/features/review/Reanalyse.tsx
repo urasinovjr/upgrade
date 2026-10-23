@@ -35,15 +35,15 @@ export function Reanalyse({
       </button>
       {blocked && (
         <span id={noteId} className="dp-reanalyse-note">
-          {unchecked > 0 && `Перед разбором проверьте страницы оригинала: осталось ${unchecked}. `}
-          {nameIssues.length > 0 && `Имя ученика в тексте: ${nameIssues.join("; ")}.`}
+          {unchecked > 0 && `Перед разбором проверьте ещё ${unchecked} стр. оригинала. `}
+          {nameIssues.length > 0 && `В тексте осталось имя ученика: ${nameIssues.join("; ")}.`}
         </span>
       )}
       <Modal
         open={open}
         onOpenChange={setOpen}
         title="Запустить разбор заново?"
-        description="Вердикты, объяснения, темы, гипотезы о пробелах и комментарии к задачам заменит новый ответ ИИ. Исправленные шаги решения сохранятся, если не менялись файлы и порядок страниц."
+        description="ИИ разберёт работу заново и заменит вердикты, объяснения, темы и комментарии. Шаги, которые вы исправили, сохранятся, если файлы и порядок страниц не менялись."
       >
         <div className="dp-dialog-actions">
           <button type="button" onClick={() => setOpen(false)}>

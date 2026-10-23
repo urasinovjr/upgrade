@@ -161,7 +161,9 @@ async def test_confirm_lists_blockers(teacher):
 
     assert response.status_code == 409
     assert response.json()["detail"] == "review_blocked"
-    assert "Завершите обработку или ручную сверку работы." in response.json()["blockers"]
+    assert (
+        "Дождитесь разбора или сверьте работу с оригиналом вручную." in response.json()["blockers"]
+    )
 
 
 async def test_confirm_edit_and_withdraw(teacher):

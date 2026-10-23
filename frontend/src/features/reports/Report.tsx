@@ -128,7 +128,7 @@ export default function Report() {
           <>
             <h1>Отчёт по работе</h1>
             <span className="dp-window-meta">
-              Редакция {revision.number} · {date(revision.confirmedAt)}
+              Версия {revision.number} · {date(revision.confirmedAt)}
             </span>
             {archived && <span className="dp-report-archived">Архивная</span>}
           </>
@@ -144,7 +144,7 @@ export default function Report() {
           <Callout
             tone="warning"
             icon={<History size={16} aria-hidden="true" />}
-            title="Это архивная редакция. Она не участвует в актуальной карте ученика."
+            title="Это старая версия отчёта. В карте ученика учтена более новая."
           />
         )}
         {Boolean(error) && (
@@ -159,7 +159,7 @@ export default function Report() {
           <article className="dp-report-sheet report-paper">
             <header className="dp-report-head">
               <Wordmark className="dp-report-brand" />
-              <span className="dp-caption">Обратная связь ученику</span>
+              <span className="dp-caption">Разбор для ученика</span>
             </header>
             <h2>{work.title}</h2>
             <p className="dp-report-student">
@@ -168,7 +168,7 @@ export default function Report() {
             </p>
             <p className="dp-report-approval">
               <ShieldCheck size={16} aria-hidden="true" />
-              Проверено преподавателем · редакция {revision.number} · {date(revision.confirmedAt)}
+              Проверено репетитором · версия {revision.number} · {date(revision.confirmedAt)}
             </p>
             {revision.draft.tasks.map((task) => {
               const topic = topics.find((item) => item.id === task.gap?.topicId);
@@ -193,9 +193,7 @@ export default function Report() {
                   {task.omitted ? (
                     <div className="dp-report-note dp-tone-warning">
                       <CircleHelp size={16} aria-hidden="true" />
-                      <p>
-                        Отложена для отдельной проверки: {task.feedback || "Требуется уточнение."}
-                      </p>
+                      <p>Разберём отдельно. {task.feedback || "Нужно уточнить решение."}</p>
                     </div>
                   ) : (
                     <>
@@ -222,7 +220,7 @@ export default function Report() {
                       </ol>
                       {task.feedback && (
                         <div className="dp-report-feedback">
-                          <h4>Обратная связь</h4>
+                          <h4>Комментарий</h4>
                           <p>{task.feedback}</p>
                         </div>
                       )}
@@ -247,7 +245,7 @@ export default function Report() {
               </section>
             )}
             <footer>
-              UpGrade · Редакция {revision.number} · {date(revision.confirmedAt)}
+              UpGrade · версия {revision.number} · {date(revision.confirmedAt)}
             </footer>
           </article>
         </div>
@@ -256,11 +254,11 @@ export default function Report() {
         open={manualCopy}
         onOpenChange={setManualCopy}
         title="Скопировать текст отчёта"
-        description="Браузер не разрешил автоматическое копирование. Текст выделен: нажмите ⌘C или Ctrl+C. На телефоне выберите «Копировать» в меню выделения."
+        description="Браузер не дал скопировать текст сам. Текст уже выделен, нажмите ⌘C или Ctrl+C. На телефоне выберите «Копировать» в меню."
         initialFocusRef={copyText}
       >
         <label>
-          Текст подтверждённого отчёта
+          Текст отчёта
           <textarea
             className="manual-copy-text"
             ref={copyText}

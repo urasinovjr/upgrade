@@ -13,13 +13,15 @@ import {
 describe("confirmation and versions", () => {
   it("requires human review, clear steps and current inputs", () => {
     const work = seedState().works[0];
-    expect(reviewBlockers(work)).toContain("Задача 1: отметьте разбор как проверенный.");
+    expect(reviewBlockers(work)).toContain("Задача 1: отметьте задачу проверенной.");
     const draft = structuredClone(work.draft);
     draft.tasks.forEach((task) => (task.reviewed = true));
     draft.tasks[0].steps[0].latex = "x=100";
     const changed = applyDraft(work, draft);
     expect(changed.draft.tasks[0].reviewed).toBe(false);
-    expect(reviewBlockers(changed).some((value) => value.includes("обновите разбор"))).toBe(true);
+    expect(reviewBlockers(changed).some((value) => value.includes("Запустите разбор заново"))).toBe(
+      true,
+    );
   });
   it("keeps the previous confirmed snapshot while editing and publishes idempotently", () => {
     const original = seedState().works[1];
@@ -79,7 +81,7 @@ describe("confirmation and versions", () => {
     expect(() => publishWork(work)).toThrow("уточните");
     work.draft.tasks[0].steps[0].verdict = "correct";
     work.status = "failed";
-    expect(() => publishWork(work)).toThrow("ручную сверку");
+    expect(() => publishWork(work)).toThrow("сверьте работу с оригиналом");
     work.status = "ready";
     work.draft.tasks[1].steps[1].explanation = "";
     expect(() => publishWork(work)).toThrow("объясните ошибку");

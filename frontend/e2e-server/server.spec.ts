@@ -42,8 +42,8 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
 
   await page.getByRole("button", { name: "Запустить разбор" }).first().click();
   await waitForAnalysis(page);
-  await page.getByRole("button", { name: "Исходный разбор" }).click();
-  await expect(page.getByText(/Разбор ИИ: sim-draft · промпт sim-1/)).toBeVisible();
+  await page.getByRole("button", { name: "Первый разбор ИИ" }).click();
+  await expect(page.getByText(/Разбор ИИ: sim-draft · версия разбора sim-1/)).toBeVisible();
   await page.getByRole("button", { name: "Что получил ИИ" }).click();
   await expect(page.getByAltText("Страница 1 · solution.png")).toBeVisible();
   await page.getByRole("button", { name: "Показать шаг 1 в оригинале" }).click();
@@ -58,7 +58,7 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
       field.value = "x=1";
       field.dispatchEvent(new Event("input", { bubbles: true }));
     });
-  await page.getByRole("button", { name: "Применить правку" }).click();
+  await page.getByRole("button", { name: "Сохранить шаг" }).click();
   await page
     .getByRole("radiogroup", { name: "Вердикт шага 1" })
     .getByRole("radio", { name: "Верно" })
@@ -68,10 +68,10 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await expect(rerun).toBeVisible();
   await rerun.getByRole("button", { name: "Отмена" }).click();
   await expect(rerun).toHaveCount(0);
-  await page.getByRole("button", { name: "Завершить сверку" }).click();
+  await page.getByRole("button", { name: "Всё сверено" }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole("link", { name: "Отчёт · v1" })).toBeVisible();

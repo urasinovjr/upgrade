@@ -19,7 +19,7 @@ import {
 import { topics } from "../../data/fixtures";
 import { serverMode } from "../../data/gateway";
 import type { GapDecision, GapProposal, Step, Student, Task, Work } from "../../domain/models";
-import { blankTask, currentRevision, reviewBlockers } from "../../domain/review";
+import { blankTask, currentRevision, reviewBlockers, unreviewedBlocker } from "../../domain/review";
 import { needsAttention, sortQueue } from "../../domain/analytics";
 import { useStore } from "../../shared/query";
 import {
@@ -55,7 +55,7 @@ const narrowQuery = "(max-width: 1199px)";
 
 const saveLabels: Record<SaveState, string> = {
   saving: "Сохраняем…",
-  dirty: "Изменено",
+  dirty: "Не сохранено",
   saved: "Сохранено",
 };
 
@@ -89,18 +89,16 @@ function blockerHint(work: Work, blockers: string[]) {
   const unreviewed = work.draft.tasks.flatMap((task, index) =>
     task.reviewed || task.omitted ? [] : [index + 1],
   );
-  if (first.endsWith(": отметьте разбор как проверенный.") && unreviewed.length)
+  if (first.endsWith(unreviewedBlocker) && unreviewed.length)
     return unreviewed.length > 1
-      ? "Отметьте задачи " + unreviewed.join(" и ")
-      : "Отметьте задачу " + unreviewed[0];
+      ? "Отметьте задачи " + unreviewed.join(" и ") + " проверенными"
+      : "Отметьте задачу " + unreviewed[0] + " проверенной";
   return first.replace(/\.$/, "");
 }
 
 function recheckNote(work: Work, needsRecheck: boolean) {
-  if (work.status === "needs_input") return "Проверьте условие и распознанные шаги по оригиналу.";
-  if (needsRecheck)
-    return "Исходные данные изменились: проверьте условия и шаги перед подтверждением.";
-  return "Проверьте условия и шаги перед подтверждением.";
+  if (work.status !== "needs_input" && needsRecheck) return "Работа изменилась после разбора.";
+  return "Без этого работу не подтвердить.";
 }
 
 function TaskLabel({ task }: { task: Task }) {
@@ -140,11 +138,11 @@ function TaskTab({ task }: { task: Task }) {
 const gapNotes: Record<GapDecision, { editable: string; readOnly: string }> = {
   confirmed: {
     editable: "Тема попадёт в карту ученика после подтверждения работы.",
-    readOnly: "Подтверждено преподавателем",
+    readOnly: "Подтверждено репетитором",
   },
   rejected: {
     editable: "Гипотеза останется в истории и не попадёт в карту.",
-    readOnly: "Гипотеза не принята",
+    readOnly: "Гипотеза отклонена",
   },
   hypothesis: {
     editable: "Гипотеза не учитывается в карте ученика.",
@@ -282,7 +280,7 @@ export default function Review() {
         title="Работа не найдена"
         description="Проверьте ссылку или выберите работу из списка."
         to="/works"
-        linkLabel="Вернуться к работам"
+        linkLabel="К списку работ"
       />
     );
   const student = query.data.students.find((item) => item.id === work.studentId)!;
@@ -458,7 +456,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
   );
   const finishSync = (
     <button disabled={busy} onClick={() => void action("manual")}>
-      Завершить сверку
+      Всё сверено
       <Check size={14} aria-hidden="true" />
     </button>
   );
@@ -539,7 +537,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           </h3>
           {editable ? (
             <label>
-              Причина / комментарий
+              Почему задача отложена
               <textarea
                 value={task.feedback}
                 disabled={busy}
@@ -640,7 +638,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           <section className="dp-feedback">
             {editable ? (
               <label className="review-feedback">
-                Обратная связь ученику
+                Комментарий для ученика
                 <textarea
                   value={task.feedback}
                   disabled={busy}
@@ -652,9 +650,9 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               </label>
             ) : (
               <>
-                <h3>Обратная связь ученику</h3>
+                <h3>Комментарий для ученика</h3>
                 <p className={task.feedback ? undefined : "dp-feedback-empty"}>
-                  {task.feedback || "Обратная связь не добавлена."}
+                  {task.feedback || "Комментария нет."}
                 </p>
               </>
             )}
@@ -694,14 +692,14 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             <textarea
               value={draft.feedback}
               disabled={busy}
-              placeholder="Итог по всей работе: попадёт в отчёт после задач"
+              placeholder="Итог по всей работе. В отчёте он идёт после задач"
               onChange={(event) => change({ ...draft, feedback: event.target.value })}
             />
           </label>
         ) : (
           <>
             <h3>Общий комментарий</h3>
-            <p>{draft.feedback || "Комментарий не добавлен."}</p>
+            <p>{draft.feedback || "Комментария нет."}</p>
           </>
         )}
       </section>
@@ -715,10 +713,10 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             </ul>
           </Disclosure>
         )}
-        <Disclosure title="Эталон">
-          {task.reference ? <Formula value={task.reference} /> : <p>Эталон не задан.</p>}
+        <Disclosure title="Правильный ответ">
+          {task.reference ? <Formula value={task.reference} /> : <p>Правильный ответ не указан.</p>}
         </Disclosure>
-        <Disclosure title="Исходный разбор">
+        <Disclosure title="Первый разбор ИИ">
           <InitialAnalysis task={initial} analysis={work.analysis} />
         </Disclosure>
         {serverMode && work.analysis && (
@@ -726,7 +724,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             <SentPages workId={work.id} runId={work.analysis.runId} files={work.attachments} />
           </Disclosure>
         )}
-        <Disclosure title={"История редакций · " + work.published.length}>
+        <Disclosure title={"История версий · " + work.published.length}>
           {work.published.length ? (
             work.published.map((revision) => (
               <Link
@@ -734,13 +732,13 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                 className="dp-revision-link"
                 to={"/works/" + work.id + "/report?revision=" + revision.id}
               >
-                Редакция {revision.number}
+                Версия {revision.number}
                 {revision.id === work.currentPublishedId ? " · текущая" : " · архивная"}
                 <ArrowRight size={14} aria-hidden="true" />
               </Link>
             ))
           ) : (
-            <p>Редакции появятся после подтверждения.</p>
+            <p>Версии появятся после подтверждения работы.</p>
           )}
         </Disclosure>
       </div>
@@ -816,7 +814,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             {!work.editing && (
               <button disabled={busy} onClick={() => void action("edit")}>
                 <Pencil size={14} aria-hidden="true" />
-                Новая редакция
+                Новая версия
               </button>
             )}
             <DeleteWork work={work} />
@@ -869,7 +867,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               tone="neutral"
               role="status"
               icon={<LoaderCircle className="dp-spin" size={16} aria-hidden="true" />}
-              title="Обработка… Можно вернуться к работе позже."
+              title="ИИ разбирает работу. Можно уйти со страницы и вернуться позже."
             />
           ) : (
             work.editing &&
@@ -878,8 +876,8 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               <Callout
                 tone="danger"
                 icon={<AlertCircle size={16} aria-hidden="true" />}
-                title="Обработка завершилась ошибкой."
-                more="Повторите её или проверьте работу по оригиналу вручную."
+                title="Разбор не получился."
+                more="Запустите его ещё раз или проверьте работу вручную по оригиналу."
               >
                 {reanalyse}
                 {finishSync}
@@ -888,7 +886,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               <Callout
                 tone="warning"
                 icon={<AlertCircle size={16} aria-hidden="true" />}
-                title="Нужна сверка с оригиналом."
+                title="Сверьте распознанное с оригиналом."
                 more={recheckNote(work, needsRecheck)}
               >
                 {reanalyse}
@@ -900,8 +898,8 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             <Callout
               tone="info"
               icon={<ShieldCheck size={16} aria-hidden="true" />}
-              title="Черновик новой редакции."
-              more={`Отчёт v${published.number} остаётся актуальным до подтверждения.`}
+              title="Черновик новой версии."
+              more={`Пока вы его не подтвердите, действует отчёт v${published.number}.`}
             >
               {reportLink}
               <button className="dp-text dp-danger-text" onClick={() => setWithdraw(true)}>
@@ -930,7 +928,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                     </span>
                   </span>
                   <span id={ids.reason} className="dp-review-reason">
-                    {workHint || "Можно подтверждать"}
+                    {workHint || "Всё проверено, можно подтверждать"}
                   </span>
                 </div>
                 <div className="dp-review-buttons">
@@ -954,9 +952,9 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                 <div className="dp-confirmed">
                   <ShieldCheck size={16} aria-hidden="true" />
                   <p>
-                    <strong>Редакция {published?.number} подтверждена</strong>
+                    <strong>Версия {published?.number} подтверждена</strong>
                     <span className="dp-confirmed-note">
-                      Результат учтён в рекомендациях ученику.
+                      Темы для повторения обновлены в карте ученика.
                     </span>
                   </p>
                 </div>
@@ -977,8 +975,8 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         onOpenChange={(open) => {
           if (!open) setEditor(null);
         }}
-        title="Правка шага"
-        description="Уточните запись и объяснение. После изменения формулы понадобится повторная сверка."
+        title="Изменить шаг"
+        description="Поправьте запись и объяснение. Если измените формулу, шаг нужно будет снова сверить с оригиналом."
       >
         {step && task && (
           <StepEditor
@@ -1007,7 +1005,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         open={conditionEdit && !!task}
         onOpenChange={setConditionEdit}
         title={task ? "Условие · " + task.title : "Условие"}
-        description="Текст, формула, эталонный ответ и тема. После изменения условия понадобится повторная сверка."
+        description="Текст, формула, правильный ответ и тема. Если измените условие, шаги нужно будет сверить заново."
       >
         {task && (
           <ConditionEditor
@@ -1048,7 +1046,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         open={removeTask && !!task}
         onOpenChange={setRemoveTask}
         title={"Удалить " + (task?.title ?? "задачу") + "?"}
-        description="Условие, шаги и обратная связь по задаче будут удалены из черновика."
+        description="Условие, шаги и комментарий к задаче удалятся из черновика."
       >
         <div className="dp-dialog-actions">
           <button onClick={() => setRemoveTask(false)}>Отмена</button>
@@ -1071,7 +1069,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         open={withdraw}
         onOpenChange={setWithdraw}
         title="Отозвать подтверждение?"
-        description="Работа останется в истории. Её пробелы перестанут учитываться в актуальной карте ученика."
+        description="Работа останется в истории, но её пробелы уйдут из карты ученика."
       >
         <div className="dp-dialog-actions">
           <button onClick={() => setWithdraw(false)}>Отмена</button>
@@ -1090,7 +1088,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           if (!open && review.blocker.state === "blocked") review.blocker.reset();
         }}
         title="Сохранить изменения?"
-        description="Дождитесь сохранения черновика перед переходом."
+        description="Черновик ещё сохраняется. Дождитесь, чтобы не потерять правки."
       >
         {Boolean(error) && (
           <p className="dp-error" role="alert">

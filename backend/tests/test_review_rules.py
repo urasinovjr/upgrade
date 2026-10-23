@@ -37,7 +37,7 @@ def test_changed_step_needs_new_review_and_analysis():
     assert changed.revision == 2
     assert changed.input_revision == 1
     assert changed.tasks[0].reviewed is False
-    assert any("обновите разбор" in item for item in blockers(changed))
+    assert any("Запустите разбор заново" in item for item in blockers(changed))
 
 
 def test_feedback_edit_keeps_review_and_inputs():
@@ -77,7 +77,10 @@ def test_uncertain_failed_and_unexplained_work_is_blocked():
     explained["steps"][0] = {**explained["steps"][0], "verdict": "error", "explanation": " "}
 
     assert any("уточните" in item for item in blockers(uncertain))
-    assert any("ручную сверку" in item for item in blockers(draft_of(finished_task()), "failed"))
+    assert any(
+        "сверьте работу с оригиналом" in item
+        for item in blockers(draft_of(finished_task()), "failed")
+    )
     assert any("объясните ошибку" in item for item in blockers(draft_of(explained)))
 
 
@@ -94,15 +97,15 @@ def test_omitted_task_needs_reason_and_confirmed_gap_needs_advice():
     gap = finished_task()
     gap["gap"] = {"topicId": "fractions", "reason": "", "decision": "confirmed"}
 
-    assert any("причину" in item for item in blockers(draft_of(omitted)))
-    assert any("рекомендацию" in item for item in blockers(draft_of(gap)))
+    assert any("почему задача отложена" in item for item in blockers(draft_of(omitted)))
+    assert any("что повторить" in item for item in blockers(draft_of(gap)))
 
 
 def test_closed_work_and_running_job():
     draft = draft_of(finished_task())
 
     assert review_blockers("confirmed", False, False, draft, set()) == []
-    assert review_blockers("queued", True, True, draft, set()) == ["Обработка ещё не завершена."]
+    assert review_blockers("queued", True, True, draft, set()) == ["ИИ ещё разбирает работу."]
     assert any("хотя бы одну" in item for item in blockers(draft_of()))
 
 

@@ -100,10 +100,10 @@ function OriginTools({
               className="dp-text"
               onClick={onUnlink}
               disabled={disabled}
-              aria-label={"Убрать связь шага " + index + " с оригиналом"}
+              aria-label={"Отвязать шаг " + index + " от оригинала"}
             >
               <Link2Off size={14} aria-hidden="true" />
-              Убрать связь
+              Отвязать от оригинала
             </button>
           )}
         </>
@@ -197,7 +197,7 @@ export function StepItem({
         {origin}
         <div className="dp-step-detail" inert={!open} aria-hidden={!open}>
           <div id={detail}>
-            <p>{step.explanation || "Объяснение не добавлено."}</p>
+            <p>{step.explanation || "Объяснения нет."}</p>
           </div>
         </div>
       </article>
@@ -206,7 +206,7 @@ export function StepItem({
   const hasExplanation = Boolean(step.explanation.trim());
   const explanationPrompt =
     step.verdict === "error"
-      ? "Добавьте объяснение ошибки."
+      ? "Объясните, в чём ошибка."
       : "Сверьте запись с оригиналом и уточните этот шаг.";
   return (
     <article ref={root} className={"dp-step dp-step-card dp-step-" + step.verdict}>
@@ -311,7 +311,7 @@ export function StepEditor({
           disabled={!draft.latex.trim() || (draft.verdict === "error" && !draft.explanation.trim())}
         >
           <Check size={16} />
-          Применить правку
+          Сохранить шаг
         </button>
       </div>
     </form>

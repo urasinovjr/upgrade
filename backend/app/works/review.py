@@ -52,22 +52,22 @@ def keep_known_attachments(draft: Draft, attachment_ids: set[str]) -> Draft:
 def task_problems(task: Task, attachment_ids: set[str]) -> list[str]:
     if task.omitted:
         if not task.feedback.strip():
-            return [f"{task.title}: укажите причину отдельной проверки."]
+            return [f"{task.title}: напишите, почему задача отложена."]
         return []
     problems = []
     has_file = any(item in attachment_ids for item in task.condition_attachment_ids or [])
     if not task.condition.strip() and not task.formula.strip() and not has_file:
         problems.append(f"{task.title}: добавьте условие.")
     if not task.steps or any(not step.latex.strip() for step in task.steps):
-        problems.append(f"{task.title}: заполните шаги решения.")
+        problems.append(f"{task.title}: добавьте шаги решения.")
     if any(step.verdict == "uncertain" for step in task.steps):
         problems.append(f"{task.title}: уточните неясные шаги.")
     if any(step.verdict == "error" and not step.explanation.strip() for step in task.steps):
         problems.append(f"{task.title}: объясните ошибку.")
     if task.gap is not None and task.gap.decision == "confirmed" and not task.gap.reason.strip():
-        problems.append(f"{task.title}: укажите рекомендацию по пробелу.")
+        problems.append(f"{task.title}: напишите, что повторить.")
     if not task.reviewed:
-        problems.append(f"{task.title}: отметьте разбор как проверенный.")
+        problems.append(f"{task.title}: отметьте задачу проверенной.")
     return problems
 
 
@@ -77,12 +77,12 @@ def review_blockers(
     if not editing:
         return []
     if has_job:
-        return ["Обработка ещё не завершена."]
+        return ["ИИ ещё разбирает работу."]
     blockers = []
     if status != "ready":
-        blockers.append("Завершите обработку или ручную сверку работы.")
+        blockers.append("Дождитесь разбора или сверьте работу с оригиналом вручную.")
     if draft.input_revision != draft.analysed_input_revision:
-        blockers.append("После изменения условий или шагов обновите разбор.")
+        blockers.append("Условия или шаги изменились. Запустите разбор заново.")
     if not draft.tasks:
         blockers.append("Добавьте хотя бы одну задачу.")
     for task in draft.tasks:

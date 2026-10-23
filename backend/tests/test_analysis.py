@@ -259,7 +259,7 @@ async def test_work_is_locked_while_analysed(teacher):
 
     assert again.json() == {"detail": "analysis_in_progress"}
     assert edit.json() == {"detail": "analysis_in_progress"}
-    assert confirm.json()["blockers"] == ["Обработка ещё не завершена."]
+    assert confirm.json()["blockers"] == ["ИИ ещё разбирает работу."]
 
 
 async def test_changed_inputs_need_new_analysis(teacher, sessions, test_settings, storage):

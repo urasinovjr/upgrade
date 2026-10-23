@@ -106,7 +106,7 @@ test("conditions, formulas and task changes are protected on leaving a new work"
 test("focused controls and math keyboard stay above the fixed action panel", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 640 });
   await page.goto("/works/demo-ready");
-  const input = page.getByRole("textbox", { name: "Обратная связь ученику" });
+  const input = page.getByRole("textbox", { name: "Комментарий для ученика" });
   await input.focus();
   await expect
     .poll(async () => {
@@ -165,7 +165,7 @@ test("focused controls and math keyboard stay above the fixed action panel", asy
   await formula.locator('[part="virtual-keyboard-toggle"]').click();
   await expect(keyboard).toBeVisible();
   await expect.poll(() => fieldAboveKeys(Infinity)).toBe(true);
-  const apply = dialog.getByRole("button", { name: "Применить правку" });
+  const apply = dialog.getByRole("button", { name: "Сохранить шаг" });
   await expect(async () => {
     await apply.scrollIntoViewIfNeeded();
     await expect(apply).toBeInViewport({ timeout: 500 });

@@ -50,9 +50,9 @@ export function ConditionEditor({
         />
       </label>
       <label>
-        Эталонный ответ
+        Правильный ответ
         <FormulaInput
-          label="Эталонный ответ"
+          label="Правильный ответ"
           value={draft.reference}
           onChange={(reference) => setDraft({ ...draft, reference })}
         />
@@ -87,7 +87,7 @@ export function ConditionEditor({
         </button>
         <button className="dp-primary">
           <Check size={16} />
-          Применить
+          Сохранить
         </button>
       </div>
     </form>
@@ -139,7 +139,7 @@ export function GapEditor({
         </button>
         <button className="dp-primary">
           <Check size={16} />
-          Применить
+          Сохранить
         </button>
       </div>
     </form>

@@ -24,9 +24,9 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await page.getByRole("button", { name: "Подтвердить пробел", exact: true }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Отчёт · v1" }).click();
   await expect(page.getByText("Отчёт по работе", { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
@@ -35,11 +35,11 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await mkdir("../output/pdf", { recursive: true });
   await download.saveAs(path.resolve("../output/pdf/report-" + testInfo.project.name + ".pdf"));
   await page.getByRole("link", { name: "К разбору работы" }).click();
-  await page.getByRole("button", { name: "Новая редакция" }).click();
+  await page.getByRole("button", { name: "Новая версия" }).click();
   await page
     .getByRole("textbox", { name: "Общий комментарий" })
     .fill("Проверка сохранения черновика.");
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("textbox", { name: "Общий комментарий" })).toHaveValue(
     "Проверка сохранения черновика.",
@@ -50,7 +50,7 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await secondTask.click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 2 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Ученики", exact: true }).click();
   await page
     .getByRole("main")
@@ -97,9 +97,11 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
   if (testInfo.project.name.includes("mobile"))
     await page.getByRole("tab", { name: "Разбор", exact: true }).click();
-  await expect(page.getByText("Нужна сверка с оригиналом.", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Завершить сверку" }).click();
-  await expect(page.getByText("Нужна сверка с оригиналом.", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Сверьте распознанное с оригиналом.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Всё сверено" }).click();
+  await expect(page.getByText("Сверьте распознанное с оригиналом.", { exact: true })).toHaveCount(
+    0,
+  );
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   const math = page.getByRole("dialog").locator('math-field[aria-label="Формула шага 1"]');
   await math.evaluate((element) => {
@@ -107,11 +109,13 @@ test("original, formula edit, stale state and simulated job survive reload", asy
     field.value = "(x-2)(x-3)=0";
     field.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.getByRole("button", { name: "Применить правку" }).click();
-  await expect(page.getByText("Нужна сверка с оригиналом.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Сохранить шаг" }).click();
+  await expect(page.getByText("Сверьте распознанное с оригиналом.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Повторить разбор" }).click();
   await page.reload();
-  await expect(page.getByText("Обработка… Можно вернуться к работе позже.")).toBeVisible();
+  await expect(
+    page.getByText("ИИ разбирает работу. Можно уйти со страницы и вернуться позже."),
+  ).toBeVisible();
   await expect(page.getByText("К проверке", { exact: true })).toBeVisible({ timeout: 10000 });
 });
 
@@ -143,9 +147,7 @@ test("masks hide personal data and every page is checked before analysis", async
   if (mobile) await toReview();
   const reanalyse = page.getByRole("button", { name: "Повторить разбор" });
   await expect(reanalyse).toBeDisabled();
-  await expect(
-    page.getByText("Перед разбором проверьте страницы оригинала: осталось 1."),
-  ).toBeVisible();
+  await expect(page.getByText("Перед разбором проверьте ещё 1 стр. оригинала.")).toBeVisible();
   if (mobile) await toOriginal();
   await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
   await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
@@ -178,9 +180,9 @@ test("a recognized step opens its place in the original", async ({ page }, testI
       field.value = "\\sqrt{y}=7";
       field.dispatchEvent(new Event("input", { bubbles: true }));
     });
-  await page.getByRole("button", { name: "Применить правку" }).click();
+  await page.getByRole("button", { name: "Сохранить шаг" }).click();
   await expect(page.getByText("Не из оригинала")).toHaveCount(1);
-  await page.getByRole("button", { name: "Убрать связь шага 2 с оригиналом" }).click();
+  await page.getByRole("button", { name: "Отвязать шаг 2 от оригинала" }).click();
   await expect(page.getByRole("button", { name: "Показать шаг 2 в оригинале" })).toHaveCount(0);
   await expect(page.getByText("Не из оригинала")).toHaveCount(2);
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
@@ -200,7 +202,7 @@ test("user upload remains manual; corrupted files are rejected", async ({ page }
   await expect(page.getByRole("button", { name: "Удалить solution.png" })).toBeVisible();
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Повторить разбор" })).toHaveCount(0);
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   await page
@@ -211,15 +213,15 @@ test("user upload remains manual; corrupted files are rejected", async ({ page }
       field.value = "x=1";
       field.dispatchEvent(new Event("input", { bubbles: true }));
     });
-  await page.getByRole("button", { name: "Применить правку" }).click();
+  await page.getByRole("button", { name: "Сохранить шаг" }).click();
   await page
     .getByRole("radiogroup", { name: "Вердикт шага 1" })
     .getByRole("radio", { name: "Верно" })
     .click();
-  await page.getByRole("button", { name: "Завершить сверку" }).click();
+  await page.getByRole("button", { name: "Всё сверено" }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await expect(page.getByText("Редакция 1 подтверждена")).toBeVisible();
+  await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 });
 
 test("all screens remain contained across viewport boundaries", async ({ page }, testInfo) => {
@@ -303,7 +305,7 @@ test("multi-page PDF, image condition, page order and student creation", async (
   await expect(page.getByText("Условие: solution.png")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await page.waitForURL(/\/works\/[^/]+$/);
-  await expect(page.getByText("Сохранено")).toBeVisible();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   await page
@@ -314,12 +316,12 @@ test("multi-page PDF, image condition, page order and student creation", async (
       field.value = "x=1";
       field.dispatchEvent(new Event("input", { bubbles: true }));
     });
-  await page.getByRole("button", { name: "Применить правку" }).click();
+  await page.getByRole("button", { name: "Сохранить шаг" }).click();
   await page
     .getByRole("radiogroup", { name: "Вердикт шага 1" })
     .getByRole("radio", { name: "Верно" })
     .click();
-  await page.getByRole("button", { name: "Завершить сверку" }).click();
+  await page.getByRole("button", { name: "Всё сверено" }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
   await page.getByRole("link", { name: "Отчёт · v1" }).click();
@@ -338,7 +340,7 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/works/demo-confirmed");
-  await page.getByRole("button", { name: "Новая редакция" }).click();
+  await page.getByRole("button", { name: "Новая версия" }).click();
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.put;
     (window as Window & { restoreStorage?: () => void }).restoreStorage = () => {
@@ -386,10 +388,10 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   await trigger.click();
   await dialog.getByRole("button", { name: "Отозвать подтверждение" }).click();
   await expect(page.getByRole("link", { name: "Отчёт · v1" })).toHaveCount(0);
-  await page.getByText("История редакций · 1").click();
-  await page.getByRole("link", { name: "Редакция 1 · архивная" }).click();
+  await page.getByText("История версий · 1").click();
+  await page.getByRole("link", { name: "Версия 1 · архивная" }).click();
   await expect(
-    page.getByText("Это архивная редакция. Она не участвует в актуальной карте ученика."),
+    page.getByText("Это старая версия отчёта. В карте ученика учтена более новая."),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -410,7 +412,7 @@ test("clipboard refusal and unavailable API provide selected confirmed text", as
     const copy = page.getByRole("button", { name: "Скопировать текст", exact: true });
     await copy.focus();
     await page.keyboard.press("Enter");
-    const field = page.getByRole("textbox", { name: "Текст подтверждённого отчёта" });
+    const field = page.getByRole("textbox", { name: "Текст отчёта" });
     await expect(field).toBeVisible();
     await expect(field).toBeFocused();
     await expect(field).toHaveValue(/Самостоятельная · рациональные дроби/);

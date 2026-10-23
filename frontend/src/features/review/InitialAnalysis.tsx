@@ -12,16 +12,16 @@ function analysisSource(analysis: AnalysisInfo) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(analysis.finishedAt));
-  return analysis.model + " · промпт " + analysis.promptVersion + " · " + finished;
+  return analysis.model + " · версия разбора " + analysis.promptVersion + " · " + finished;
 }
 
 export function InitialAnalysis({ task, analysis }: { task?: Task; analysis?: AnalysisInfo }) {
-  if (!task) return <p>Работа добавлена для ручной проверки.</p>;
+  if (!task) return <p>Эту работу вы проверяете вручную, без ИИ.</p>;
   return (
     <>
       {analysis && <p>Разбор ИИ: {analysisSource(analysis)}</p>}
       {task.omitted ? (
-        <p>Задача не разобрана: {task.feedback}</p>
+        <p>ИИ не разобрал задачу: {task.feedback}</p>
       ) : (
         task.steps.map((step) => (
           <div key={step.id}>
@@ -35,7 +35,7 @@ export function InitialAnalysis({ task, analysis }: { task?: Task; analysis?: An
       )}
       {task.gap && (
         <p>
-          Гипотеза о пробеле · {topicName(task.gap.topicId)}: {task.gap.reason}
+          Гипотеза о пробеле: {topicName(task.gap.topicId)}. {task.gap.reason}
         </p>
       )}
     </>

@@ -18,7 +18,7 @@ export function inputSignature(draft: Draft): string {
 }
 
 export function applyDraft(work: Work, proposed: Draft): Work {
-  if (!work.editing) throw new Error("Сначала откройте новую редакцию работы.");
+  if (!work.editing) throw new Error("Сначала начните новую версию разбора.");
   if (work.job) throw new Error("Дождитесь завершения обработки.");
   const changedInputs = inputSignature(work.draft) !== inputSignature(proposed);
   const draft = structuredClone(proposed);
@@ -38,18 +38,20 @@ export function applyDraft(work: Work, proposed: Draft): Work {
   return { ...work, draft };
 }
 
+export const unreviewedBlocker = ": отметьте задачу проверенной.";
+
 export function reviewBlockers(work: Work): string[] {
   if (!work.editing) return [];
-  if (work.job) return ["Обработка ещё не завершена."];
+  if (work.job) return ["ИИ ещё разбирает работу."];
   const blockers: string[] = [];
-  if (work.status !== "ready") blockers.push("Завершите обработку или ручную сверку работы.");
+  if (work.status !== "ready")
+    blockers.push("Дождитесь разбора или сверьте работу с оригиналом вручную.");
   if (work.draft.inputRevision !== work.draft.analysedInputRevision)
-    blockers.push("После изменения условий или шагов обновите разбор.");
+    blockers.push("Условия или шаги изменились. Запустите разбор заново.");
   if (!work.draft.tasks.length) blockers.push("Добавьте хотя бы одну задачу.");
   for (const task of work.draft.tasks) {
     if (task.omitted) {
-      if (!task.feedback.trim())
-        blockers.push(task.title + ": укажите причину отдельной проверки.");
+      if (!task.feedback.trim()) blockers.push(task.title + ": напишите, почему задача отложена.");
       continue;
     }
     if (
@@ -59,14 +61,14 @@ export function reviewBlockers(work: Work): string[] {
     )
       blockers.push(task.title + ": добавьте условие.");
     if (!task.steps.length || task.steps.some((step) => !step.latex.trim()))
-      blockers.push(task.title + ": заполните шаги решения.");
+      blockers.push(task.title + ": добавьте шаги решения.");
     if (task.steps.some((step) => step.verdict === "uncertain"))
       blockers.push(task.title + ": уточните неясные шаги.");
     if (task.steps.some((step) => step.verdict === "error" && !step.explanation.trim()))
       blockers.push(task.title + ": объясните ошибку.");
     if (task.gap?.decision === "confirmed" && !task.gap.reason.trim())
-      blockers.push(task.title + ": укажите рекомендацию по пробелу.");
-    if (!task.reviewed) blockers.push(task.title + ": отметьте разбор как проверенный.");
+      blockers.push(task.title + ": напишите, что повторить.");
+    if (!task.reviewed) blockers.push(task.title + unreviewedBlocker);
   }
   return blockers;
 }
@@ -161,7 +163,7 @@ export function reportText(report: Report): string {
     "UpGrade · Отчёт по работе",
     student.name + " · " + student.grade + " класс",
     work.title,
-    "Редакция " + revision.number,
+    "Версия " + revision.number,
     "",
   ];
   for (const task of revision.draft.tasks) {
@@ -170,20 +172,15 @@ export function reportText(report: Report): string {
       task.conditionAttachmentIds?.includes(file.id),
     );
     if (conditionFiles.length)
-      lines.push(
-        "Условие во вложении PDF-отчёта: " + conditionFiles.map((file) => file.name).join(", "),
-      );
+      lines.push("Условие в PDF-отчёте: " + conditionFiles.map((file) => file.name).join(", "));
     if (task.omitted) {
-      lines.push(
-        "Задача не разобрана: " +
-          (task.feedback || "Отмечена репетитором как требующая отдельной проверки."),
-      );
+      lines.push("Разберём отдельно. " + (task.feedback || "Нужно уточнить решение."));
     } else {
       task.steps.forEach((step, index) =>
         lines.push("Шаг " + (index + 1) + ": " + step.latex, step.explanation),
       );
       lines.push(task.feedback);
-      if (task.gap?.decision === "confirmed") lines.push("Рекомендация: " + task.gap.reason);
+      if (task.gap?.decision === "confirmed") lines.push("Что повторить: " + task.gap.reason);
     }
     lines.push("");
   }

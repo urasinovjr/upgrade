@@ -51,11 +51,11 @@ test("copied text and PDF come from the same confirmed revision", async ({
   await page.getByRole("button", { name: "Скачать PDF" }).click();
   const { text, images } = await pdfContent(await downloading);
 
-  expect(copied).toContain("Редакция 1");
+  expect(copied).toContain("Версия 1");
   for (const line of ["Отчёт с формулами", "Мария", "Решите x + 1 = 2", "Решение верное."]) {
     expect(copied).toContain(line);
     expect(compact(text)).toContain(compact(line));
   }
-  expect(compact(text)).toContain(compact("Редакция 1"));
+  expect(compact(text)).toContain(compact("Версия 1"));
   expect(images).toBeGreaterThan(0);
 });
