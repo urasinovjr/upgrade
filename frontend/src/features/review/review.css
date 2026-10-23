@@ -1128,6 +1128,9 @@
     top: 50%;
     max-height: 80dvh;
   }
+  .dp-dialog:has(.ML__keyboard.is-visible) .dp-dialog-actions {
+    position: static;
+  }
   .dp-original .media-canvas {
     height: clamp(280px, 55dvh, 480px);
     padding: var(--ug-space-3);

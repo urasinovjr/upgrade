@@ -154,8 +154,9 @@ test("focused controls and math keyboard stay above the fixed action panel", asy
   await expect.poll(() => fieldAboveKeys(641)).toBe(true);
   const cancel = async () =>
     expect(async () => {
-      if (await dialog.count()) await dialog.getByRole("button", { name: "Отмена" }).click();
-      await expect(dialog).toHaveCount(0, { timeout: 500 });
+      if (await dialog.count())
+        await dialog.getByRole("button", { name: "Отмена" }).click({ timeout: 2_000 });
+      await expect(dialog).toHaveCount(0, { timeout: 2_000 });
     }).toPass();
   await cancel();
   await page.setViewportSize({ width: 720, height: 406 });

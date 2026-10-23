@@ -224,12 +224,11 @@ test("user upload remains manual; corrupted files are rejected", async ({ page }
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 });
 
-test("all screens remain contained across viewport boundaries", async ({ page }, testInfo) => {
-  test.setTimeout(180_000);
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await mkdir("../output/playwright", { recursive: true });
-  for (const width of [320, 390, 700, 701, 768, 900, 901, 1024, 1199, 1200, 1201, 1440, 1920]) {
+for (const width of [320, 390, 700, 701, 768, 900, 901, 1024, 1199, 1200, 1201, 1440, 1920]) {
+  test("all screens remain contained at " + width + "px", async ({ page }, testInfo) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await mkdir("../output/playwright", { recursive: true });
     await page.setViewportSize({ width, height: 900 });
     for (const route of [
       "dashboard",
@@ -277,9 +276,9 @@ test("all screens remain contained across viewport boundaries", async ({ page },
           fullPage: true,
         });
     }
-  }
-  expect(errors).toEqual([]);
-});
+    expect(errors).toEqual([]);
+  });
+}
 
 test("multi-page PDF, image condition, page order and student creation", async ({
   page,
