@@ -138,7 +138,7 @@ export default function NewWork() {
     }
     if (uploads.every((file) => conditionFiles.has(file.id))) {
       showError(
-        "Добавьте решение ученика отдельно от вложенного условия.",
+        "Добавьте файл с решением. Сейчас все файлы отмечены как условие.",
         "solution",
         solutionInput.current,
       );
@@ -202,8 +202,8 @@ export default function NewWork() {
             tone="info"
             role="status"
             icon={<Info size={16} aria-hidden="true" />}
-            title="Файлы ещё не были сохранены в работе."
-            more="После перезагрузки выберите их заново."
+            title="Страница перезагрузилась, и файлы не сохранились."
+            more="Выберите их ещё раз."
           />
         )}
         <div className="new-work-grid">
@@ -243,7 +243,7 @@ export default function NewWork() {
                 aria-invalid={Boolean(error && errorAt === "details" && !title.trim())}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Например, домашняя работа · 30 сентября"
+                placeholder="Например, ДЗ на 30 сентября"
               />
             </label>
             {sectionError("details")}
@@ -266,7 +266,9 @@ export default function NewWork() {
                 <Upload size={20} aria-hidden="true" />
               )}
               <strong>{decoding ? "Проверяем файлы…" : "Добавьте фото или PDF решения"}</strong>
-              <small>Перетащите файлы сюда или нажмите · JPG, PNG, PDF до 20 МБ на файл</small>
+              <small>
+                Перетащите файлы сюда или нажмите, чтобы выбрать. JPG, PNG или PDF, до 20 МБ.
+              </small>
               <input
                 ref={solutionInput}
                 type="file"
@@ -346,7 +348,9 @@ export default function NewWork() {
             <h2 id="nw-conditions">
               <span className="dp-nw-step">3</span>Условия задач
             </h2>
-            <p className="dp-nw-hint">Каждая задача отдельно. Эталонный ответ необязателен.</p>
+            <p className="dp-nw-hint">
+              Каждую задачу добавьте отдельно. Правильный ответ можно не указывать.
+            </p>
             {tasks.map((task, index) => (
               <article className="dp-nw-task condition-card" key={task.id}>
                 <header>
@@ -382,7 +386,7 @@ export default function NewWork() {
                 </label>
                 <label className="dp-nw-attach">
                   <Paperclip size={16} aria-hidden="true" />
-                  <span>Прикрепить условие · фото или PDF</span>
+                  <span>Прикрепить фото или PDF условия</span>
                   <input
                     aria-label={"Прикрепить условие задачи " + (index + 1)}
                     type="file"
@@ -402,10 +406,10 @@ export default function NewWork() {
                 ) : null}
                 <label>
                   <span>
-                    Эталонный ответ <span className="dp-nw-optional">необязательно</span>
+                    Правильный ответ <span className="dp-nw-optional">необязательно</span>
                   </span>
                   <FormulaInput
-                    label={"Эталон задачи " + (index + 1)}
+                    label={"Правильный ответ задачи " + (index + 1)}
                     value={task.reference}
                     onChange={(value) => change(task.id, { reference: value })}
                   />
@@ -423,7 +427,7 @@ export default function NewWork() {
           </section>
           <footer className="dp-nw-footer new-work-submit">
             <ErrorMessage error={command.error} />
-            <p>Дальше — разбор: сверьте шаги с оригиналом и подтвердите работу.</p>
+            <p>Потом откроется разбор. Там вы сверите шаги с оригиналом и подтвердите работу.</p>
             <button
               className="dp-primary"
               disabled={command.isPending || decoding || !writeAccess.allowed}
@@ -446,7 +450,7 @@ export default function NewWork() {
           if (!open && blocker.state === "blocked") blocker.reset();
         }}
         title="Выйти из новой работы?"
-        description="Работа ещё не создана. Добавленные файлы и условия будут потеряны."
+        description="Работа ещё не создана. Файлы и условия, которые вы добавили, пропадут."
       >
         <div className="dp-dialog-actions">
           <button onClick={() => blocker.state === "blocked" && blocker.reset()}>

@@ -105,7 +105,7 @@ export function Roster({
                   {topicStrip(state, student.id, topicOrder).map((cell) => {
                     const text =
                       cell.status === "path"
-                        ? `${cell.name} — путь к пробелу «${topicName(cell.target)}»`
+                        ? `${cell.name} ведёт к пробелу «${topicName(cell.target)}»`
                         : `${cell.name} — ${topicStatusLabel[cell.status]}`;
                     return (
                       <Link

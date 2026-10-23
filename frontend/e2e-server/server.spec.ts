@@ -31,8 +31,8 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await page.getByRole("textbox", { name: "Название работы" }).fill("Контрольная по уравнениям");
   await page.getByLabel("Загрузить решение").setInputFiles("e2e/fixtures/solution.png");
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
-  await page.getByRole("button", { name: "Скрыть данные" }).click();
-  await page.getByRole("button", { name: "Добавить маску" }).click();
+  await page.getByRole("button", { name: "Закрасить данные" }).click();
+  await page.getByRole("button", { name: "Закрасить область" }).click();
   await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
   await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();

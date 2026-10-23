@@ -39,9 +39,9 @@ import "./dashboard.css";
 import "./widgets.css";
 
 const editHints: Record<Breakpoint, string> = {
-  wide: "Перетащите виджет за ручку. Размер меняйте за край или угол рамки либо в списках; виджеты одного ряда выравниваются по самому высокому.",
+  wide: "Перетащите блок за ручку. Размер меняется за край или угол рамки.",
   narrow: "Меняйте порядок кнопками со стрелками.",
-  medium: "Перетащите виджет за ручку. Ширина настраивается на широком экране.",
+  medium: "Перетащите блок за ручку. Ширину можно поменять на широком экране.",
 };
 
 function UploadButton({ upload }: { upload: QuickUpload }) {
@@ -239,7 +239,7 @@ export default function Dashboard() {
                 disabled={!available.length}
               >
                 <Plus size={16} aria-hidden="true" />
-                Добавить виджет
+                Добавить блок
               </button>
               <button
                 onClick={() => {
@@ -272,12 +272,12 @@ export default function Dashboard() {
         ) : editor.editing ? (
           <button className="dp-layout-empty" onClick={() => setCatalogOpen(true)}>
             <Plus size={16} aria-hidden="true" />
-            Добавьте первый виджет
+            Добавьте первый блок
           </button>
         ) : (
           <div className="dp-empty">
             <LayoutDashboard size={32} aria-hidden="true" />
-            <h2>На обзоре нет виджетов</h2>
+            <h2>На обзоре пока пусто</h2>
             <p>Выберите, что показывать: очередь, сводку, графики или списки учеников.</p>
             <button onClick={start}>
               <SlidersHorizontal size={16} aria-hidden="true" />

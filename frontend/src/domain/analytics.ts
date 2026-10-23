@@ -104,7 +104,7 @@ export type TopicStatus = "gap" | "closed" | "path" | "none";
 export const topicStatusLabel: Record<TopicStatus, string> = {
   gap: "Повторить",
   closed: "Пробел закрыт",
-  path: "Путь к пробелу",
+  path: "Ведёт к пробелу",
   none: "Нет данных",
 };
 export type TopicCell = { topicId: string; name: string; status: TopicStatus; target: string };

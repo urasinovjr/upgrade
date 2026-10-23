@@ -65,12 +65,12 @@ function evidenceLink(state: StoreState, item: Evidence) {
   if (work && !work.editing && work.currentPublishedId === item.revisionId)
     return {
       to: "/works/" + item.workId + "?task=" + encodeURIComponent(item.taskId),
-      label: "подтверждённая редакция",
+      label: "подтверждённая версия",
     };
   const number = work?.published.find((revision) => revision.id === item.revisionId)?.number;
   return {
     to: "/works/" + item.workId + "/report?revision=" + item.revisionId,
-    label: number ? "отчёт · редакция " + number : "отчёт",
+    label: number ? "отчёт · версия " + number : "отчёт",
   };
 }
 
@@ -195,7 +195,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
     command.reset();
   };
   const reopenGap = (topicId: string) =>
-    saveClosure(topicId, "reopen", "Пробел вновь требует внимания.", () => setFocusGap(topicId));
+    saveClosure(topicId, "reopen", "Пробел снова открыт.", () => setFocusGap(topicId));
 
   const gapOf = (topicId: string) => gaps.find((gap) => gap.topicId === topicId);
   const selectedGap = gapOf(selected);
@@ -205,7 +205,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
   const historyOf = (topicId: string) => closures.filter((item) => item.topicId === topicId);
 
   const evidence = (gap: StudentGap) => (
-    <ul className="dp-evidence" aria-label="Основания">
+    <ul className="dp-evidence" aria-label="Подтверждения">
       {gap.evidence.map((item) => {
         const link = evidenceLink(state, item);
         return (
@@ -274,7 +274,11 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
             <span className="dp-student-gap-meta">
               <span>{gap.closed ? "Пробел закрыт" : "Подтверждённый пробел"}</span> ·{" "}
               {gap.evidence.length}{" "}
-              {wordForCount(gap.evidence.length, ["основание", "основания", "оснований"])}
+              {wordForCount(gap.evidence.length, [
+                "подтверждение",
+                "подтверждения",
+                "подтверждений",
+              ])}
             </span>
           </div>
           <p>{gap.reason}</p>
@@ -397,7 +401,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                     <CircleHelp size={16} aria-hidden="true" />
                     <p>
                       {gaps.length ? "Открытых пробелов нет." : "Подтверждённых пробелов пока нет."}{" "}
-                      Новая проверенная работа поможет уточнить, какие темы требуют внимания.
+                      Они появятся, когда вы проверите работы этого ученика.
                     </p>
                   </div>
                 )}
@@ -510,8 +514,8 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                 ) : (
                   <div className="dp-topic-detail-hint">
                     <p>
-                      Отсутствие пробела ещё не означает, что тема освоена. Проверенная работа по
-                      теме покажет, есть ли пробел.
+                      Если пробела нет, это ещё не значит, что тема освоена. Проверьте работу по
+                      этой теме, чтобы узнать точно.
                     </p>
                     {writeAccess.allowed && (
                       <Link className="dp-text" to={newWorkLink}>
@@ -559,7 +563,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           if (!value) cancelClose();
         }}
         title="Закрыть пробел"
-        description="Зафиксируйте, на основании чего вы считаете пробел закрытым. Это останется в истории."
+        description="Напишите, почему вы считаете пробел закрытым. Запись останется в истории ученика."
       >
         <form
           onSubmit={(event) => {
@@ -568,7 +572,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           }}
         >
           <label>
-            Основание закрытия
+            Почему пробел закрыт
             <textarea
               required
               value={note}
@@ -583,7 +587,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
             </button>
             <button className="dp-primary" disabled={!note.trim() || command.isPending}>
               <Check size={16} aria-hidden="true" />
-              Подтвердить закрытие
+              Закрыть пробел
             </button>
           </div>
         </form>

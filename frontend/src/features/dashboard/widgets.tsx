@@ -54,7 +54,8 @@ const chartFilter = ({ filters }: WidgetContext) => ({ day: filters.day, status:
 export const widgets: Record<WidgetId, WidgetDefinition> = {
   kpis: {
     title: "Сводка",
-    description: "Счётчики работ к проверке и на уточнении, подтверждённых работ, учеников и тем.",
+    description:
+      "Сколько работ ждёт проверки или уточнения, сколько подтверждено, сколько учеников и тем.",
     Icon: LayoutList,
     skeletonHeight: 72,
     divider: false,
@@ -88,7 +89,8 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   },
   activity: {
     title: "Ритм работы",
-    description: "Добавленные и впервые подтверждённые работы за 14 дней. День фильтрует очередь.",
+    description:
+      "Добавленные и впервые подтверждённые работы за 14 дней. Нажмите на день, чтобы увидеть его работы в очереди.",
     Icon: Activity,
     skeletonHeight: 200,
     divider: true,
@@ -103,7 +105,8 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   },
   status: {
     title: "Состояние работ",
-    description: "Все работы кабинета по состояниям. Состояние фильтрует очередь.",
+    description:
+      "Все работы кабинета по состояниям. Нажмите на состояние, чтобы отфильтровать очередь.",
     Icon: PieChart,
     skeletonHeight: 200,
     divider: true,
@@ -118,7 +121,8 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   },
   roster: {
     title: "Ученики и темы",
-    description: "Каждый ученик по темам карты знаний: пробелы, закрытые темы и путь к ним.",
+    description:
+      "Каждый ученик по темам карты знаний: пробелы, закрытые темы и то, что к ним ведёт.",
     Icon: TableProperties,
     skeletonHeight: 220,
     divider: false,

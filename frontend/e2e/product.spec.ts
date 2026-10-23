@@ -57,15 +57,15 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
     .getByRole("link", { name: /Анна Соколова/ })
     .click();
   await expect(
-    page.getByRole("list", { name: "Основания", exact: true }).getByRole("listitem"),
+    page.getByRole("list", { name: "Подтверждения", exact: true }).getByRole("listitem"),
   ).toHaveCount(2);
   await page.getByRole("button", { name: "Закрыть пробел", exact: true }).click();
   await page
-    .getByRole("textbox", { name: "Основание закрытия" })
+    .getByRole("textbox", { name: "Почему пробел закрыт" })
     .fill("Три аналогичные задачи решены самостоятельно.");
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Подтвердить закрытие", exact: true })
+    .getByRole("button", { name: "Закрыть пробел", exact: true })
     .click();
   await expect(page.locator(".dp-student-gap.is-closed")).toContainText("Пробел закрыт");
   await page.reload();
@@ -85,13 +85,13 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   const originalTab = page.getByRole("tab", { name: "Оригинал", exact: true });
   if (testInfo.project.name.includes("mobile")) await originalTab.click();
   await expect(page.getByAltText("Оригинал: Учебный пример.svg")).toBeVisible();
-  await page.getByRole("button", { name: "Кадрировать" }).click();
+  await page.getByRole("button", { name: "Обрезать" }).click();
   const left = page.getByRole("spinbutton", { name: "Слева", exact: true });
   await left.fill("2");
   await left.press("0");
   await expect(left).toBeFocused();
   await expect(left).toHaveValue("20");
-  await page.getByRole("button", { name: "Применить область" }).click();
+  await page.getByRole("button", { name: "Сохранить обрезку" }).click();
   await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
   await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
@@ -128,10 +128,10 @@ test("masks hide personal data and every page is checked before analysis", async
   await page.goto("/works/demo-ready");
   if (mobile) await toOriginal();
   await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Скрыть данные" }).click();
+  await page.getByRole("button", { name: "Закрасить данные" }).click();
   await page.getByRole("spinbutton", { name: "Ширина", exact: true }).fill("40");
-  await page.getByRole("button", { name: "Добавить маску" }).click();
-  await expect(page.getByText(/^Маска 1: 0% слева, 0% сверху, 40×8%/)).toBeVisible();
+  await page.getByRole("button", { name: "Закрасить область" }).click();
+  await expect(page.getByText(/^Область 1: 0% слева, 0% сверху, 40×8%/)).toBeVisible();
   await expect(page.locator(".mask-box")).toHaveCount(1);
   await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
   await expect(page.getByText("Проверено 0 из 1")).toBeVisible();
@@ -157,8 +157,8 @@ test("masks hide personal data and every page is checked before analysis", async
   if (mobile) await toOriginal();
   await expect(page.locator(".mask-box")).toHaveCount(mobile ? 1 : 2);
   await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Скрыть данные" }).click();
-  await page.getByRole("button", { name: "Удалить маску 1" }).click();
+  await page.getByRole("button", { name: "Закрасить данные" }).click();
+  await page.getByRole("button", { name: "Удалить область 1" }).click();
   await expect(page.locator(".mask-box")).toHaveCount(mobile ? 0 : 1);
   await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
 });
@@ -436,7 +436,7 @@ test("an image condition cannot replace the student's solution", async ({ page }
   await page.getByLabel("Прикрепить условие задачи 1").setInputFiles("e2e/fixtures/solution.png");
   await expect(page.getByText("Условие: solution.png")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
-  await expect(page.getByRole("alert")).toContainText("Добавьте решение ученика отдельно");
+  await expect(page.getByRole("alert")).toContainText("Добавьте файл с решением");
   await expect(page).toHaveURL(/\/works\/new$/);
 });
 

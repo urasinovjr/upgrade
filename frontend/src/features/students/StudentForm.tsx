@@ -22,7 +22,7 @@ export function StudentForm({
         if (!value) onClose();
       }}
       title={student ? "Редактировать ученика" : "Новый ученик"}
-      description="Имя используется только в вашем рабочем пространстве."
+      description="Имя видно только в вашем кабинете."
     >
       <Form
         key={student?.id || String(open)}

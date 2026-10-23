@@ -4,7 +4,7 @@ export const families = [
   { id: "powers_roots", label: "Степени и корни" },
   { id: "equations", label: "Уравнения" },
   { id: "inequalities", label: "Неравенства" },
-  { id: "mixed", label: "Несколько семейств" },
+  { id: "mixed", label: "Несколько разделов" },
 ] as const;
 
 export type FamilyId = (typeof families)[number]["id"];

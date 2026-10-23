@@ -41,7 +41,7 @@ function timelineEvents(works: Work[], closures: Closure[]): Event[] {
         id: revision.id,
         at: revision.confirmedAt,
         kind: "confirmed" as const,
-        title: `Подтверждена редакция ${revision.number}`,
+        title: `Подтверждена версия ${revision.number}`,
         text: work.title,
         href: `/works/${work.id}/report?revision=${revision.id}`,
         studentId: work.studentId,

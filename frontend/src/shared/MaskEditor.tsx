@@ -99,8 +99,8 @@ export function MaskControls({
   return (
     <div className="mask-controls">
       <p>
-        Закройте имя ученика и другие личные данные: проведите по странице или задайте область в
-        процентах. ИИ получит страницу с закрашенными областями.
+        Закрасьте имя ученика и другие личные данные. Проведите по странице или задайте область в
+        процентах. ИИ увидит страницу уже закрашенной.
       </p>
       <form
         onSubmit={(event) => {
@@ -110,21 +110,21 @@ export function MaskControls({
       >
         <RectFields values={values} setValues={setValues} minSize={minMaskSize} />
         <button type="submit" className="dp-primary" disabled={full}>
-          Добавить маску
+          Закрасить область
         </button>
       </form>
-      {full && <p>На странице не больше {maxMasksPerPage} масок.</p>}
+      {full && <p>На одной странице можно закрасить до {maxMasksPerPage} областей.</p>}
       {masks.length > 0 && (
-        <ol className="mask-list" aria-label="Маски на странице">
+        <ol className="mask-list" aria-label="Закрашенные области на странице">
           {masks.map((mask, index) => (
             <li key={index}>
               <span>
-                Маска {index + 1}: {Math.round(mask.x * 100)}% слева, {Math.round(mask.y * 100)}%
+                Область {index + 1}: {Math.round(mask.x * 100)}% слева, {Math.round(mask.y * 100)}%
                 сверху, {Math.round(mask.width * 100)}×{Math.round(mask.height * 100)}%
               </span>
               <button
                 type="button"
-                aria-label={"Удалить маску " + (index + 1)}
+                aria-label={"Удалить область " + (index + 1)}
                 onClick={() => onChange(masks.filter((_, item) => item !== index))}
               >
                 <Trash2 size={14} aria-hidden="true" />
@@ -153,7 +153,7 @@ export function PageCheck({
   const done = total - uncheckedPages(files).length;
   const Icon = checked ? CircleCheck : CircleAlert;
   return (
-    <div className="page-check" role="group" aria-label="Обезличивание страницы">
+    <div className="page-check" role="group" aria-label="Проверка страницы на личные данные">
       <span className={"dp-badge dp-tone-" + (checked ? "success" : "warning")}>
         <Icon size={12} aria-hidden="true" />
         {checked ? "Страница проверена" : "Страница не проверена"}

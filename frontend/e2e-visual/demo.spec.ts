@@ -30,7 +30,7 @@ const screens: Screen[] = [
     widths: [phone, 1440],
     prepare: async (page) => {
       await customize(page);
-      await openDialog(page, "Добавить виджет");
+      await openDialog(page, "Добавить блок");
     },
   },
   { name: "works-attention", path: "/works", widths: allWidths },

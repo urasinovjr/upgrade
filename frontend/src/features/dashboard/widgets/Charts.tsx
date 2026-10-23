@@ -96,7 +96,7 @@ export function ReviewSpeed({ works }: { works: Work[] }) {
         <>
           <p className="dp-insight-figure">
             <strong>{duration(speed.median)}</strong>
-            <span>в среднем (медиана) · {plural(speed.count, ["работа", "работы", "работ"])}</span>
+            <span>медиана по {plural(speed.count, ["работе", "работам", "работам"])}</span>
           </p>
           <ul className="dp-meter-list">
             {speed.buckets.map((bucket) => (

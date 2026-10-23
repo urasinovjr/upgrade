@@ -326,9 +326,11 @@ const scenarios = {
     await page.getByRole("tab", { name: "Обзор", exact: true }).click();
     await button(page, "Закрыть пробел").click();
     await page
-      .getByLabel("Основание закрытия")
+      .getByLabel("Почему пробел закрыт")
       .fill("Самостоятельно решил три задачи с ограничениями.");
-    await closeDialog(page, () => button(page, "Подтвердить закрытие").click());
+    await closeDialog(page, () =>
+      page.getByRole("dialog").getByRole("button", { name: "Закрыть пробел" }).click(),
+    );
     await button(page, "Открыть пробел снова").waitFor();
     await reload(page);
     await button(page, "Открыть пробел снова").waitFor();
@@ -358,7 +360,7 @@ const scenarios = {
   async strip(page) {
     await open(page, "dashboard");
     await page
-      .getByRole("link", { name: "Дроби — путь к пробелу «Область допустимых значений»" })
+      .getByRole("link", { name: "Дроби ведёт к пробелу «Область допустимых значений»" })
       .click();
     await page.waitForURL(/students\/anna\?tab=map&topic=domain/);
     await page.waitForFunction(() =>

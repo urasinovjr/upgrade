@@ -191,12 +191,12 @@ export function MediaViewer({
           {redaction && (
             <button onClick={() => toggle("mask")} aria-expanded={tool === "mask"}>
               <EyeOff size={14} />
-              Скрыть данные
+              Закрасить данные
             </button>
           )}
           <button onClick={() => toggle("crop")} aria-expanded={tool === "crop"}>
             <Crop size={14} />
-            Кадрировать
+            Обрезать
           </button>
         </div>
       )}
@@ -226,7 +226,7 @@ export function MediaViewer({
             >
               {order.map((number, index) => (
                 <option key={number} value={number}>
-                  {index + 1} / {order.length} (исх. {number})
+                  {index + 1} / {order.length} (в файле {number})
                 </option>
               ))}
             </select>

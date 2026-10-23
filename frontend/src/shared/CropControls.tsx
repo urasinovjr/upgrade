@@ -19,10 +19,10 @@ export function CropControls({
         onApply(rectFromPercent(values, 0.05));
       }}
     >
-      <p>Область просмотра и разбора, % · исходный файл сохраняется</p>
+      <p>Область для разбора в процентах. Исходный файл не меняется.</p>
       <RectFields values={values} setValues={setValues} minSize={0.05} />
       <button type="submit" className="dp-primary">
-        Применить область
+        Сохранить обрезку
       </button>
       <button type="button" onClick={() => onApply({ x: 0, y: 0, width: 1, height: 1 })}>
         <RotateCcw size={14} />

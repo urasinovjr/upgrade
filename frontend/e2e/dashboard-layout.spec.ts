@@ -46,8 +46,8 @@ test("customizing the overview survives a reload", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Настройка обзора" })).toBeFocused();
   await expect(page.locator('[data-widget="kpis"] .dp-widget-body')).toHaveAttribute("inert", "");
   await page.getByRole("button", { name: "Убрать «Фокус на ученике»" }).click();
-  await page.getByRole("button", { name: "Добавить виджет" }).click();
-  const catalog = page.getByRole("dialog", { name: "Добавить виджет" });
+  await page.getByRole("button", { name: "Добавить блок" }).click();
+  const catalog = page.getByRole("dialog", { name: "Добавить блок" });
   await expect(catalog.getByRole("button", { name: "Добавить «Фокус на ученике»" })).toBeVisible();
   await catalog.getByRole("button", { name: "Добавить «Гипотезы на проверку»" }).click();
   await expect(catalog).toBeHidden();

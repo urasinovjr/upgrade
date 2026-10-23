@@ -95,7 +95,7 @@ export function WidgetGrid({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const position = (id: unknown) => placeLabel(layout.items, id);
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Виджет «${title(active.id)}» взят, ${position(active.id)}.`,
+    onDragStart: ({ active }) => `Блок «${title(active.id)}» взят, ${position(active.id)}.`,
     onDragOver: ({ active }) => `«${title(active.id)}»: ${position(active.id)}.`,
     onDragEnd: ({ active }) => `«${title(active.id)}» поставлен на ${position(active.id)}.`,
     onDragCancel: ({ active }) => `Перенос «${title(active.id)}» отменён.`,
@@ -125,7 +125,7 @@ export function WidgetGrid({
     const neighbour = layout.items[index + 1] ?? layout.items[index - 1];
     if (neighbour) pendingFocus.current = { id: neighbour.id, action: "first" };
     editor.apply((current) => removeWidget(current, id));
-    announce(`«${title(id)}» убран с обзора. Вернуть его можно через «Добавить виджет».`);
+    announce(`«${title(id)}» убран с обзора. Вернуть его можно через «Добавить блок».`);
     if (!neighbour) document.querySelector<HTMLElement>(".dp-layout-add")?.focus();
   };
   const resize = (id: WidgetId, columns: number) =>
@@ -166,8 +166,7 @@ export function WidgetGrid({
       accessibility={{
         announcements,
         screenReaderInstructions: {
-          draggable:
-            "Перетащите виджет мышью или стрелками переставьте его на место раньше или позже.",
+          draggable: "Перетащите блок мышью или переставьте стрелками.",
         },
       }}
       onDragStart={onDragStart}
@@ -264,7 +263,7 @@ function Widget({
   const { setNodeRef, setActivatorNodeRef, attributes, listeners, isDragging } = useSortable({
     id,
     disabled: !editing,
-    attributes: { roleDescription: "перемещаемый виджет" },
+    attributes: { roleDescription: "перемещаемый блок" },
   });
   const { title: name, Icon, divider } = widgets[id];
   const heights =
@@ -281,7 +280,7 @@ function Widget({
       style={{ "--span": item.span, "--height": height && height + "px" } as CSSProperties}
     >
       {editing && (
-        <div className="dp-widget-tools" role="group" aria-label={`Виджет «${name}»`}>
+        <div className="dp-widget-tools" role="group" aria-label={`Блок «${name}»`}>
           <button
             ref={setActivatorNodeRef}
             {...attributes}
@@ -376,8 +375,8 @@ function Widget({
 
 const gripTitles: Record<Axis, string> = {
   x: "Потяните, чтобы изменить ширину",
-  y: "Потяните, чтобы изменить высоту. Двойной щелчок — по содержимому",
-  xy: "Потяните, чтобы изменить ширину и высоту. Двойной щелчок — высота по содержимому",
+  y: "Потяните, чтобы изменить высоту. Двойной щелчок вернёт высоту по содержимому.",
+  xy: "Потяните, чтобы изменить ширину и высоту. Двойной щелчок вернёт высоту по содержимому.",
 };
 
 function ResizeGrip({

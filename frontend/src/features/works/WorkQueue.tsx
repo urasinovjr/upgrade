@@ -226,9 +226,9 @@ export function WorkQueue({
                   currentRevision(work) && (
                     <span
                       className="dp-work-revision"
-                      title="Готовится новая редакция, подтверждённая доступна"
+                      title="Идёт работа над новой версией, подтверждённая остаётся в силе"
                     >
-                      Новая редакция
+                      Новая версия
                     </span>
                   )
                 )}
@@ -240,7 +240,7 @@ export function WorkQueue({
         })}
         {!full && matches.length > shown.length && (
           <Link className="dp-queue-rest" to={fullLink}>
-            Ещё {matches.length - shown.length} · открыть список
+            Ещё {matches.length - shown.length} в списке работ
             <ArrowRight size={14} aria-hidden="true" />
           </Link>
         )}

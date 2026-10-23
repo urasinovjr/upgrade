@@ -87,7 +87,7 @@ export function CommonGaps({ state, topics }: { state: StoreState; topics: Topic
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Сейчас ни одна тема не требует повторения.</WidgetEmpty>
+        <WidgetEmpty>Сейчас повторять нечего.</WidgetEmpty>
       )}
     </WidgetSection>
   );

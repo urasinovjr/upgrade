@@ -56,7 +56,7 @@ export default function PdfPage({
         setError("PDF не удалось открыть. Проверьте файл или загрузите его заново.")
       }
       loading={<p>Открываем PDF…</p>}
-      error={<p role="alert">{error || "Ошибка открытия PDF."}</p>}
+      error={<p role="alert">{error || "Не удалось открыть PDF."}</p>}
     >
       <Page
         pageNumber={page}

@@ -39,11 +39,11 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Закрыть пробел", exact: true }).click();
   await page
-    .getByRole("textbox", { name: "Основание закрытия" })
+    .getByRole("textbox", { name: "Почему пробел закрыт" })
     .fill("Повторная работа без ошибок.");
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Подтвердить закрытие", exact: true })
+    .getByRole("button", { name: "Закрыть пробел", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
@@ -148,7 +148,7 @@ test("drop upload works; an unsaved form reload asks to choose files again", asy
   page.once("dialog", (dialog) => void dialog.accept());
   await page.reload();
   await expect(
-    page.getByText("Файлы ещё не были сохранены в работе.", { exact: false }),
+    page.getByText("Страница перезагрузилась, и файлы не сохранились.", { exact: false }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Удалить dropped.png" })).toHaveCount(0);
 });

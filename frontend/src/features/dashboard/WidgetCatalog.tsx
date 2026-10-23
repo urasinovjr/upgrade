@@ -18,8 +18,8 @@ export function WidgetCatalog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Добавить виджет"
-      description="Виджет появится в конце обзора; перенесите его на нужное место."
+      title="Добавить блок"
+      description="Блок появится в конце обзора. Потом перетащите его, куда удобно."
     >
       {available.length ? (
         <ul className="dp-catalog">
@@ -47,7 +47,7 @@ export function WidgetCatalog({
           })}
         </ul>
       ) : (
-        <p className="dp-catalog-empty">Все виджеты уже на обзоре.</p>
+        <p className="dp-catalog-empty">Все блоки уже на обзоре.</p>
       )}
     </Modal>
   );

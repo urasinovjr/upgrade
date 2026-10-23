@@ -231,7 +231,7 @@ export function MapLegend() {
       </li>
       <li className="dp-map-legend-path">
         <span aria-hidden="true" />
-        Путь к выбранной теме
+        Ведёт к выбранной теме
       </li>
     </ul>
   );
