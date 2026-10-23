@@ -232,3 +232,84 @@ test("long names, goals, work titles and filenames remain readable", async ({ pa
   await expect(page.locator(".work-name strong").filter({ hasText: title })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+for (const width of [1440, 1024, 390]) {
+  test(`the active section and its count stay readable at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [title, heading] of [
+      ["Обзор", "Обзор"],
+      ["Работы", "Работы"],
+      ["Ученики", "Ученики"],
+    ]) {
+      await page.goto("/dashboard");
+      const link = page.getByRole("navigation").getByRole("link", { name: title, exact: true });
+      await link.click();
+      await expect(page.locator("h1")).toHaveText(heading);
+      await expect(link).toHaveAttribute("aria-current", /page|true/);
+      await expect(link).toHaveClass(/active/);
+    }
+    const count = page
+      .getByRole("navigation")
+      .getByRole("link", { name: "Работы", exact: true })
+      .locator(".dp-nav-count");
+    await page.goto("/works");
+    await expect(count).toBeVisible();
+    const contrast = await count.evaluate((element) => {
+      const channels = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 4).map(Number);
+      const luminance = (rgb: number[]) => {
+        const [red, green, blue] = rgb.map((value) => {
+          const channel = value / 255;
+          return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+      };
+      let background = [255, 255, 255];
+      for (let node: Element | null = element; node; node = node.parentElement) {
+        const color = channels(getComputedStyle(node).backgroundColor);
+        if ((color[3] ?? 1) > 0.9) {
+          background = color.slice(0, 3);
+          break;
+        }
+      }
+      const text = luminance(channels(getComputedStyle(element).color));
+      const fill = luminance(background);
+      return (Math.max(text, fill) + 0.05) / (Math.min(text, fill) + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
+  });
+}
+
+test("keyboard focus is visible on the navigation links", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/dashboard");
+  const links = page.getByRole("navigation").getByRole("link");
+  await links.first().focus();
+  for (const link of await links.all()) {
+    await link.focus();
+    const outline = await link.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { style: style.outlineStyle, width: parseFloat(style.outlineWidth) };
+    });
+    expect(outline.style).not.toBe("none");
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+  }
+});
+
+test("welcome page controls are large enough to tap on a phone", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/welcome");
+  await expect(page.locator("h1")).toBeVisible();
+  const small = await page
+    .locator("main")
+    .locator("button, a.dp-primary, a.dp-secondary, .dp-landing-cta a")
+    .evaluateAll((elements) =>
+      elements
+        .filter((element) => element.getClientRects().length > 0)
+        .map((element) => ({
+          text: (element.textContent ?? "").trim().slice(0, 30),
+          height: element.getBoundingClientRect().height,
+        }))
+        .filter((item) => item.height < 44),
+    );
+  expect(small).toEqual([]);
+});
