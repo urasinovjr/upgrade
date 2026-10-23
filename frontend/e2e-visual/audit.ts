@@ -1,4 +1,5 @@
 import path from "node:path";
+import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect } from "./fixtures";
 
@@ -127,18 +128,44 @@ function lowContrast(texts: TextSample[]) {
   return [...found];
 }
 
-export async function capture(page: Page, name: string, options: CaptureOptions = {}) {
+export async function auditPage(page: Page, options: CaptureOptions = {}) {
   const headings = options.headings ?? 1;
   if (headings) await expect(page.locator("h1")).toHaveCount(headings);
   if (!options.loading) await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
   await page.evaluate(settleMedia);
-  const dialogs = await page.getByRole("dialog").count();
-  const layout = await page.evaluate(auditLayout, dialogs ? "[role=dialog]" : "body");
+  const scope = (await page.getByRole("dialog").count()) ? "[role=dialog]" : "body";
+  const layout = await page.evaluate(auditLayout, scope);
   expect.soft(layout.overflow, "horizontal overflow").toEqual([]);
   expect.soft(layout.headings, "h1 count").toBe(headings);
   expect.soft(lowContrast(layout.texts), "text contrast").toEqual([]);
   expect.soft(layout.squeezed, "squeezed text").toEqual([]);
-  const fullPage = dialogs ? false : (options.fullPage ?? true);
+  return scope;
+}
+
+async function checkAccessibility(page: Page, scope: string) {
+  const results = await new AxeBuilder({ page })
+    .include(scope)
+    .exclude("math-field")
+    .disableRules(["color-contrast"])
+    .analyze();
+  const violations = results.violations
+    .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
+    .map(
+      (violation) =>
+        violation.id +
+        ": " +
+        violation.nodes
+          .slice(0, 3)
+          .map((node) => node.target.join(" "))
+          .join(", "),
+    );
+  expect.soft(violations, "accessibility").toEqual([]);
+}
+
+export async function capture(page: Page, name: string, options: CaptureOptions = {}) {
+  const scope = await auditPage(page, options);
+  await checkAccessibility(page, scope);
+  const fullPage = scope === "body" && (options.fullPage ?? true);
   await expect(page).toHaveScreenshot(name + ".png", {
     fullPage,
     mask: (options.mask ?? []).map((selector) => page.locator(selector)),

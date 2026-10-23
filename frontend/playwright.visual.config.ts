@@ -47,5 +47,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
     },
     { name: "mobile", grep: /@mobile/, use: { ...devices["iPhone 13"] } },
+    { name: "sweep-chromium", grep: /@sweep/, use: { ...devices["Desktop Chrome"] } },
+    { name: "sweep-webkit", grep: /@sweep/, use: { ...devices["Desktop Safari"] } },
   ],
 });

@@ -9,7 +9,7 @@ export type Plan = "trial" | "active" | "expired";
 export interface Scenario {
   session: "guest" | "offline" | "pending" | Plan;
   providers: AuthConfig["providers"];
-  state: "filled" | "empty" | "failed" | "pending";
+  state: "filled" | "empty" | "no-works" | "failed" | "pending";
   pilot?: boolean;
 }
 
@@ -95,6 +95,12 @@ function filledState(now: number): StoreState {
 
 const emptyState: StoreState = { students: [], works: [], closures: [] };
 
+function scenarioState(scenario: Scenario, now: number): StoreState {
+  if (scenario.state === "empty") return emptyState;
+  const state = filledState(now);
+  return scenario.state === "no-works" ? { ...state, works: [], closures: [] } : state;
+}
+
 function json(route: Route, body: unknown, status = 200) {
   return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 }
@@ -105,7 +111,7 @@ function failure(route: Route, status: number, detail: string) {
 
 export async function mockApi(page: Page, scenario: Scenario, now: number) {
   const unhandled: string[] = [];
-  const state = scenario.state === "empty" ? emptyState : filledState(now);
+  const state = scenarioState(scenario, now);
   const sheet = await fixtureUploads(state)[0]?.blob.text();
   const plan = scenario.session as Plan;
   const signedIn = ["trial", "active", "expired"].includes(scenario.session);
@@ -123,6 +129,7 @@ export async function mockApi(page: Page, scenario: Scenario, now: number) {
         return json(route, session(plan, now));
       }
       if (path === "/auth/login") return failure(route, 401, "invalid_credentials");
+      if (path === "/auth/register") return failure(route, 422, "password_too_weak");
       if (path === "/auth/confirm") return failure(route, 400, "token_invalid");
       if (!signedIn) return failure(route, 401, "not_authenticated");
       if (unsafe.has(method) && plan === "expired")
@@ -131,14 +138,14 @@ export async function mockApi(page: Page, scenario: Scenario, now: number) {
         unhandled.push(method + " " + path);
         return failure(route, 501, "not_mocked");
       }
-      if (path === "/state") {
+      const report = path.match(/^\/works\/([^/]+)\/report$/);
+      if (path === "/state" || report) {
         if (scenario.state === "pending") return;
         if (scenario.state === "failed") return failure(route, 500, "storage_unavailable");
-        return json(route, state);
       }
+      if (path === "/state") return json(route, state);
       if (path.startsWith("/files/"))
         return route.fulfill({ status: 200, contentType: "image/svg+xml", body: sheet });
-      const report = path.match(/^\/works\/([^/]+)\/report$/);
       if (report) {
         const work = state.works.find((item) => item.id === report[1]);
         const student = state.students.find((item) => item.id === work?.studentId);
