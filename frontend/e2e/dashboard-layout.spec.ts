@@ -190,7 +190,7 @@ test("a failed save keeps edit mode open", async ({ page }) => {
     };
   });
   await page.getByRole("button", { name: "Готово" }).click();
-  await expect(page.getByRole("alert")).toContainText("недостаточно места");
+  await expect(page.getByRole("alert")).toContainText("закончилось место");
   await expect(page.getByRole("region", { name: "Настройка обзора" })).toBeVisible();
   await page.evaluate(() => (window as unknown as { restorePut: () => void }).restorePut());
   await page.getByRole("button", { name: "Готово" }).click();

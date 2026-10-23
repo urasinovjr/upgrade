@@ -50,7 +50,7 @@ describe("demo persistence", () => {
     ];
     await gateway.create(work, [{ ...work.attachments[0], blob }]);
     expect(await (await gateway.asset(id)).text()).toBe("local file");
-    await expect(gateway.action(work.id, "analyse")).rejects.toThrow("ручной разбор");
+    await expect(gateway.action(work.id, "analyse")).rejects.toThrow("проверить вручную");
     await gateway.action(work.id, "manual");
     const state = await gateway.read();
     const draft = state.works.find((item) => item.id === work.id)!.draft;
@@ -94,7 +94,7 @@ describe("demo persistence", () => {
       return original.apply(this, args);
     });
     try {
-      await expect(gateway.create(work, [file])).rejects.toThrow("недостаточно места");
+      await expect(gateway.create(work, [file])).rejects.toThrow("закончилось место");
     } finally {
       spy.mockRestore();
     }
@@ -131,7 +131,7 @@ describe("demo persistence", () => {
         at: new Date().toISOString(),
         action: "close",
       }),
-    ).rejects.toThrow("основание");
+    ).rejects.toThrow("почему пробел закрыт");
   });
   it("restores exports of earlier local snapshots without deleting their files", async () => {
     const state = await gateway.read();
@@ -200,7 +200,7 @@ describe("demo persistence", () => {
       throw new DOMException("Full", "QuotaExceededError");
     });
     try {
-      await expect(gateway.saveLayout(defaultLayout())).rejects.toThrow("недостаточно места");
+      await expect(gateway.saveLayout(defaultLayout())).rejects.toThrow("закончилось место");
     } finally {
       spy.mockRestore();
     }

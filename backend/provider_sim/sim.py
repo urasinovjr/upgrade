@@ -157,7 +157,7 @@ def reviewed_task(task: DraftTask, topics: list[DraftTopic]) -> dict:
     topic = topic_named(topic_of(task, topics), topics)
     result = {"task_id": task.id, "topic_id": topic.id, "gap": None}
     if kind == "unsupported":
-        reason = "Тип задачи не входит в согласованный охват пилота."
+        reason = "UpGrade пока не разбирает задачи этого типа."
         return {**result, "supported": False, "reason": reason, "steps": [], "feedback": ""}
     steps = [
         {"id": step.id, "verdict": "correct" if step.legible else "uncertain", "explanation": ""}
@@ -167,13 +167,13 @@ def reviewed_task(task: DraftTask, topics: list[DraftTopic]) -> dict:
     if kind == "error" and steps:
         wrong = len(steps) // 2
         steps[wrong]["verdict"] = "error"
-        steps[wrong]["explanation"] = f"Переход нарушает правило темы «{topic.name}»."
+        steps[wrong]["explanation"] = f"Здесь нарушено правило из темы «{topic.name}»."
         gap_topic = topic_named((topic.prerequisites or [topic.id])[0], topics)
-        reason = f"Повторить тему «{gap_topic.name}»: ошибка в шаге {wrong + 1}."
+        reason = f"Повторить тему «{gap_topic.name}». На ней ошибка в шаге {wrong + 1}."
         result["gap"] = {"topic_id": gap_topic.id, "reason": reason}
         feedback = f"Ошибка в шаге {wrong + 1}."
     if any(step["verdict"] == "uncertain" for step in steps):
-        feedback = "Часть записи не распознана, сверьте её с оригиналом."
+        feedback = "Часть записи не распознана. Сверьте её с оригиналом."
     return {**result, "supported": True, "steps": steps, "feedback": feedback}
 
 

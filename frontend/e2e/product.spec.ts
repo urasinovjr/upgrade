@@ -354,7 +354,7 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   await page
     .getByRole("textbox", { name: "Общий комментарий" })
     .fill("Изменения должны сохраниться после повтора.");
-  await expect(page.getByRole("alert")).toContainText("недостаточно места");
+  await expect(page.getByRole("alert")).toContainText("закончилось место");
   await page.evaluate(() =>
     (window as Window & { restoreStorage?: () => void }).restoreStorage?.(),
   );
@@ -415,7 +415,7 @@ test("clipboard refusal and unavailable API provide selected confirmed text", as
     const field = page.getByRole("textbox", { name: "Текст отчёта" });
     await expect(field).toBeVisible();
     await expect(field).toBeFocused();
-    await expect(field).toHaveValue(/Самостоятельная · рациональные дроби/);
+    await expect(field).toHaveValue(/Самостоятельная по рациональным дробям/);
     expect(
       await field.evaluate((element) => {
         const textarea = element as HTMLTextAreaElement;

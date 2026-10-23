@@ -34,7 +34,7 @@ test("unclear and unsupported tasks are marked and the rest is confirmed", async
   await taskTab(page, 3).click();
   await expect(page.getByText("Задача отложена для отдельной проверки")).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Почему задача отложена" })).toHaveValue(
-    "Тип задачи не входит в согласованный охват пилота.",
+    "UpGrade пока не разбирает задачи этого типа.",
   );
   await taskTab(page, 2).click();
   await expect(
@@ -54,7 +54,7 @@ test("unclear and unsupported tasks are marked and the rest is confirmed", async
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Отчёт · v1" }).click();
   await expect(page.getByRole("main")).toContainText(
-    "Разберём отдельно. Тип задачи не входит в согласованный охват пилота.",
+    "Разберём отдельно. UpGrade пока не разбирает задачи этого типа.",
   );
 });
 

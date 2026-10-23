@@ -276,7 +276,7 @@ const scenarios = {
     await copied.or(manual).first().waitFor();
     if (await manual.isVisible()) {
       check(
-        (await manual.inputValue()).includes("Самостоятельная · рациональные дроби"),
+        (await manual.inputValue()).includes("Самостоятельная по рациональным дробям"),
         "Manual copy text is not the report",
       );
       await closeDialog(page, () => page.keyboard.press("Escape"));

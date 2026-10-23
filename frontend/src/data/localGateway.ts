@@ -107,7 +107,7 @@ async function initialize() {
 function storageError(cause: unknown) {
   if (cause instanceof DOMException && cause.name === "QuotaExceededError")
     return new Error(
-      "В браузере недостаточно места. Освободите место и повторите сохранение; изменения остаются на экране.",
+      "В браузере закончилось место. Освободите его и сохраните снова. Изменения пока на экране.",
     );
   return cause;
 }
@@ -220,7 +220,7 @@ export const localGateway: Gateway = {
         if (action === "withdraw")
           return { ...work, currentPublishedId: undefined, editing: true, status: "ready" };
         if (work.job) throw new Error("Обработка уже запущена.");
-        if (!work.editing) throw new Error("Откройте новую редакцию.");
+        if (!work.editing) throw new Error("Начните новую версию разбора.");
         if (action === "manual")
           return {
             ...work,
@@ -230,7 +230,7 @@ export const localGateway: Gateway = {
           };
         if (!work.demo)
           throw new Error(
-            "Автоматический анализ пользовательских файлов будет доступен после подключения сервера. Сейчас доступен ручной разбор.",
+            "В демо ИИ разбирает только учебный пример. Свои файлы здесь можно проверить вручную.",
           );
         if (uncheckedPages(work.attachments).length) throw new Error(redactionMessage);
         const student = state.students.find((item) => item.id === work.studentId);
@@ -252,7 +252,7 @@ export const localGateway: Gateway = {
   },
   async closure(closure) {
     if (closure.action === "close" && !closure.note.trim())
-      throw new Error("Укажите основание закрытия пробела.");
+      throw new Error("Напишите, почему пробел закрыт.");
     await mutate((state) => ({ ...state, closures: [...state.closures, closure] }));
   },
   async report(id, revisionId) {

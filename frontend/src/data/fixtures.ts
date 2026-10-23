@@ -72,7 +72,7 @@ function tasks(sheetId: string, reviewed = false): Task[] {
       topicId: "equations",
       reviewed,
       omitted: false,
-      feedback: "Разложение на множители выполнено верно.",
+      feedback: "На множители разложено верно.",
       steps: [
         {
           id: "s1",
@@ -119,7 +119,8 @@ function tasks(sheetId: string, reviewed = false): Task[] {
       ],
       gap: {
         topicId: "domain",
-        reason: "Повторить ограничения знаменателя и сохранение ОДЗ при сокращении дробей.",
+        reason:
+          "Повторить, почему знаменатель не равен нулю и как ОДЗ сохраняется при сокращении дроби.",
         decision: reviewed ? "confirmed" : "hypothesis",
       },
     },
@@ -159,10 +160,10 @@ export function seedState(now = Date.now()): StoreState {
   ];
   const config: Array<[string, string, string, Work["status"]]> = [
     ["demo-ready", "anna", "Уравнения и преобразования", "ready"],
-    ["demo-confirmed", "anna", "Самостоятельная · рациональные дроби", "confirmed"],
-    ["demo-input", "mikhail", "Алгебра · повторение", "needs_input"],
-    ["demo-failed", "polina", "Практика · преобразования", "failed"],
-    ["demo-preparation", "ivan", "Домашняя работа · уравнения", "preparation"],
+    ["demo-confirmed", "anna", "Самостоятельная по рациональным дробям", "confirmed"],
+    ["demo-input", "mikhail", "Повторение алгебры", "needs_input"],
+    ["demo-failed", "polina", "Практика на преобразования", "failed"],
+    ["demo-preparation", "ivan", "Домашняя работа по уравнениям", "preparation"],
   ];
   const works = config.map(([id, studentId, title, status], index): Work => {
     const draft = {
