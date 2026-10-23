@@ -53,7 +53,7 @@ export function namePlaces(name: string, tasks: Task[]): NamePlace[] {
 const fieldLabels: Record<NamePlace["field"], string> = {
   condition: "условие",
   formula: "формула",
-  reference: "эталон",
+  reference: "правильный ответ",
   step: "шаг решения",
 };
 
@@ -66,4 +66,4 @@ export function namePlaceLabels(places: NamePlace[], tasks: Task[]): string[] {
 }
 
 export const nameMessage =
-  "Уберите имя ученика из текста задач: условия, эталоны и шаги уходят ИИ без имени.";
+  "Уберите имя ученика из текста задач. Условия, правильные ответы и шаги уходят ИИ без имени.";
