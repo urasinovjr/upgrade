@@ -104,6 +104,7 @@ def score(out: Path) -> str:
     total = scores_of(rows)
     families = grouped_scores(rows, "family")
     types = grouped_scores(rows, "task_type")
+    scenarios = grouped_scores(rows, "scenario")
     verdict = "порог пройден" if total.passed else "порог не пройден"
     lines = [
         f"Набор {meta['datasetVersion']}, часть {meta['split']}, модель {meta['model']}, "
@@ -114,6 +115,7 @@ def score(out: Path) -> str:
         f"{FALSE_ERROR_SHARE:.0%} — {verdict}",
         *[scores_line(name, item) for name, item in families.items()],
         *[scores_line("тип " + name, item) for name, item in types.items()],
+        *[scores_line("сценарий " + name, item) for name, item in scenarios.items()],
     ]
     if total.tasks < MIN_TASKS or total.correct_solutions < MIN_CORRECT:
         lines.append(
@@ -123,6 +125,7 @@ def score(out: Path) -> str:
         "total": {**asdict(total), "passed": total.passed},
         "families": {name: asdict(item) for name, item in families.items()},
         "taskTypes": {name: asdict(item) for name, item in types.items()},
+        "scenarios": {name: asdict(item) for name, item in scenarios.items()},
     }
     (out / "metrics.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), "utf-8")
     return "\n".join(lines)

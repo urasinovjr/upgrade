@@ -8,6 +8,9 @@ from app.api_model import ApiModel
 from app.knowledge.families import Family
 
 Split = Literal["dev", "acceptance"]
+Scenario = Literal[
+    "standard", "alternative", "right_after_wrong", "unsupported", "no_condition", "illegible"
+]
 
 
 class CardFile(ApiModel):
@@ -37,6 +40,7 @@ class TaskCard(ApiModel):
     explanation: str = ""
     topic_id: str = ""
     task_type: str = ""
+    scenario: Scenario = "standard"
     legibility: Literal["legible", "partly", "illegible"] = "legible"
     admission: Literal["admitted", "excluded"] = "admitted"
     exclusion_reason: str = ""

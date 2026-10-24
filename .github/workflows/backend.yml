@@ -6,11 +6,15 @@ on:
     paths:
       - "backend/**"
       - "frontend/src/data/catalog.json"
+      - "frontend/e2e/**"
+      - "frontend/e2e-server/**"
       - ".github/workflows/backend.yml"
   pull_request:
     paths:
       - "backend/**"
       - "frontend/src/data/catalog.json"
+      - "frontend/e2e/**"
+      - "frontend/e2e-server/**"
       - ".github/workflows/backend.yml"
 
 jobs:

@@ -22,6 +22,17 @@ COLUMNS = [
 ]
 
 
+SCENARIO_COLUMNS = [
+    ("run", "Прогон"),
+    ("scenario", "Сценарий"),
+    ("tasks", "Задач"),
+    ("verdictMatch", "Вердикт"),
+    ("firstErrorMatch", "Первая ошибка"),
+    ("falseErrorShare", "Ложные ошибки"),
+    ("refused", "Отказы"),
+]
+
+
 class AcceptanceRun(Exception):
     def __init__(self, out: Path):
         super().__init__(str(out))
@@ -32,8 +43,10 @@ def read_run(out: Path) -> dict:
     meta = json.loads((out / "meta.json").read_text("utf-8"))
     if meta["split"] != "dev":
         raise AcceptanceRun(out)
-    total = json.loads((out / "auto.json").read_text("utf-8"))["total"]
+    auto = json.loads((out / "auto.json").read_text("utf-8"))
+    total = auto["total"]
     return {
+        "scenarios": auto.get("scenarios", {}),
         "run": out.name,
         "variant": meta.get("variant", ""),
         "codeCommit": meta.get("codeCommit", ""),
@@ -52,14 +65,22 @@ def cell(value) -> str:
     return str(value)
 
 
-def markdown(rows: list[dict]) -> str:
+def markdown(rows: list[dict], columns: list[tuple[str, str]] = COLUMNS) -> str:
     lines = [
-        "| " + " | ".join(title for _, title in COLUMNS) + " |",
-        "|" + " --- |" * len(COLUMNS),
+        "| " + " | ".join(title for _, title in columns) + " |",
+        "|" + " --- |" * len(columns),
     ]
     for row in rows:
-        lines.append("| " + " | ".join(cell(row.get(key)) for key, _ in COLUMNS) + " |")
+        lines.append("| " + " | ".join(cell(row.get(key)) for key, _ in columns) + " |")
     return "\n".join(lines)
+
+
+def scenario_rows(rows: list[dict]) -> list[dict]:
+    return [
+        {"run": row["run"], "scenario": name, **totals}
+        for row in rows
+        for name, totals in row["scenarios"].items()
+    ]
 
 
 def compare(outs: list[Path], report: Path) -> str:
@@ -71,6 +92,9 @@ def compare(outs: list[Path], report: Path) -> str:
         writer.writeheader()
         writer.writerows([{key: row.get(key) for key, _ in COLUMNS} for row in rows])
     table = markdown(rows)
+    by_scenario = scenario_rows(rows)
+    if by_scenario:
+        table += "\n\nПо сценариям:\n\n" + markdown(by_scenario, SCENARIO_COLUMNS)
     (report / "compare.md").write_text(table + "\n", "utf-8")
     versions = {row["datasetVersion"] for row in rows}
     if len(versions) > 1:

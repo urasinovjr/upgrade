@@ -71,6 +71,7 @@ def task_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
         "refused": view["verdict"] == "refused",
         "topicMatch": view["topic"] == card.topic_id,
         "taskType": card.task_type,
+        "scenario": card.scenario,
         "taskTypeMatch": type_match(card, task),
         "recognition": recognition_score(card.transcription, found),
         "stepCount": [len(card.transcription), len(found)],
@@ -142,4 +143,5 @@ def summarize(rows: list[dict], runs: list[tuple[RunRecord, str | None]]) -> dic
         "total": {**task_totals(rows), **run_totals(runs)},
         "families": grouped(rows, "family"),
         "taskTypes": grouped(rows, "taskType"),
+        "scenarios": grouped(rows, "scenario"),
     }
