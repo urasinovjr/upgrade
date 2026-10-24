@@ -4,7 +4,10 @@ import httpx
 import pytest
 
 from app.analysis.contract import (
+    ConditionArea,
+    ConditionImage,
     InvalidReply,
+    Region,
     ReviewTask,
     StepInput,
     TaskInput,
@@ -106,10 +109,12 @@ def answer(data: dict, finish_reason: str = "stop") -> httpx.Response:
 async def make_provider():
     providers = []
 
-    def build(*responses: httpx.Response | Exception) -> tuple[OpenAiDraftProvider, Recorder]:
+    def build(
+        *responses: httpx.Response | Exception, variant: str = "yandex-qwen36-v1"
+    ) -> tuple[OpenAiDraftProvider, Recorder]:
         recorder = Recorder(*responses)
         provider = OpenAiDraftProvider(
-            get_variant("yandex-qwen36-v1"),
+            get_variant(variant),
             "secret-key",
             "b1g",
             timeout=5,
@@ -236,3 +241,36 @@ async def test_failures_map_to_provider_errors(make_provider, response, code):
         await provider.review(REVIEW_TASKS, [])
 
     assert caught.value.code == code
+
+
+async def test_math_2_shows_condition_images_and_asks_for_the_task_type(make_provider):
+    typed = {"tasks": [{**REVIEW["tasks"][0], "task_type_id": "quadratic_eq"}]}
+    provider, recorder = make_provider(answer(typed), variant="yandex-qwen36-v2")
+    condition = ConditionImage(task_id="t1", image=PAGES[1])
+
+    reply = await provider.review(REVIEW_TASKS, [condition])
+    body = recorder.body()
+    [_, user] = body["messages"]
+    parts = user["content"]
+    images = [part["image_url"]["url"] for part in parts if part["type"] == "image_url"]
+    schema = body["response_format"]["json_schema"]["schema"]
+    task_schema = json.dumps(schema, ensure_ascii=False)
+
+    assert reply.prompt_version == "math-2"
+    assert len(images) == 1 and images[0].endswith("cGFnZS0x")
+    assert parts[-2] == {"type": "text", "text": "Условие задачи t1"}
+    assert '"condition_is_image": true' in parts[0]["text"]
+    assert "Тригонометрия:" in parts[0]["text"] and "derivative" in parts[0]["text"]
+    assert "task_type_id" in task_schema
+    assert read_review(reply.raw, REVIEW_TASKS).tasks[0].task_type_id == "quadratic_eq"
+
+
+async def test_math_2_marks_the_condition_area_for_recognition(make_provider):
+    provider, recorder = make_provider(answer(RECOGNITION), variant="yandex-qwen36-v2")
+    area = ConditionArea(file_id="f1", page=1, region=Region(x=0, y=0, width=1, height=0.25))
+    tasks = [TASKS[0], TASKS[1].model_copy(update={"condition_region": area})]
+
+    await provider.recognize(PAGES, tasks)
+    [_, user] = recorder.body()["messages"]
+
+    assert "Область условия: страница 2, bbox [0, 0, 1000, 250]" in user["content"][-1]["text"]

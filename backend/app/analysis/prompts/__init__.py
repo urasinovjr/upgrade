@@ -1,10 +1,10 @@
 from types import ModuleType
 
 from app.analysis.contract import ConditionImage, ReviewTask
-from app.analysis.prompts import math_1
+from app.analysis.prompts import math_1, math_2
 
-PROMPTS: dict[str, ModuleType] = {math_1.VERSION: math_1}
-WITH_CONDITIONS: set[str] = set()
+PROMPTS: dict[str, ModuleType] = {math_1.VERSION: math_1, math_2.VERSION: math_2}
+WITH_CONDITIONS = {math_2.VERSION}
 
 
 def review_messages(

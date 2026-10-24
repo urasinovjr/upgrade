@@ -6,6 +6,7 @@ from app.analysis.variants import VARIANTS
 
 PUBLISHED = {
     "math-1": "b7f95799ffa7ccef16f208ba4d83b622e49c7b4acb4778950c874ee58cecc0f5",
+    "math-2": "bd9f4264c56cc5b0eca8b02fa35e6d7683dfbb90553a14abc209f674b0a21cac",
 }
 
 

@@ -54,6 +54,19 @@ VARIANTS = {
             price_input_per_mtok=Decimal(200),
             price_output_per_mtok=Decimal(300),
         ),
+        Variant(
+            name="yandex-qwen36-v2",
+            kind="openai",
+            provider="yandex-ai-studio",
+            model="qwen3.6-35b-a3b",
+            prompt_version="math-2",
+            base_url="https://ai.api.cloud.yandex.net/v1",
+            model_uri="gpt://{folder}/qwen3.6-35b-a3b",
+            auth_scheme="Api-Key",
+            project_header="OpenAI-Project",
+            price_input_per_mtok=Decimal(200),
+            price_output_per_mtok=Decimal(300),
+        ),
     ]
 }
 
