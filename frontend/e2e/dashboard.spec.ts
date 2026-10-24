@@ -26,7 +26,7 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".work-row")).toHaveCount(1);
   await page.locator(".work-row").click();
-  await page.getByRole("button", { name: "Новая версия", exact: true }).click();
+  await page.getByRole("button", { name: "Начать новую версию", exact: true }).click();
   await home.click();
   await expect(page.getByRole("link", { name: "К проверке: 2", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
@@ -113,7 +113,7 @@ test("quick upload validates files and hands off a batch exactly once", async ({
     mimeType: "image/png",
     buffer: Buffer.alloc(20 * 1024 * 1024 + 1),
   });
-  await expect(page.getByRole("alert")).toContainText("максимальный размер");
+  await expect(page.getByRole("alert")).toContainText("файл больше 20 МБ");
   await input.setInputFiles(["e2e/fixtures/solution.png", "e2e/fixtures/solution.pdf"]);
   await expect(page).toHaveURL(/\/works\/new$/);
   await expect(page.getByRole("button", { name: "Удалить solution.png" })).toHaveCount(1);

@@ -191,7 +191,7 @@ export default function NewWork() {
         heading={
           <>
             <h1>Новая работа</h1>
-            <span className="dp-window-meta">Шаг 1 · подготовка</span>
+            <span className="dp-window-meta">Шаг 1 из 3 · Подготовка</span>
           </>
         }
         closeBlocked={dirty}
@@ -232,7 +232,7 @@ export default function NewWork() {
                 </select>
                 <button className="dp-compact-action" onClick={() => setStudentModal(true)}>
                   <UserPlus size={16} aria-hidden="true" />
-                  <span>Создать ученика</span>
+                  <span>Добавить ученика</span>
                 </button>
               </div>
             </div>
@@ -427,7 +427,7 @@ export default function NewWork() {
           </section>
           <footer className="dp-nw-footer new-work-submit">
             <ErrorMessage error={command.error} />
-            <p>Потом откроется разбор. Там вы сверите шаги с оригиналом и подтвердите работу.</p>
+            <p>Следующий шаг: разбор. Там вы сверите шаги с оригиналом и подтвердите работу.</p>
             <button
               className="dp-primary"
               disabled={command.isPending || decoding || !writeAccess.allowed}

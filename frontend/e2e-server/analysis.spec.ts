@@ -96,7 +96,7 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
-  await page.getByRole("button", { name: "Новая версия" }).click();
+  await page.getByRole("button", { name: "Начать новую версию" }).click();
   await page.getByRole("textbox", { name: "Что дальше" }).fill("Комментарий второй редакции");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await confirmTask(page);

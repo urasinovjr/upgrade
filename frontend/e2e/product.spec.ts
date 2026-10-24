@@ -35,7 +35,7 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await mkdir("../output/pdf", { recursive: true });
   await download.saveAs(path.resolve("../output/pdf/report-" + testInfo.project.name + ".pdf"));
   await page.getByRole("link", { name: "К разбору работы" }).click();
-  await page.getByRole("button", { name: "Новая версия" }).click();
+  await page.getByRole("button", { name: "Начать новую версию" }).click();
   await page.getByRole("textbox", { name: "Что дальше" }).fill("Проверка сохранения черновика.");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.reload();
@@ -282,7 +282,7 @@ test("multi-page PDF, image condition, page order and student creation", async (
   page,
 }, testInfo) => {
   await page.goto("/works/new");
-  await page.getByRole("button", { name: "Создать ученика" }).click();
+  await page.getByRole("button", { name: "Добавить ученика" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("textbox", { name: "Имя ученика" }).fill("Тестовый ученик");
   await dialog.getByRole("combobox", { name: "Класс" }).selectOption("11");
@@ -337,7 +337,7 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/works/demo-confirmed");
-  await page.getByRole("button", { name: "Новая версия" }).click();
+  await page.getByRole("button", { name: "Начать новую версию" }).click();
   await page.evaluate(() => {
     const original = IDBObjectStore.prototype.put;
     (window as Window & { restoreStorage?: () => void }).restoreStorage = () => {

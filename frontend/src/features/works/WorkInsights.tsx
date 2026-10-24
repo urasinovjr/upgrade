@@ -61,7 +61,7 @@ export function ActivityChart({ works, filter, onChange, titleId }: ChartProps) 
           <button
             key={day.day}
             aria-pressed={filter.day === day.day}
-            title={`${dayLabel(day.day)} · добавлено ${day.created}, подтверждено ${day.confirmed}`}
+            title={`${dayLabel(day.day)} · добавлено ${day.created}, подтверждено впервые ${day.confirmed}`}
             aria-label={`${dayLabel(day.day)}: добавлено ${day.created}, подтверждено впервые ${day.confirmed}`}
             onClick={() =>
               onChange({ ...filter, day: filter.day === day.day ? undefined : day.day })
@@ -92,7 +92,7 @@ export function ActivityChart({ works, filter, onChange, titleId }: ChartProps) 
         </span>
         <span>
           <i aria-hidden="true" data-series="confirmed" />
-          Первое подтверждение
+          Подтверждено впервые
         </span>
         <span className="dp-chart-period">
           {dayLabel(days[0].day)} — {dayLabel(days[13].day)}

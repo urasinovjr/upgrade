@@ -226,9 +226,9 @@ export function WorkQueue({
                   currentRevision(work) && (
                     <span
                       className="dp-work-revision"
-                      title="Идёт работа над новой версией, подтверждённая остаётся в силе"
+                      title="Идёт работа над новой версией, подтверждённая версия остаётся в силе"
                     >
-                      Новая версия
+                      Черновик
                     </span>
                   )
                 )}
@@ -254,10 +254,11 @@ export function WorkQueue({
                   {!full && upload && (
                     <small>Перетащите решение сюда или нажмите «Загрузить работу».</small>
                   )}
+                  {full && <small>Загрузите решение ученика, чтобы начать разбор.</small>}
                 </span>
                 {full && (
                   <Link className="dp-text" to="/works/new">
-                    Добавить первую работу
+                    Новая работа
                   </Link>
                 )}
               </>

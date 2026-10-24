@@ -816,7 +816,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
             {!work.editing && (
               <button disabled={busy} onClick={() => void action("edit")}>
                 <Pencil size={14} aria-hidden="true" />
-                Новая версия
+                Начать новую версию
               </button>
             )}
             <DeleteWork work={work} />

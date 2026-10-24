@@ -3,7 +3,8 @@ import type { Upload } from "../domain/models";
 export async function decodeUpload(file: File): Promise<Upload> {
   if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type))
     throw new Error(file.name + ": поддерживаются JPG, PNG и PDF.");
-  if (file.size > 20 * 1024 * 1024) throw new Error(file.name + ": максимальный размер — 20 МБ.");
+  if (file.size > 20 * 1024 * 1024)
+    throw new Error(file.name + ": файл больше 20 МБ. Уменьшите его или разделите на части.");
   let pages = 1;
   if (file.type === "application/pdf") {
     const module = await import("./PdfPage");
