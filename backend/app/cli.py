@@ -24,11 +24,14 @@ from app.evaluation import (
     score,
     validate,
 )
+from app.knowledge.catalog import catalog_json, catalog_problems
+from app.knowledge.export import catalog_diff, write_catalog_xlsx
 from app.timing import enroll, leave
 from app.timing.report import timing_report
 
 Command = Callable[[AsyncSession, argparse.Namespace], Awaitable[str]]
 FileCommand = Callable[[argparse.Namespace, Settings], Awaitable[str]]
+CATALOG_JSON = Path(__file__).resolve().parents[2] / "frontend/src/data/catalog.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -80,6 +83,15 @@ def build_parser() -> argparse.ArgumentParser:
     versus = commands.add_parser("eval-compare", help="compare variant runs on the dev split")
     versus.add_argument("outs", type=Path, nargs="+")
     versus.add_argument("--report", type=Path, required=True)
+
+    catalog = commands.add_parser("catalog-json", help="write the topic catalog for the frontend")
+    catalog.add_argument("--out", type=Path, default=CATALOG_JSON)
+
+    export = commands.add_parser("catalog-export", help="write the topic catalog for an expert")
+    export.add_argument("--out", type=Path, required=True)
+
+    diff = commands.add_parser("catalog-diff", help="show expert edits in a catalog workbook")
+    diff.add_argument("--xlsx", type=Path, required=True)
     return parser
 
 
@@ -189,11 +201,37 @@ async def score_control_set(args: argparse.Namespace, settings: Settings) -> str
         raise SystemExit("не заполнены оценки эксперта: " + ", ".join(error.rows)) from error
 
 
+def checked_catalog() -> None:
+    problems = catalog_problems()
+    if problems:
+        raise SystemExit("\n".join(f"ошибка: {item}" for item in problems))
+
+
+async def write_catalog(args: argparse.Namespace, settings: Settings) -> str:
+    checked_catalog()
+    args.out.write_text(catalog_json(), "utf-8")
+    return f"справочник записан в {args.out}"
+
+
+async def export_catalog(args: argparse.Namespace, settings: Settings) -> str:
+    checked_catalog()
+    write_catalog_xlsx(args.out)
+    return f"таблица для эксперта записана в {args.out}"
+
+
+async def diff_catalog(args: argparse.Namespace, settings: Settings) -> str:
+    lines = catalog_diff(args.xlsx)
+    return "\n".join(lines) if lines else "правок нет"
+
+
 FILE_COMMANDS: dict[str, FileCommand] = {
     "eval-validate": check_control_set,
     "eval-run": run_control_set,
     "eval-score": score_control_set,
     "eval-compare": compare_runs,
+    "catalog-json": write_catalog,
+    "catalog-export": export_catalog,
+    "catalog-diff": diff_catalog,
 }
 
 COMMANDS: dict[str, Command] = {

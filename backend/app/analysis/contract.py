@@ -3,7 +3,7 @@ from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
 
-from app.knowledge.topics import TOPIC_IDS
+from app.knowledge.catalog import KNOWN_TOPICS, canonical_topic
 from app.redaction import PageImage
 
 Verdict = Literal["correct", "error", "uncertain"]
@@ -120,7 +120,7 @@ def read_recognition(raw: dict, tasks: list[TaskInput]) -> Recognition:
 
 def check_reviewed_task(item: ReviewedTask, step_ids: list[str]) -> None:
     topics = [item.topic_id] + ([item.gap.topic_id] if item.gap else [])
-    if any(topic not in TOPIC_IDS for topic in topics):
+    if any(topic not in KNOWN_TOPICS for topic in topics):
         raise InvalidReply("topic")
     if not item.supported:
         if not item.reason.strip():
@@ -139,4 +139,7 @@ def read_review(raw: dict, tasks: list[ReviewTask]) -> Review:
         raise InvalidReply("task_ids")
     for item in review.tasks:
         check_reviewed_task(item, expected[item.task_id])
+        item.topic_id = canonical_topic(item.topic_id)
+        if item.gap:
+            item.gap.topic_id = canonical_topic(item.gap.topic_id)
     return review

@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import DomainError
+from app.knowledge.catalog import KNOWN_TOPICS, canonical_topic
 from app.knowledge.models import Closure
 from app.knowledge.schemas import ClosureIn
 from app.students import owned_student
@@ -13,12 +14,14 @@ async def add_closure(
     session: AsyncSession, teacher_id: UUID, student_id: UUID, data: ClosureIn
 ) -> Closure:
     await owned_student(session, teacher_id, student_id)
+    if data.topic_id not in KNOWN_TOPICS:
+        raise DomainError("topic_unknown")
     if data.action == "close" and not data.note.strip():
         raise DomainError("closure_note_required")
     closure = Closure(
         teacher_id=teacher_id,
         student_id=student_id,
-        topic_id=data.topic_id,
+        topic_id=canonical_topic(data.topic_id),
         action=data.action,
         note=data.note.strip(),
     )

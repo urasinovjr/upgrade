@@ -3,3 +3,4 @@ dist
 playwright-report
 package-lock.json
 public/pdf
+src/data/catalog.json

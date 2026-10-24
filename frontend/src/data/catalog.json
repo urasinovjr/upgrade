@@ -1,0 +1,827 @@
+{
+  "version": "algebra-1",
+  "families": [
+    {
+      "id": "expressions",
+      "name": "Выражения"
+    },
+    {
+      "id": "fractions",
+      "name": "Дроби"
+    },
+    {
+      "id": "powers_roots",
+      "name": "Степени и корни"
+    },
+    {
+      "id": "equations",
+      "name": "Уравнения"
+    },
+    {
+      "id": "inequalities",
+      "name": "Неравенства"
+    },
+    {
+      "id": "trigonometry",
+      "name": "Тригонометрия"
+    },
+    {
+      "id": "mixed",
+      "name": "Несколько разделов"
+    }
+  ],
+  "topics": [
+    {
+      "id": "signed_numbers",
+      "name": "Действия с рациональными числами",
+      "shortName": "Числа",
+      "description": "Знаки, порядок действий и раскрытие скобок.",
+      "grade": 6,
+      "family": "expressions",
+      "prerequisites": []
+    },
+    {
+      "id": "fractions",
+      "name": "Дроби",
+      "shortName": "Дроби",
+      "description": "Общий знаменатель и действия с дробями.",
+      "grade": 6,
+      "family": "fractions",
+      "prerequisites": []
+    },
+    {
+      "id": "powers",
+      "name": "Степени",
+      "shortName": "Степ.",
+      "description": "Свойства степеней с натуральным и целым показателем.",
+      "grade": 7,
+      "family": "powers_roots",
+      "prerequisites": []
+    },
+    {
+      "id": "polynomials",
+      "name": "Многочлены",
+      "shortName": "Многочл.",
+      "description": "Приведение подобных слагаемых и умножение многочленов.",
+      "grade": 7,
+      "family": "expressions",
+      "prerequisites": [
+        "signed_numbers",
+        "powers"
+      ]
+    },
+    {
+      "id": "short_multiplication",
+      "name": "Формулы сокращённого умножения",
+      "shortName": "ФСУ",
+      "description": "Квадрат суммы и разности, разность квадратов, сумма и разность кубов.",
+      "grade": 7,
+      "family": "expressions",
+      "prerequisites": [
+        "polynomials"
+      ]
+    },
+    {
+      "id": "factoring",
+      "name": "Разложение на множители",
+      "shortName": "Множ.",
+      "description": "Вынесение общего множителя, группировка и применение формул.",
+      "grade": 7,
+      "family": "expressions",
+      "prerequisites": [
+        "short_multiplication"
+      ]
+    },
+    {
+      "id": "linear_equations",
+      "name": "Линейные уравнения",
+      "shortName": "Лин. ур.",
+      "description": "Перенос слагаемых и решение уравнений первой степени.",
+      "grade": 7,
+      "family": "equations",
+      "prerequisites": [
+        "signed_numbers"
+      ]
+    },
+    {
+      "id": "rational_expressions",
+      "name": "Алгебраические дроби",
+      "shortName": "Алг. др.",
+      "description": "Сокращение, общий знаменатель и действия с дробными выражениями.",
+      "grade": 8,
+      "family": "fractions",
+      "prerequisites": [
+        "fractions",
+        "factoring"
+      ]
+    },
+    {
+      "id": "linear_inequalities",
+      "name": "Линейные неравенства",
+      "shortName": "Лин. нер.",
+      "description": "Смена знака при умножении на отрицательное число и ответ промежутком.",
+      "grade": 8,
+      "family": "inequalities",
+      "prerequisites": [
+        "linear_equations"
+      ]
+    },
+    {
+      "id": "sqrt_arithmetic",
+      "name": "Арифметический квадратный корень",
+      "shortName": "Корень",
+      "description": "Свойства корня, вынесение множителя и иррациональность в знаменателе.",
+      "grade": 8,
+      "family": "powers_roots",
+      "prerequisites": [
+        "powers"
+      ]
+    },
+    {
+      "id": "quadratic_trinomial",
+      "name": "Квадратный трёхчлен",
+      "shortName": "Трёхчл.",
+      "description": "Дискриминант, разложение на множители и выделение полного квадрата.",
+      "grade": 8,
+      "family": "expressions",
+      "prerequisites": [
+        "factoring",
+        "sqrt_arithmetic"
+      ]
+    },
+    {
+      "id": "domain",
+      "name": "Область допустимых значений",
+      "shortName": "ОДЗ",
+      "description": "Ограничения знаменателя, корня и логарифма.",
+      "grade": 8,
+      "family": "mixed",
+      "prerequisites": [
+        "fractions",
+        "powers",
+        "sqrt_arithmetic"
+      ]
+    },
+    {
+      "id": "equations",
+      "name": "Квадратные уравнения",
+      "shortName": "Кв. ур.",
+      "description": "Формула корней, разложение на множители и проверка корней.",
+      "grade": 8,
+      "family": "equations",
+      "prerequisites": [
+        "powers",
+        "quadratic_trinomial",
+        "linear_equations"
+      ]
+    },
+    {
+      "id": "vieta",
+      "name": "Теорема Виета",
+      "shortName": "Виет",
+      "description": "Связь корней с коэффициентами и подбор корней.",
+      "grade": 8,
+      "family": "equations",
+      "prerequisites": [
+        "equations"
+      ]
+    },
+    {
+      "id": "rational_equations",
+      "name": "Дробно-рациональные уравнения",
+      "shortName": "Дроб. ур.",
+      "description": "Общий знаменатель и исключение корней, при которых знаменатель равен нулю.",
+      "grade": 8,
+      "family": "equations",
+      "prerequisites": [
+        "rational_expressions",
+        "equations",
+        "domain"
+      ]
+    },
+    {
+      "id": "inequalities",
+      "name": "Квадратные неравенства и метод интервалов",
+      "shortName": "Нер-ва",
+      "description": "Знак выражения на промежутках и запись ответа.",
+      "grade": 9,
+      "family": "inequalities",
+      "prerequisites": [
+        "domain",
+        "equations",
+        "linear_inequalities"
+      ]
+    },
+    {
+      "id": "rational_inequalities",
+      "name": "Дробно-рациональные неравенства",
+      "shortName": "Дроб. нер.",
+      "description": "Метод интервалов с учётом нулей знаменателя.",
+      "grade": 9,
+      "family": "inequalities",
+      "prerequisites": [
+        "inequalities",
+        "rational_expressions"
+      ]
+    },
+    {
+      "id": "systems",
+      "name": "Системы уравнений",
+      "shortName": "Системы",
+      "description": "Подстановка, сложение и замена переменных в системах.",
+      "grade": 9,
+      "family": "equations",
+      "prerequisites": [
+        "linear_equations",
+        "equations"
+      ]
+    },
+    {
+      "id": "modulus",
+      "name": "Модуль",
+      "shortName": "Модуль",
+      "description": "Раскрытие модуля по определению и на промежутках.",
+      "grade": 9,
+      "family": "equations",
+      "prerequisites": [
+        "linear_equations",
+        "linear_inequalities"
+      ]
+    },
+    {
+      "id": "substitution",
+      "name": "Замена переменной",
+      "shortName": "Замена",
+      "description": "Сведение к квадратному уравнению и обратная замена.",
+      "grade": 9,
+      "family": "equations",
+      "prerequisites": [
+        "equations"
+      ]
+    },
+    {
+      "id": "nth_roots",
+      "name": "Корень n-й степени",
+      "shortName": "Корень n",
+      "description": "Свойства корней n-й степени и преобразования с ними.",
+      "grade": 10,
+      "family": "powers_roots",
+      "prerequisites": [
+        "sqrt_arithmetic",
+        "powers"
+      ]
+    },
+    {
+      "id": "rational_powers",
+      "name": "Степень с рациональным показателем",
+      "shortName": "Рац. степ.",
+      "description": "Переход между корнями и степенями, свойства степеней.",
+      "grade": 10,
+      "family": "powers_roots",
+      "prerequisites": [
+        "nth_roots"
+      ]
+    },
+    {
+      "id": "roots",
+      "name": "Иррациональные уравнения",
+      "shortName": "Ирр.",
+      "description": "Возведение в степень и проверка посторонних корней.",
+      "grade": 10,
+      "family": "equations",
+      "prerequisites": [
+        "domain",
+        "equations",
+        "nth_roots"
+      ]
+    },
+    {
+      "id": "irrational_inequalities",
+      "name": "Иррациональные неравенства",
+      "shortName": "Ирр. нер.",
+      "description": "Равносильные системы с учётом знака обеих частей.",
+      "grade": 10,
+      "family": "inequalities",
+      "prerequisites": [
+        "roots",
+        "inequalities"
+      ]
+    },
+    {
+      "id": "function_monotonicity",
+      "name": "Монотонность функций",
+      "shortName": "Монот.",
+      "description": "Возрастание и убывание функции и переход к неравенству аргументов.",
+      "grade": 10,
+      "family": "inequalities",
+      "prerequisites": [
+        "linear_inequalities"
+      ]
+    },
+    {
+      "id": "exponential_equations",
+      "name": "Показательные уравнения",
+      "shortName": "Пок. ур.",
+      "description": "Сведение к одному основанию и замена переменной.",
+      "grade": 10,
+      "family": "equations",
+      "prerequisites": [
+        "rational_powers",
+        "substitution"
+      ]
+    },
+    {
+      "id": "exponential_inequalities",
+      "name": "Показательные неравенства",
+      "shortName": "Пок. нер.",
+      "description": "Сравнение показателей с учётом основания степени.",
+      "grade": 10,
+      "family": "inequalities",
+      "prerequisites": [
+        "exponential_equations",
+        "function_monotonicity"
+      ]
+    },
+    {
+      "id": "logs",
+      "name": "Логарифмы",
+      "shortName": "Лог.",
+      "description": "Определение и свойства логарифмов с учётом ограничений.",
+      "grade": 10,
+      "family": "expressions",
+      "prerequisites": [
+        "powers",
+        "domain",
+        "rational_powers"
+      ]
+    },
+    {
+      "id": "log_equations",
+      "name": "Логарифмические уравнения",
+      "shortName": "Лог. ур.",
+      "description": "Потенцирование, замена переменной и проверка ограничений.",
+      "grade": 11,
+      "family": "equations",
+      "prerequisites": [
+        "logs",
+        "substitution"
+      ]
+    },
+    {
+      "id": "log_inequalities",
+      "name": "Логарифмические неравенства",
+      "shortName": "Лог. нер.",
+      "description": "Переход к неравенству аргументов с учётом основания и ограничений.",
+      "grade": 11,
+      "family": "inequalities",
+      "prerequisites": [
+        "log_equations",
+        "function_monotonicity"
+      ]
+    },
+    {
+      "id": "unit_circle",
+      "name": "Тригонометрическая окружность",
+      "shortName": "Окружн.",
+      "description": "Радианная мера, синус, косинус и тангенс основных углов.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "fractions"
+      ]
+    },
+    {
+      "id": "trig_identities",
+      "name": "Основные тригонометрические тождества",
+      "shortName": "Тожд.",
+      "description": "Связь синуса, косинуса и тангенса одного аргумента.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "unit_circle",
+        "short_multiplication"
+      ]
+    },
+    {
+      "id": "reduction_formulas",
+      "name": "Формулы приведения",
+      "shortName": "Привед.",
+      "description": "Сведение функций любого угла к острому углу.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "unit_circle"
+      ]
+    },
+    {
+      "id": "double_angle",
+      "name": "Формулы сложения и двойного угла",
+      "shortName": "Дв. угол",
+      "description": "Синус и косинус суммы, двойного угла и понижение степени.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "trig_identities"
+      ]
+    },
+    {
+      "id": "inverse_trig",
+      "name": "Арксинус, арккосинус и арктангенс",
+      "shortName": "Арк.",
+      "description": "Определение обратных тригонометрических функций и их значения.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "unit_circle"
+      ]
+    },
+    {
+      "id": "trig_equations",
+      "name": "Тригонометрические уравнения",
+      "shortName": "Триг. ур.",
+      "description": "Простейшие уравнения, замена переменной и однородные уравнения.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "inverse_trig",
+        "trig_identities",
+        "substitution"
+      ]
+    },
+    {
+      "id": "trig_root_selection",
+      "name": "Отбор корней на промежутке",
+      "shortName": "Отбор",
+      "description": "Отбор корней тригонометрического уравнения по окружности или перебором.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "trig_equations"
+      ]
+    },
+    {
+      "id": "trig_inequalities",
+      "name": "Тригонометрические неравенства",
+      "shortName": "Триг. нер.",
+      "description": "Решение с помощью окружности и запись серий промежутков.",
+      "grade": 10,
+      "family": "trigonometry",
+      "prerequisites": [
+        "trig_equations"
+      ]
+    }
+  ],
+  "taskTypes": [
+    {
+      "id": "polynomial_simplify",
+      "family": "expressions",
+      "name": "Упрощение многочлена",
+      "topicIds": [
+        "polynomials",
+        "short_multiplication"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "short_multiplication_apply",
+      "family": "expressions",
+      "name": "Преобразование по формулам сокращённого умножения",
+      "topicIds": [
+        "short_multiplication"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "factor_expression",
+      "family": "expressions",
+      "name": "Разложение выражения на множители",
+      "topicIds": [
+        "factoring",
+        "quadratic_trinomial"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "log_expression",
+      "family": "expressions",
+      "name": "Вычисление и преобразование логарифмического выражения",
+      "topicIds": [
+        "logs"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "numeric_fractions",
+      "family": "fractions",
+      "name": "Вычисления с числовыми дробями",
+      "topicIds": [
+        "fractions"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "rational_simplify",
+      "family": "fractions",
+      "name": "Сокращение алгебраической дроби",
+      "topicIds": [
+        "rational_expressions",
+        "factoring"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "rational_operations",
+      "family": "fractions",
+      "name": "Действия с алгебраическими дробями",
+      "topicIds": [
+        "rational_expressions"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "power_simplify",
+      "family": "powers_roots",
+      "name": "Преобразование выражения со степенями",
+      "topicIds": [
+        "powers",
+        "rational_powers"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "root_simplify",
+      "family": "powers_roots",
+      "name": "Преобразование выражения с корнями",
+      "topicIds": [
+        "sqrt_arithmetic",
+        "nth_roots"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "irrational_denominator",
+      "family": "powers_roots",
+      "name": "Избавление от иррациональности в знаменателе",
+      "topicIds": [
+        "sqrt_arithmetic",
+        "short_multiplication"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "linear_eq",
+      "family": "equations",
+      "name": "Линейное уравнение",
+      "topicIds": [
+        "linear_equations"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "quadratic_eq",
+      "family": "equations",
+      "name": "Квадратное уравнение",
+      "topicIds": [
+        "equations",
+        "vieta"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "rational_eq",
+      "family": "equations",
+      "name": "Дробно-рациональное уравнение",
+      "topicIds": [
+        "rational_equations",
+        "domain"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "substitution_eq",
+      "family": "equations",
+      "name": "Уравнение с заменой переменной",
+      "topicIds": [
+        "substitution",
+        "equations"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "modulus_eq",
+      "family": "equations",
+      "name": "Уравнение с модулем",
+      "topicIds": [
+        "modulus"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "irrational_eq",
+      "family": "equations",
+      "name": "Иррациональное уравнение",
+      "topicIds": [
+        "roots",
+        "domain"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "exponential_eq",
+      "family": "equations",
+      "name": "Показательное уравнение",
+      "topicIds": [
+        "exponential_equations"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "log_eq",
+      "family": "equations",
+      "name": "Логарифмическое уравнение",
+      "topicIds": [
+        "log_equations",
+        "domain"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "system_eq",
+      "family": "equations",
+      "name": "Система уравнений",
+      "topicIds": [
+        "systems"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "linear_ineq",
+      "family": "inequalities",
+      "name": "Линейное неравенство",
+      "topicIds": [
+        "linear_inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "quadratic_ineq",
+      "family": "inequalities",
+      "name": "Квадратное неравенство",
+      "topicIds": [
+        "inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "rational_ineq",
+      "family": "inequalities",
+      "name": "Дробно-рациональное неравенство",
+      "topicIds": [
+        "rational_inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "modulus_ineq",
+      "family": "inequalities",
+      "name": "Неравенство с модулем",
+      "topicIds": [
+        "modulus",
+        "inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "irrational_ineq",
+      "family": "inequalities",
+      "name": "Иррациональное неравенство",
+      "topicIds": [
+        "irrational_inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "exponential_ineq",
+      "family": "inequalities",
+      "name": "Показательное неравенство",
+      "topicIds": [
+        "exponential_inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "log_ineq",
+      "family": "inequalities",
+      "name": "Логарифмическое неравенство",
+      "topicIds": [
+        "log_inequalities",
+        "domain"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_values",
+      "family": "trigonometry",
+      "name": "Вычисление значений тригонометрических функций",
+      "topicIds": [
+        "unit_circle",
+        "reduction_formulas"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_simplify",
+      "family": "trigonometry",
+      "name": "Упрощение тригонометрического выражения",
+      "topicIds": [
+        "trig_identities",
+        "double_angle",
+        "reduction_formulas"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_basic_eq",
+      "family": "trigonometry",
+      "name": "Простейшее тригонометрическое уравнение",
+      "topicIds": [
+        "trig_equations",
+        "inverse_trig"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_quadratic_eq",
+      "family": "trigonometry",
+      "name": "Тригонометрическое уравнение, сводящееся к квадратному",
+      "topicIds": [
+        "trig_equations",
+        "substitution"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_homogeneous_eq",
+      "family": "trigonometry",
+      "name": "Однородное тригонометрическое уравнение",
+      "topicIds": [
+        "trig_equations"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_eq_selection",
+      "family": "trigonometry",
+      "name": "Тригонометрическое уравнение с отбором корней",
+      "topicIds": [
+        "trig_root_selection"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "trig_ineq",
+      "family": "trigonometry",
+      "name": "Тригонометрическое неравенство",
+      "topicIds": [
+        "trig_inequalities"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "derivative",
+      "family": null,
+      "name": "Производная и исследование функции",
+      "topicIds": [],
+      "inScope": false
+    },
+    {
+      "id": "word_problem",
+      "family": null,
+      "name": "Текстовая задача",
+      "topicIds": [],
+      "inScope": false
+    },
+    {
+      "id": "probability",
+      "family": null,
+      "name": "Вероятность и комбинаторика",
+      "topicIds": [],
+      "inScope": false
+    },
+    {
+      "id": "geometry",
+      "family": null,
+      "name": "Геометрическая задача",
+      "topicIds": [],
+      "inScope": false
+    },
+    {
+      "id": "graph_reading",
+      "family": null,
+      "name": "Задача по графику функции",
+      "topicIds": [],
+      "inScope": false
+    }
+  ],
+  "aliases": {}
+}

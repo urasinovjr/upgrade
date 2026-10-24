@@ -33,6 +33,7 @@ const messages: Record<string, string> = {
   name_in_text: nameMessage,
   editing_closed: "Начните новую версию разбора.",
   closure_note_required: "Напишите, почему пробел закрыт.",
+  topic_unknown: "Этой темы нет в справочнике. Обновите страницу.",
   file_too_large: "Файл слишком большой. Уменьшите его или разделите на части.",
   request_too_large: "Слишком большой объём файлов в одной работе. Разделите работу на две.",
   file_type_unsupported: "Поддерживаются JPG, PNG и PDF.",
