@@ -82,8 +82,8 @@ export function studentSignals(state: StoreState, studentId: string): StudentSig
       count: deriveGaps(state, studentId).filter((gap) => !gap.closed).length,
       label: "",
     },
-    { key: "failed", count: count("failed"), label: "с ошибкой" },
-    { key: "needs_input", count: count("needs_input"), label: "уточнить" },
+    { key: "failed", count: count("failed"), label: "без разбора" },
+    { key: "needs_input", count: count("needs_input"), label: "к сверке" },
     { key: "ready", count: count("ready"), label: "к проверке" },
     { key: "preparation", count: count("preparation"), label: "в подготовке" },
   ];
@@ -102,7 +102,7 @@ export const topicShortName = (topic: Topic) => topic.shortName ?? topic.name;
 
 export type TopicStatus = "gap" | "closed" | "path" | "none";
 export const topicStatusLabel: Record<TopicStatus, string> = {
-  gap: "Повторить",
+  gap: "Пробел",
   closed: "Пробел закрыт",
   path: "Ведёт к пробелу",
   none: "Нет данных",

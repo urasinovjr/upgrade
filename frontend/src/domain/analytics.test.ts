@@ -147,7 +147,9 @@ describe("student summary", () => {
       "1 к проверке",
     ]);
     expect(studentSignals(state, "mikhail").map((signal) => signal.key)).toEqual(["needs_input"]);
-    expect(studentSignals(state, "polina").map((signal) => signal.label)).toEqual(["1 с ошибкой"]);
+    expect(studentSignals(state, "polina").map((signal) => signal.label)).toEqual([
+      "1 без разбора",
+    ]);
     expect(studentSignals(state, "ivan").map((signal) => signal.label)).toEqual(["1 в подготовке"]);
     state.works = state.works.filter((work) => work.studentId !== "ivan");
     expect(studentSignals(state, "ivan")).toEqual([]);

@@ -38,11 +38,14 @@ export function useAuthConfig() {
 
 export function useWriteAccess() {
   const session = useSession();
-  if (!serverMode) return { allowed: true, reason: "" };
+  if (!serverMode) return { allowed: true, reason: "", renew: false };
   const status = session.data?.subscription.status;
   const allowed = status === "trial" || status === "active";
+  const renew = status !== "none";
+  const lead = renew ? "Подписка закончилась." : "Подписка не оформлена.";
   return {
     allowed,
-    reason: allowed ? "" : "Подписка закончилась. Работы и отчёты можно только смотреть.",
+    reason: allowed ? "" : lead + " Работы и отчёты можно только смотреть.",
+    renew,
   };
 }

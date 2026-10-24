@@ -18,8 +18,8 @@ export function inputSignature(draft: Draft): string {
 }
 
 export function applyDraft(work: Work, proposed: Draft): Work {
-  if (!work.editing) throw new Error("Сначала начните новую версию разбора.");
-  if (work.job) throw new Error("ИИ ещё разбирает работу. Подождите немного.");
+  if (!work.editing) throw new Error("Начните новую версию разбора.");
+  if (work.job) throw new Error("ИИ ещё разбирает работу.");
   const changedInputs = inputSignature(work.draft) !== inputSignature(proposed);
   const draft = structuredClone(proposed);
   draft.revision = work.draft.revision + 1;
@@ -174,17 +174,17 @@ export function reportText(report: Report): string {
     if (conditionFiles.length)
       lines.push("Условие в PDF-отчёте: " + conditionFiles.map((file) => file.name).join(", "));
     if (task.omitted) {
-      lines.push("Разберём отдельно. " + (task.feedback || "Нужно уточнить решение."));
+      lines.push("Разберём отдельно. " + (task.feedback || "Решение посмотрим вместе на занятии."));
     } else {
       task.steps.forEach((step, index) =>
         lines.push("Шаг " + (index + 1) + ": " + step.latex, step.explanation),
       );
-      lines.push(task.feedback);
+      if (task.feedback) lines.push("Комментарий: " + task.feedback);
       if (task.gap?.decision === "confirmed") lines.push("Что повторить: " + task.gap.reason);
     }
     lines.push("");
   }
-  lines.push(revision.draft.feedback);
+  if (revision.draft.feedback) lines.push("Что дальше: " + revision.draft.feedback);
   return lines.filter((line, index, all) => line || all[index - 1]).join("\n");
 }
 

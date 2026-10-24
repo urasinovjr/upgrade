@@ -111,7 +111,7 @@ describe("demo persistence", () => {
     await gateway.attachments(before.id, [{ ...sheet, masks: { "1": [mask] } }]);
     const masked = (await gateway.read()).works.find((item) => item.id === before.id)!;
     const blocked = gateway.action(before.id, "analyse");
-    await expect(blocked).rejects.toThrow("отметьте проверенными все страницы");
+    await expect(blocked).rejects.toThrow("личные данные скрыты");
     await gateway.attachments(before.id, [{ ...masked.attachments[0], checkedPages: [1] }]);
     const checked = (await gateway.read()).works.find((item) => item.id === before.id)!;
 

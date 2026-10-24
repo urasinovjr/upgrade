@@ -70,12 +70,12 @@ test("a failed analysis keeps the work and succeeds on a manual retry", async ({
 
   await page.goto("/works/" + workId);
   await startAnalysis(page);
-  await expect(page.getByText("Ошибка обработки").first()).toBeVisible(analysisTimeout);
+  await expect(page.getByText("Разбор не удался").first()).toBeVisible(analysisTimeout);
   await page.reload();
   await expect(page.getByRole("main")).toContainText(marker);
   await startAnalysis(page);
   await waitForAnalysis(page);
-  await expect(page.getByText("Ошибка обработки")).toHaveCount(0);
+  await expect(page.getByText("Разбор не удался")).toHaveCount(0);
 });
 
 test("a new revision replaces the report and withdrawal keeps the history", async ({

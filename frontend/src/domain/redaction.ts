@@ -1,7 +1,8 @@
 import type { Attachment, CropRect } from "./models";
 
 export const maxMasksPerPage = 20;
-export const redactionMessage = "Перед разбором отметьте проверенными все страницы оригинала.";
+export const redactionMessage =
+  "Перед разбором отметьте на каждой странице оригинала, что личные данные скрыты.";
 
 export interface PageRef {
   fileId: string;

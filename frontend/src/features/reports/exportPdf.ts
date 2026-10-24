@@ -116,7 +116,8 @@ export async function downloadReport(report: Report) {
         box(
           [
             {
-              text: "Разберём отдельно. " + (task.feedback || "Нужно уточнить решение."),
+              text:
+                "Разберём отдельно. " + (task.feedback || "Решение посмотрим вместе на занятии."),
               color: colors.tones.warning,
             },
           ],

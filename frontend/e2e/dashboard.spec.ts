@@ -35,7 +35,7 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   await page.locator(".dashboard-recommendation").click();
   await expect(page).toHaveURL(/topic=domain$/);
   await expect(
-    page.getByRole("button", { name: "Область допустимых значений · Повторить" }),
+    page.getByRole("button", { name: "Область допустимых значений · Пробел" }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Закрыть пробел", exact: true }).click();
   await page

@@ -167,13 +167,13 @@ def reviewed_task(task: DraftTask, topics: list[DraftTopic]) -> dict:
     if kind == "error" and steps:
         wrong = len(steps) // 2
         steps[wrong]["verdict"] = "error"
-        steps[wrong]["explanation"] = f"Здесь нарушено правило из темы «{topic.name}»."
+        steps[wrong]["explanation"] = f"Шаг не сходится с правилом темы «{topic.name}»."
         gap_topic = topic_named((topic.prerequisites or [topic.id])[0], topics)
-        reason = f"Повторить тему «{gap_topic.name}». На ней ошибка в шаге {wrong + 1}."
+        reason = f"Ошибка в шаге {wrong + 1} связана с темой «{gap_topic.name}»."
         result["gap"] = {"topic_id": gap_topic.id, "reason": reason}
         feedback = f"Ошибка в шаге {wrong + 1}."
     if any(step["verdict"] == "uncertain" for step in steps):
-        feedback = "Часть записи не распознана. Сверьте её с оригиналом."
+        feedback = "Часть записи не удалось прочитать. Пишите шаги разборчивее."
     return {**result, "supported": True, "steps": steps, "feedback": feedback}
 
 

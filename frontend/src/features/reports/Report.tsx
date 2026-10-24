@@ -193,7 +193,9 @@ export default function Report() {
                   {task.omitted ? (
                     <div className="dp-report-note dp-tone-warning">
                       <CircleHelp size={16} aria-hidden="true" />
-                      <p>Разберём отдельно. {task.feedback || "Нужно уточнить решение."}</p>
+                      <p>
+                        Разберём отдельно. {task.feedback || "Решение посмотрим вместе на занятии."}
+                      </p>
                     </div>
                   ) : (
                     <>

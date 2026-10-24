@@ -8,7 +8,7 @@ export function ReadOnlyBanner() {
   return (
     <div className="dp-read-only" role="status">
       <span>{access.reason}</span>
-      <Link to="/subscription">Продлить подписку</Link>
+      <Link to="/subscription">{access.renew ? "Продлить подписку" : "Оформить подписку"}</Link>
     </div>
   );
 }
