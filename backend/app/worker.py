@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import sys
 from collections import Counter
 from collections.abc import Awaitable, Callable, Iterable
 from pathlib import Path
@@ -11,7 +10,7 @@ from app.analysis.variants import code_commit, get_variant
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
-from app.health import heartbeat_is_fresh, write_heartbeat
+from app.heartbeat import write_heartbeat
 from app.mail import SEND_EMAIL_JOB, SmtpMailer, forget_email_token, handle_send_email
 from app.models import configure_models
 from app.observability import configure_logging, request_id_var
@@ -136,12 +135,6 @@ async def beat(path: Path, seconds: float) -> None:
         await asyncio.sleep(seconds)
 
 
-def check_heartbeat() -> None:
-    settings = Settings()
-    fresh = heartbeat_is_fresh(Path(settings.heartbeat_file), 3 * settings.heartbeat_seconds)
-    sys.exit(0 if fresh else 1)
-
-
 async def main() -> None:
     settings = Settings()
     configure_logging(settings.log_format, settings.log_level)
@@ -185,6 +178,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] == ["check"]:
-        check_heartbeat()
     asyncio.run(main())

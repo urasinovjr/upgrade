@@ -1,7 +1,7 @@
 import os
 import time
 
-from app.health import heartbeat_is_fresh, write_heartbeat
+from app.heartbeat import heartbeat_is_fresh, write_heartbeat
 from tests.conftest import FakeProvider, make_client
 from tests.fakes import MemoryStorage
 

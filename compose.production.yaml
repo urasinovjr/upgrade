@@ -102,7 +102,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: [CMD, python, -m, app.worker, check]
+      test: [CMD, python, -m, app.heartbeat]
       interval: 15s
       timeout: 5s
       retries: 3

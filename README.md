@@ -18,7 +18,7 @@ docker compose up -d --build --wait
 
 Остановить: `docker compose down`. Данные PostgreSQL и файлов сохраняются в томах `db_data` и `s3_data`; `docker compose down -v` удаляет и их. После изменения кода пересобрать: `docker compose up -d --build --wait`.
 
-`GET /health` отвечает, пока процесс жив; `GET /health/ready` проверяет PostgreSQL и хранилище и отвечает 503 со списком `failed`, если что-то недоступно. `worker` раз в `HEARTBEAT_SECONDS` (10 с) обновляет файл `HEARTBEAT_FILE`, его healthcheck — `python -m app.worker check`. Образы backend и frontend работают без root: backend под пользователем 10001, nginx — непривилегированный на порту 8080 внутри контейнера.
+`GET /health` отвечает, пока процесс жив; `GET /health/ready` проверяет PostgreSQL и хранилище и отвечает 503 со списком `failed`, если что-то недоступно. `worker` раз в `HEARTBEAT_SECONDS` (10 с) обновляет файл `HEARTBEAT_FILE`, его healthcheck — `python -m app.heartbeat` (только стандартная библиотека, без импорта приложения). Образы backend и frontend работают без root: backend под пользователем 10001, nginx — непривилегированный на порту 8080 внутри контейнера.
 
 ## Выпуск
 
