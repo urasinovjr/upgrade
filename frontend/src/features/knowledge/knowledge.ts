@@ -1,8 +1,9 @@
 import { Circle, CircleCheck, Target, type LucideIcon } from "lucide-react";
-import type { Closure, StudentGap } from "../../domain/models";
+import type { Closure, StudentGap, Topic } from "../../domain/models";
 import { topicStatusLabel } from "../../domain/analytics";
+import { gradeTitle } from "../../domain/knowledgeFragment";
 import { layoutKnowledgeMap } from "../../domain/knowledgeLayout";
-import { topics } from "../../data/fixtures";
+import { topicLabel } from "../../data/catalog";
 import type { Tone } from "../../shared/status";
 
 export type TopicState = "open" | "closed" | "none";
@@ -18,19 +19,27 @@ export function statusOf(gap?: StudentGap) {
   if (!gap) return topicStatus.none;
   return gap.closed ? topicStatus.closed : topicStatus.open;
 }
-export const topicName = (id: string) => topics.find((topic) => topic.id === id)?.name ?? id;
+export const topicName = topicLabel;
 
-export const graph = layoutKnowledgeMap(topics);
-export const topicOrder = [...topics].sort(
-  (a, b) => graph.nodes[a.id].y - graph.nodes[b.id].y || graph.nodes[a.id].x - graph.nodes[b.id].x,
-);
-const levelTitles = ["Основа", "Ограничения и уравнения", "Дальше по программе"];
-export const mapLevels = [...new Set(topicOrder.map((topic) => graph.nodes[topic.id].y))].map(
-  (y, index) => ({
-    title: levelTitles[index] ?? "Уровень " + (index + 1),
-    topics: topicOrder.filter((topic) => graph.nodes[topic.id].y === y),
-  }),
-);
+export type KnowledgeMapModel = ReturnType<typeof buildMap>;
+
+export function buildMap(list: Topic[]) {
+  const graph = layoutKnowledgeMap(list);
+  const order = [...list].sort(
+    (a, b) =>
+      graph.nodes[a.id].y - graph.nodes[b.id].y || graph.nodes[a.id].x - graph.nodes[b.id].x,
+  );
+  const rows = [...new Set(order.map((topic) => graph.nodes[topic.id].y))];
+  const levels: { key: string; title: string; topics: Topic[] }[] = [];
+  rows.forEach((y, index) => {
+    const row = order.filter((topic) => graph.nodes[topic.id].y === y);
+    const title = gradeTitle(row.map((topic) => topic.grade ?? 0));
+    const last = levels.at(-1);
+    if (last?.title === title) last.topics.push(...row);
+    else levels.push({ key: title + index, title, topics: row });
+  });
+  return { graph, order, levels };
+}
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const dateTime = new Intl.DateTimeFormat("ru-RU", {

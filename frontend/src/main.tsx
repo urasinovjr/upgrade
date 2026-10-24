@@ -47,6 +47,7 @@ import { serverMode } from "./data/gateway";
 import { sessionKey, useSession, useSetSession, useWriteAccess } from "./shared/session";
 import { RequireSession } from "./features/auth/RequireSession";
 import { ReadOnlyBanner } from "./features/account/ReadOnlyBanner";
+import { CatalogBanner } from "./features/knowledge/CatalogBanner";
 import { TimingTracker } from "./features/timing/TimingTracker";
 import { GuestHome } from "./features/landing/GuestHome";
 
@@ -319,6 +320,7 @@ function Shell() {
           <div ref={setActions} className="dp-topbar-actions" />
         </header>
         <ReadOnlyBanner />
+        <CatalogBanner />
         {serverMode && <TimingTracker />}
         <main id="main-content" className="dp-main" tabIndex={-1}>
           <TopbarSlots.Provider value={{ trail, actions }}>

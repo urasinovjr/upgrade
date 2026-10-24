@@ -108,11 +108,16 @@ export const topicStatusLabel: Record<TopicStatus, string> = {
   none: "Нет данных",
 };
 export type TopicCell = { topicId: string; name: string; status: TopicStatus; target: string };
-export function topicStrip(state: StoreState, studentId: string, topicList: Topic[]): TopicCell[] {
+export function topicStrip(
+  state: StoreState,
+  studentId: string,
+  topicList: Topic[],
+  catalog: Topic[] = topicList,
+): TopicCell[] {
   const gaps = deriveGaps(state, studentId);
   const open = gaps.filter((gap) => !gap.closed).map((gap) => gap.topicId);
   const closed = new Set(gaps.filter((gap) => gap.closed).map((gap) => gap.topicId));
-  const byId = new Map(topicList.map((topic) => [topic.id, topic]));
+  const byId = new Map(catalog.map((topic) => [topic.id, topic]));
   const pathTarget = new Map<string, string>();
   const visit = (id: string, gap: string) =>
     byId.get(id)?.prerequisites.forEach((parent) => {

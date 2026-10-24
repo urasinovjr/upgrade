@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { topics } from "../data/fixtures";
+import { topics as catalog } from "../data/catalog";
+import { catalogTopics } from "./knowledgeFragment";
 import { layoutKnowledgeMap, mapNode, wrapName } from "./knowledgeLayout";
 
+const ids = ["fractions", "powers", "domain", "equations", "roots", "inequalities", "logs"];
+const topics = catalogTopics(catalog, ids).map((topic) => ({
+  ...topic,
+  prerequisites: topic.prerequisites.filter((parent) => ids.includes(parent)),
+}));
 const layout = layoutKnowledgeMap(topics);
 const overlaps = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   Math.abs(a.x - b.x) < mapNode.width && Math.abs(a.y - b.y) < mapNode.height;
@@ -43,9 +49,28 @@ describe("knowledge map layout", () => {
   it("is computed from the data, so a new topic gets its own row", () => {
     const extended = layoutKnowledgeMap([
       ...topics,
-      { id: "systems", name: "Системы", prerequisites: ["logs"] },
+      { id: "extra", name: "Новая тема", prerequisites: ["logs"] },
     ]);
-    expect(extended.nodes.systems.y).toBeGreaterThan(extended.nodes.logs.y);
+    expect(extended.nodes.extra.y).toBeGreaterThan(extended.nodes.logs.y);
+  });
+
+  it("returns an empty canvas for a student without topics", () => {
+    expect(layoutKnowledgeMap([])).toEqual({
+      width: 0,
+      height: 0,
+      nodes: {},
+      edges: [],
+      crossings: 0,
+    });
+  });
+
+  it("lays out the whole catalog without overlaps", () => {
+    const whole = layoutKnowledgeMap(catalog);
+    const nodes = Object.values(whole.nodes);
+    expect(nodes).toHaveLength(catalog.length);
+    nodes.forEach((a, index) =>
+      nodes.slice(index + 1).forEach((b) => expect(overlaps(a, b)).toBe(false)),
+    );
   });
 
   it("wraps long names into two lines", () => {

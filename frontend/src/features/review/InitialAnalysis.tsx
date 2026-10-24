@@ -1,11 +1,7 @@
-import { topics } from "../../data/fixtures";
+import { topicLabel as topicName } from "../../data/catalog";
 import type { AnalysisInfo, Task } from "../../domain/models";
 import { Formula } from "../../shared/math";
 import { verdictMeta } from "../../shared/status";
-
-function topicName(id: string) {
-  return topics.find((topic) => topic.id === id)?.name || id;
-}
 
 function analysisSource(analysis: AnalysisInfo) {
   const finished = new Intl.DateTimeFormat("ru-RU", {

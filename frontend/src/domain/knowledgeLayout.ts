@@ -59,6 +59,7 @@ function fitRow(desired: number[], separations: number[]): number[] {
 }
 
 export function layoutKnowledgeMap(topics: LayoutTopic[]): MapLayout {
+  if (!topics.length) return { width: 0, height: 0, nodes: {}, edges: [], crossings: 0 };
   const byId = new Map(topics.map((topic) => [topic.id, topic]));
   const layerOf = new Map<string, number>();
   const layer = (id: string): number => {

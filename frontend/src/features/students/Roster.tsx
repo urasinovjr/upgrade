@@ -10,7 +10,9 @@ import {
 } from "../../domain/analytics";
 import { statusMeta } from "../../shared/status";
 import { Avatar } from "../../shared/ui";
-import { topicName, topicOrder } from "../knowledge/knowledge";
+import { catalogTopics, studentTopicIds } from "../../domain/knowledgeFragment";
+import { topics } from "../../data/catalog";
+import { topicName } from "../knowledge/knowledge";
 import { topicMapLink } from "../knowledge/links";
 import "./roster.css";
 
@@ -29,6 +31,10 @@ export function Roster({
   labelledBy?: string;
   empty?: ReactNode;
 }) {
+  const columns = catalogTopics(
+    topics,
+    students.flatMap((student) => [...studentTopicIds(state, student.id)]),
+  );
   const nameCell = (student: Student) => (
     <Link className="dp-roster-name" to={"/students/" + student.id}>
       <Avatar student={student} size="sm" />
@@ -55,7 +61,7 @@ export function Roster({
                 Открыто
               </span>
               <span className="dp-topic-strip" aria-hidden="true">
-                {topicOrder.map((topic) => (
+                {columns.map((topic) => (
                   <span key={topic.id} className="dp-topic-col" title={topic.name}>
                     {topicShortName(topic)}
                   </span>
@@ -102,7 +108,7 @@ export function Roster({
                   )}
                 </span>
                 <span className="dp-topic-strip" role="group" aria-label={"Темы · " + student.name}>
-                  {topicStrip(state, student.id, topicOrder).map((cell) => {
+                  {topicStrip(state, student.id, columns, topics).map((cell) => {
                     const text =
                       cell.status === "path"
                         ? `${cell.name} ведёт к пробелу «${topicName(cell.target)}»`

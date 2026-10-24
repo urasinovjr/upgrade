@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CircleCheck } from "lucide-react";
-import { topics } from "../../data/fixtures";
+import { topics } from "../../data/catalog";
 
 type PreviewState = "gap" | "path" | "closed" | "none";
 

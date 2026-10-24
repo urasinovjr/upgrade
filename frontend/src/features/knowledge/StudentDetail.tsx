@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import {
   ArrowUpRight,
@@ -14,7 +14,8 @@ import {
 import type { Closure, Evidence, StoreState, Student, StudentGap } from "../../domain/models";
 import { topicShortName } from "../../domain/analytics";
 import { currentRevision, deriveGaps } from "../../domain/review";
-import { topics } from "../../data/fixtures";
+import { knowledgeFragment, studentTopicIds } from "../../domain/knowledgeFragment";
+import { topicById, topics, unknownTopicName } from "../../data/catalog";
 import { gateway } from "../../data/gateway";
 import { useCommand, useStore } from "../../shared/query";
 import { useWriteAccess } from "../../shared/session";
@@ -35,14 +36,7 @@ import { changeContent } from "../../shared/ui/motion";
 import { StudentForm } from "../students/StudentForm";
 import { KnowledgeMap, MapLegend } from "./KnowledgeMap";
 import { Timeline } from "./Timeline";
-import {
-  closureTitle,
-  dateTime,
-  reducedMotion,
-  statusOf,
-  topicName,
-  topicOrder,
-} from "./knowledge";
+import { buildMap, closureTitle, dateTime, reducedMotion, statusOf, topicName } from "./knowledge";
 import { studentTabs, useStudentView, type StudentTab } from "./useStudentView";
 import "./knowledge.css";
 import { StudentActions } from "../students/StudentActions";
@@ -115,9 +109,19 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
     .filter((work) => work.studentId === student.id)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const closures = state.closures.filter((item) => item.studentId === student.id);
-  const defaultTopic = open[0]?.topicId ?? gaps[0]?.topicId ?? topics[0].id;
+  const dataIds = [...studentTopicIds(state, student.id)].sort().join(" ");
+  const overview = useMemo(
+    () => buildMap(knowledgeFragment(topics, dataIds.split(" "))),
+    [dataIds],
+  );
+  const defaultTopic =
+    open[0]?.topicId ?? gaps[0]?.topicId ?? overview.order[0]?.id ?? topics[0].id;
   const view = useStudentView(defaultTopic);
   const { tab, topic: selected } = view;
+  const map = useMemo(
+    () => buildMap(knowledgeFragment(topics, [...dataIds.split(" "), selected])),
+    [dataIds, selected],
+  );
   const [editing, setEditing] = useState(false);
   const page = useRef<HTMLDivElement>(null);
   const detail = useRef<HTMLElement>(null);
@@ -203,7 +207,12 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
 
   const gapOf = (topicId: string) => gaps.find((gap) => gap.topicId === topicId);
   const selectedGap = gapOf(selected);
-  const topic = topics.find((item) => item.id === selected)!;
+  const topic = topicById(selected) ?? {
+    id: selected,
+    name: unknownTopicName,
+    description: "",
+    prerequisites: [],
+  };
   const selectedStatus = statusOf(selectedGap);
   const newWorkLink = "/works/new?student=" + encodeURIComponent(student.id);
   const historyOf = (topicId: string) => closures.filter((item) => item.topicId === topicId);
@@ -357,33 +366,35 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
       >
         {tab === "overview" && (
           <>
-            <section className="dp-student-topics" aria-labelledby="student-topics-title">
-              <h2 id="student-topics-title">Темы</h2>
-              <ul>
-                {topicOrder.map((item) => {
-                  const status = statusOf(gapOf(item.id));
-                  const label = item.name + " · " + status.label;
-                  return (
-                    <li key={item.id}>
-                      <button
-                        className={"dp-student-topic is-" + status.key}
-                        aria-label={label}
-                        title={label}
-                        onClick={() => showOnMap(item.id)}
-                      >
-                        <span className="dp-student-topic-bar" aria-hidden="true" />
-                        <span className="dp-student-topic-name" aria-hidden="true">
-                          {item.name}
-                        </span>
-                        <span className="dp-student-topic-short" aria-hidden="true">
-                          {topicShortName(item)}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
+            {overview.order.length > 0 && (
+              <section className="dp-student-topics" aria-labelledby="student-topics-title">
+                <h2 id="student-topics-title">Темы</h2>
+                <ul style={{ "--topic-count": overview.order.length } as CSSProperties}>
+                  {overview.order.map((item) => {
+                    const status = statusOf(gapOf(item.id));
+                    const label = item.name + " · " + status.label;
+                    return (
+                      <li key={item.id}>
+                        <button
+                          className={"dp-student-topic is-" + status.key}
+                          aria-label={label}
+                          title={label}
+                          onClick={() => showOnMap(item.id)}
+                        >
+                          <span className="dp-student-topic-bar" aria-hidden="true" />
+                          <span className="dp-student-topic-name" aria-hidden="true">
+                            {item.name}
+                          </span>
+                          <span className="dp-student-topic-short" aria-hidden="true">
+                            {topicShortName(item)}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
             <ErrorMessage error={!closing && command.error} />
             <div className="dp-student-grid">
               <section className="dp-student-section" aria-labelledby="student-gaps-title">
@@ -493,7 +504,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           >
             <div className="dp-map-layout">
               <section className="dp-map-canvas" aria-label="Связи тем">
-                <KnowledgeMap gaps={gaps} selected={selected} onSelect={selectTopic} />
+                <KnowledgeMap map={map} gaps={gaps} selected={selected} onSelect={selectTopic} />
                 <MapLegend />
               </section>
               <section ref={detail} key={selected} className="dp-topic-detail">

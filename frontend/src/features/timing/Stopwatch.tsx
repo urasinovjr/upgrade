@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pause, Play, Square, Timer, Trash2 } from "lucide-react";
-import { families, type FamilyId } from "../../domain/families";
+import { families, familyName, type FamilyId } from "../../data/catalog";
 import {
   clockText,
   elapsedMs,
@@ -44,10 +44,6 @@ function useNow(running: boolean) {
     return () => window.clearInterval(timer);
   }, [running]);
   return now;
-}
-
-function familyLabel(id: string) {
-  return families.find((family) => family.id === id)?.label ?? id;
 }
 
 function sessionMinutes(item: ManualSession) {
@@ -130,7 +126,7 @@ export default function Stopwatch() {
           <>
             <p>
               {studentName(state.studentId)} · задач: {state.taskCount} ·{" "}
-              {familyLabel(state.taskFamily)}
+              {familyName(state.taskFamily)}
             </p>
             <p className="dp-stopwatch-clock" role="timer" aria-live="off">
               {clockText(elapsedMs(state, now))}
@@ -228,7 +224,7 @@ export default function Stopwatch() {
               >
                 {families.map((family) => (
                   <option key={family.id} value={family.id}>
-                    {family.label}
+                    {family.name}
                   </option>
                 ))}
               </select>
@@ -251,7 +247,7 @@ export default function Stopwatch() {
                 <span>
                   {new Date(item.finishedAt).toLocaleDateString("ru-RU")} ·{" "}
                   {studentName(item.studentId)} · задач: {item.taskCount} ·{" "}
-                  {familyLabel(item.taskFamily)} · {sessionMinutes(item)} мин
+                  {familyName(item.taskFamily)} · {sessionMinutes(item)} мин
                 </span>
                 <button
                   className="dp-text"

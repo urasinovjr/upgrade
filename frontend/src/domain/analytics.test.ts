@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { seedState, topics } from "../data/fixtures";
+import { topics } from "../data/catalog";
+import { seedState } from "../data/fixtures";
+import { catalogTopics } from "./knowledgeFragment";
+
+const legacy = catalogTopics(topics, [
+  "fractions",
+  "powers",
+  "domain",
+  "equations",
+  "roots",
+  "inequalities",
+  "logs",
+]);
 import {
   activity,
   dayKey,
@@ -166,15 +178,15 @@ describe("student summary", () => {
     expect(studentSignals(state, "anna").map((signal) => signal.key)).toEqual(["ready"]);
   });
   it("marks one cell per topic: gap, its prerequisites and missing data, like the map", () => {
-    const strip = topicStrip(seedState(), "anna", topics);
-    expect(strip.map((cell) => cell.topicId)).toEqual(topics.map((topic) => topic.id));
+    const strip = topicStrip(seedState(), "anna", legacy, topics);
+    expect(strip.map((cell) => cell.topicId)).toEqual(legacy.map((topic) => topic.id));
     expect(Object.fromEntries(strip.map((cell) => [cell.topicId, cell.status]))).toEqual({
       fractions: "path",
       powers: "path",
       domain: "gap",
       equations: "none",
-      roots: "none",
       inequalities: "none",
+      roots: "none",
       logs: "none",
     });
     expect(strip.filter((cell) => cell.status === "path").map((cell) => cell.target)).toEqual([
@@ -182,9 +194,9 @@ describe("student summary", () => {
       "domain",
     ]);
     expect(strip.find((cell) => cell.topicId === "domain")?.target).toBe("domain");
-    expect(topicStrip(seedState(), "ivan", topics).every((cell) => cell.status === "none")).toBe(
-      true,
-    );
+    expect(
+      topicStrip(seedState(), "ivan", legacy, topics).every((cell) => cell.status === "none"),
+    ).toBe(true);
   });
   it("shows a closed gap as closed and drops the prerequisite path it implied", () => {
     const state = seedState();
@@ -195,18 +207,21 @@ describe("student summary", () => {
       at: stamp(18),
       action: "close",
     });
-    const statuses = topicStrip(state, "anna", topics).map((cell) => cell.status);
+    const statuses = topicStrip(state, "anna", legacy, topics).map((cell) => cell.status);
     expect(statuses).toEqual(["none", "none", "closed", "none", "none", "none", "none"]);
   });
   it("labels topic columns with the short name, or the full name when none is set", () => {
-    expect(topics.map(topicShortName)).toEqual([
+    expect(legacy.map(topicShortName)).toEqual([
       "Дроби",
       "Степ.",
       "ОДЗ",
       "Кв. ур.",
-      "Ирр.",
       "Нер-ва",
+      "Ирр.",
       "Лог.",
     ]);
+    expect(topicShortName({ id: "x", name: "Тема", description: "", prerequisites: [] })).toBe(
+      "Тема",
+    );
   });
 });

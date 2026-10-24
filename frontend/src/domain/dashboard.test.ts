@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { seedState, topics } from "../data/fixtures";
+import { topics } from "../data/catalog";
+import { seedState } from "../data/fixtures";
 import { deriveDashboard } from "./dashboard";
 import { beginRevision, publishWork } from "./review";
 

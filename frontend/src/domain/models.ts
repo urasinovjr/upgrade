@@ -115,6 +115,8 @@ export interface Topic {
   shortName?: string;
   description: string;
   prerequisites: string[];
+  grade?: number;
+  family?: string;
 }
 export interface Closure {
   studentId: string;
@@ -127,6 +129,7 @@ export interface StoreState {
   students: Student[];
   works: Work[];
   closures: Closure[];
+  catalogVersion?: string;
 }
 export interface Evidence {
   workId: string;

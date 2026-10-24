@@ -19,7 +19,7 @@ import type { ActivityFilter } from "../../domain/analytics";
 import type { DashboardSummary } from "../../domain/dashboard";
 import type { WidgetId } from "../../domain/dashboardLayout";
 import type { StoreState } from "../../domain/models";
-import { topics } from "../../data/fixtures";
+import { topics } from "../../data/catalog";
 import { Roster } from "../students/Roster";
 import { WorkQueue } from "../works/WorkQueue";
 import type { QueueFilters, useQueueFilters } from "../works/useQueueFilters";

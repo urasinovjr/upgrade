@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Trash2 } from "lucide-react";
-import { topics } from "../../data/fixtures";
+import { TopicSelect } from "../../shared/TopicSelect";
 import type { GapProposal, Task } from "../../domain/models";
 import { FormulaInput } from "../../shared/math";
 import { DialogKeyboard } from "./StepItem";
@@ -57,19 +57,11 @@ export function ConditionEditor({
           onChange={(reference) => setDraft({ ...draft, reference })}
         />
       </label>
-      <label>
-        Тема задачи
-        <select
-          value={draft.topicId}
-          onChange={(event) => setDraft({ ...draft, topicId: event.target.value })}
-        >
-          {topics.map((topic) => (
-            <option value={topic.id} key={topic.id}>
-              {topic.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TopicSelect
+        label="Тема задачи"
+        value={draft.topicId}
+        onChange={(topicId) => setDraft({ ...draft, topicId })}
+      />
       <DialogKeyboard />
       <div className="dp-dialog-actions">
         {removable && (
@@ -112,19 +104,11 @@ export function GapEditor({
         save(draft);
       }}
     >
-      <label>
-        Тема
-        <select
-          value={draft.topicId}
-          onChange={(event) => setDraft({ ...draft, topicId: event.target.value })}
-        >
-          {topics.map((topic) => (
-            <option value={topic.id} key={topic.id}>
-              {topic.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TopicSelect
+        label="Тема"
+        value={draft.topicId}
+        onChange={(topicId) => setDraft({ ...draft, topicId })}
+      />
       <label>
         Что повторить
         <textarea

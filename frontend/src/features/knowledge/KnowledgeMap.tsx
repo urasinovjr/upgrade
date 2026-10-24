@@ -9,13 +9,11 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { StudentGap } from "../../domain/models";
 import { mapNode } from "../../domain/knowledgeLayout";
-import { topics } from "../../data/fixtures";
 import {
-  graph,
-  mapLevels,
   reducedMotion,
   statusOf,
   topicStatus,
+  type KnowledgeMapModel,
   type TopicState,
 } from "./knowledge";
 
@@ -43,14 +41,17 @@ function nodeClass(
 }
 
 export function KnowledgeMap({
+  map,
   gaps,
   selected,
   onSelect,
 }: {
+  map: KnowledgeMapModel;
   gaps: StudentGap[];
   selected: string;
   onSelect: (id: string) => void;
 }) {
+  const { graph, order: topics, levels } = map;
   const scroller = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
   const path = new Set<string>();
@@ -84,13 +85,14 @@ export function KnowledgeMap({
     const element = scroller.current;
     if (!element) return;
     const node = graph.nodes[selected];
+    if (!node) return;
     const scale = element.scrollWidth / graph.width;
     const left = node.x * scale;
     const right = (node.x + mapNode.width) * scale;
     if (left < element.scrollLeft || right > element.scrollLeft + element.clientWidth)
       element.scrollLeft = left - (element.clientWidth - (right - left)) / 2;
     updateFade();
-  }, [selected, updateFade]);
+  }, [graph, selected, updateFade]);
   const scrollBy = (direction: number) =>
     scroller.current?.scrollBy({
       left: direction * 200,
@@ -232,8 +234,8 @@ export function KnowledgeMap({
         </button>
       </div>
       <div className="dp-map-levels" role="group" aria-label="Карта знаний по алгебре">
-        {mapLevels.map((level) => (
-          <section key={level.title}>
+        {levels.map((level) => (
+          <section key={level.key}>
             <h3>{level.title}</h3>
             <ul>
               {level.topics.map((topic) => {

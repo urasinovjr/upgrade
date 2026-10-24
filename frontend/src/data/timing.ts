@@ -1,5 +1,5 @@
 import type { ActiveInterval } from "../domain/activeTime";
-import type { FamilyId } from "../domain/families";
+import type { FamilyId } from "./catalog";
 import { request } from "./api";
 
 export interface IntervalsResult {

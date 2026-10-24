@@ -110,3 +110,9 @@ async def test_closing_unknown_topic_is_rejected(teacher):
 
     assert response.status_code == 422
     assert response.json() == {"detail": "topic_unknown"}
+
+
+async def test_state_reports_catalog_version(teacher):
+    state = await teacher.get("/api/state")
+
+    assert state.json()["catalogVersion"] == catalog.CATALOG_VERSION

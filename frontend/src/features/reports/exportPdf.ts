@@ -5,7 +5,7 @@ import { convertLatexToMarkup } from "mathlive";
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import type { Report } from "../../domain/models";
 import { gateway } from "../../data/gateway";
-import { topics } from "../../data/fixtures";
+import { topicById } from "../../data/catalog";
 import { verdictMeta, type Tone } from "../../shared/status";
 pdfMake.addVirtualFileSystem(pdfFonts);
 
@@ -155,7 +155,7 @@ export async function downloadReport(report: Report) {
       );
     const { gap } = task;
     if (gap?.decision === "confirmed") {
-      const topic = topics.find((item) => item.id === gap.topicId);
+      const topic = topicById(gap.topicId);
       content.push(
         box(
           [

@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useState } from "react";
 import { useSearchParams } from "react-router";
-import { topics } from "../../data/fixtures";
+import { topicById } from "../../data/catalog";
 
 export type StudentTab = "overview" | "map" | "history";
 export const studentTabs: { value: StudentTab; label: string }[] = [
@@ -9,7 +9,7 @@ export const studentTabs: { value: StudentTab; label: string }[] = [
   { value: "history", label: "История" },
 ];
 const parseTab = (value: string | null) => studentTabs.find((tab) => tab.value === value)?.value;
-const parseTopic = (value: string | null) => topics.find((topic) => topic.id === value)?.id;
+const parseTopic = (value: string | null) => (value ? topicById(value)?.id : undefined);
 const tabFrom = (params: URLSearchParams) =>
   parseTab(params.get("tab")) ?? (params.has("topic") ? "map" : "overview");
 

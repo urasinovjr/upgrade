@@ -14,7 +14,7 @@ import {
   Target,
 } from "lucide-react";
 import { gateway } from "../../data/gateway";
-import { topics } from "../../data/fixtures";
+import { topicById } from "../../data/catalog";
 import { reportText } from "../../domain/review";
 import { Formula } from "../../shared/math";
 import {
@@ -171,7 +171,7 @@ export default function Report() {
               Проверено репетитором · версия {revision.number} · {date(revision.confirmedAt)}
             </p>
             {revision.draft.tasks.map((task) => {
-              const topic = topics.find((item) => item.id === task.gap?.topicId);
+              const topic = task.gap ? topicById(task.gap.topicId) : undefined;
               return (
                 <section className="dp-report-task" key={task.id}>
                   <h3>{task.title}</h3>

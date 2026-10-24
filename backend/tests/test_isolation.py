@@ -1,3 +1,4 @@
+from app.knowledge.catalog import CATALOG_VERSION
 from tests.students import create_student, student_data
 from tests.works import confirmed_work, create_work, upload_work
 
@@ -24,7 +25,12 @@ async def test_other_teacher_cannot_touch_student(teacher, other_teacher):
     assert own_state.json()["students"][0]["name"] == "Мария"
     assert own_state.json()["students"][0].get("archivedAt") is None
     assert own_state.json()["closures"] == []
-    assert other_state.json() == {"students": [], "works": [], "closures": []}
+    assert other_state.json() == {
+        "students": [],
+        "works": [],
+        "closures": [],
+        "catalogVersion": CATALOG_VERSION,
+    }
 
 
 async def test_other_teacher_cannot_reach_work_or_files(teacher, other_teacher):

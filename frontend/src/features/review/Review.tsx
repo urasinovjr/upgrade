@@ -16,7 +16,7 @@ import {
   PenLine,
   PencilLine,
 } from "lucide-react";
-import { topics } from "../../data/fixtures";
+import { topicById } from "../../data/catalog";
 import { serverMode } from "../../data/gateway";
 import type { GapDecision, GapProposal, Step, Student, Task, Work } from "../../domain/models";
 import { blankTask, currentRevision, reviewBlockers, unreviewedBlocker } from "../../domain/review";
@@ -164,7 +164,7 @@ function GapSection({
   onChange: (gap: GapProposal) => void;
   onEdit: () => void;
 }) {
-  const topic = topics.find((item) => item.id === gap.topicId);
+  const topic = topicById(gap.topicId);
   const toggle = (decision: "confirmed" | "rejected") =>
     onChange({ ...gap, decision: gap.decision === decision ? "hypothesis" : decision });
   return (

@@ -19,7 +19,7 @@ import {
   type DashboardLayout,
   type WidgetId,
 } from "../../domain/dashboardLayout";
-import { topics } from "../../data/fixtures";
+import { topics } from "../../data/catalog";
 import { useDashboardLayout, useStore } from "../../shared/query";
 import { Modal, PageBar, PageLoading, PageState } from "../../shared/ui";
 import { errorText } from "../../shared/text";

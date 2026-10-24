@@ -1,56 +1,5 @@
-import type { StepOrigin, StoreState, Task, Topic, Upload, Work } from "../domain/models";
+import type { StepOrigin, StoreState, Task, Upload, Work } from "../domain/models";
 import { publishWork } from "../domain/review";
-
-export const topics: Topic[] = [
-  {
-    id: "fractions",
-    name: "Дроби",
-    description: "Общий знаменатель и действия с дробями.",
-    prerequisites: [],
-  },
-  {
-    id: "powers",
-    name: "Степени",
-    shortName: "Степ.",
-    description: "Свойства степеней и преобразование выражений.",
-    prerequisites: [],
-  },
-  {
-    id: "domain",
-    name: "Область допустимых значений",
-    shortName: "ОДЗ",
-    description: "Ограничения знаменателя, корня и логарифма.",
-    prerequisites: ["fractions", "powers"],
-  },
-  {
-    id: "equations",
-    name: "Квадратные уравнения",
-    shortName: "Кв. ур.",
-    description: "Разложение на множители и проверка корней.",
-    prerequisites: ["powers"],
-  },
-  {
-    id: "roots",
-    name: "Иррациональные уравнения",
-    shortName: "Ирр.",
-    description: "Возведение в квадрат и проверка посторонних корней.",
-    prerequisites: ["domain", "equations"],
-  },
-  {
-    id: "inequalities",
-    name: "Неравенства",
-    shortName: "Нер-ва",
-    description: "Знак выражения и метод интервалов.",
-    prerequisites: ["domain", "equations"],
-  },
-  {
-    id: "logs",
-    name: "Логарифмы",
-    shortName: "Лог.",
-    description: "Свойства логарифмов с учётом ограничений.",
-    prerequisites: ["powers", "domain"],
-  },
-];
 
 function sheetLine(fileId: string, top: number, recognizedLatex: string): StepOrigin {
   return {
