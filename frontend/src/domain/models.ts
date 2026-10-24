@@ -37,6 +37,7 @@ export interface Task {
   formula: string;
   reference: string;
   topicId: string;
+  taskTypeId?: string;
   steps: Step[];
   feedback: string;
   reviewed: boolean;

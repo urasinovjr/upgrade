@@ -11,6 +11,7 @@ from app.analysis.contract import (
     StepInput,
     TaskInput,
 )
+from app.knowledge.task_types import OUT_OF_SCOPE_TYPES, TASK_TYPE_NAMES
 from app.redaction import PageImage
 from app.redaction.geometry import inside_page, to_original
 from app.works.models import WorkFile
@@ -126,11 +127,18 @@ def merged_step(step: StepInput, reviewed: ReviewedStep | None, origin: StepOrig
     )
 
 
+def out_of_scope_reason(task_type_id: str) -> str:
+    return f"UpGrade пока не разбирает такие задачи: {TASK_TYPE_NAMES[task_type_id].lower()}."
+
+
 def merged_task(task: Task, source: ReviewTask, item: ReviewedTask, origins: Origins) -> Task:
     reviewed = {step.id: step for step in item.steps}
     gap = None
     if item.gap is not None:
         gap = GapProposal(topic_id=item.gap.topic_id, reason=item.gap.reason, decision="hypothesis")
+    outside = item.task_type_id in OUT_OF_SCOPE_TYPES
+    supported = item.supported and not outside
+    reason = out_of_scope_reason(item.task_type_id) if outside else item.reason
     return task.model_copy(
         update={
             "steps": [
@@ -138,9 +146,10 @@ def merged_task(task: Task, source: ReviewTask, item: ReviewedTask, origins: Ori
                 for step in source.steps
             ],
             "topic_id": item.topic_id,
-            "gap": gap,
-            "feedback": item.feedback if item.supported else item.reason,
-            "omitted": not item.supported,
+            "task_type_id": item.task_type_id,
+            "gap": None if outside else gap,
+            "feedback": item.feedback if supported else reason,
+            "omitted": not supported,
             "reviewed": False,
         }
     )

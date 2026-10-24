@@ -474,3 +474,27 @@ test("a new work started from a student page preselects that student", async ({ 
   await page.goto("/works/new?student=unknown");
   await expect(page.getByRole("combobox", { name: "Ученик", exact: true })).toHaveValue("");
 });
+
+test("the condition editor groups topics, finds them by name and keeps the task type", async ({
+  page,
+}) => {
+  await page.goto("/works");
+  await page.getByRole("link", { name: /Уравнения и преобразования/ }).click();
+  await page.getByRole("tab", { name: "Задача 1", exact: true }).click();
+  await page.getByRole("button", { name: /^Изменить условие: / }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("searchbox", { name: "Найти тему" }).fill("логарифмические н");
+  const topic = dialog.getByRole("combobox", { name: "Тема задачи" });
+  await expect(topic.locator("option", { hasText: "Логарифмические неравенства" })).toHaveCount(1);
+  await expect(topic.locator("option", { hasText: "Дроби" })).toHaveCount(0);
+  await dialog
+    .getByRole("combobox", { name: "Тип задачи" })
+    .selectOption({ label: "Квадратное уравнение" });
+  await dialog.getByRole("button", { name: "Сохранить" }).click();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /^Изменить условие: / }).click();
+  await expect(page.getByRole("dialog").getByRole("combobox", { name: "Тип задачи" })).toHaveValue(
+    "quadratic_eq",
+  );
+});

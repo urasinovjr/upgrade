@@ -4,6 +4,7 @@ from typing import Literal, Protocol
 from pydantic import BaseModel, Field, ValidationError
 
 from app.knowledge.catalog import KNOWN_TOPICS, canonical_topic
+from app.knowledge.task_types import TASK_TYPE_IDS
 from app.redaction import PageImage
 
 Verdict = Literal["correct", "error", "uncertain"]
@@ -82,6 +83,7 @@ class ReviewedTask(BaseModel):
     supported: bool
     reason: str = Field(default="", max_length=5000)
     topic_id: str
+    task_type_id: str = Field(default="", max_length=64)
     steps: list[ReviewedStep] = Field(max_length=200)
     gap: GapHypothesis | None = None
     feedback: str = Field(default="", max_length=10000)
@@ -122,6 +124,8 @@ def check_reviewed_task(item: ReviewedTask, step_ids: list[str]) -> None:
     topics = [item.topic_id] + ([item.gap.topic_id] if item.gap else [])
     if any(topic not in KNOWN_TOPICS for topic in topics):
         raise InvalidReply("topic")
+    if item.task_type_id and item.task_type_id not in TASK_TYPE_IDS:
+        raise InvalidReply("task_type")
     if not item.supported:
         if not item.reason.strip():
             raise InvalidReply("unsupported_reason")

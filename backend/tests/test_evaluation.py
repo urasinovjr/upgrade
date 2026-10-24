@@ -16,7 +16,8 @@ from app.evaluation import (
     score,
     validate,
 )
-from app.evaluation.auto import normalize_latex, recognition_score, similarity
+from app.evaluation.auto import normalize_latex, recognition_score, similarity, summarize
+from app.knowledge.catalog import CATALOG_VERSION
 from tests.fakes import FakeDraftProvider
 from tests.samples import PNG_BYTES, picture
 
@@ -91,8 +92,24 @@ def test_validation_finds_leaks_and_gaps(tmp_path: Path):
         work("w1", "dev", "g1", "Мария.png", [card("t1", True)]),
         work("w2", "acceptance", "g1", "w2.png", [card("t1", False, firstErrorStep=None)]),
         work("w3", "acceptance", "g3", "w3.png", [card("t1", True, topicId="calculus")]),
+        work(
+            "w4",
+            "acceptance",
+            "g4",
+            "w4.png",
+            [
+                card("t1", True, taskType="integral"),
+                card("t2", True, taskType="derivative"),
+                card("t3", True, taskType="log_ineq"),
+            ],
+        ),
     ]
-    files = {"Мария.png": picture("PNG"), "w2.png": PNG_BYTES, "w3.png": picture("PNG")}
+    files = {
+        "Мария.png": picture("PNG"),
+        "w2.png": PNG_BYTES,
+        "w3.png": picture("PNG"),
+        "w4.png": picture("PNG"),
+    }
     root = dataset(tmp_path, works, files)
 
     problems, _ = validate(load_manifest(root), root, ["Мария"])
@@ -102,6 +119,9 @@ def test_validation_finds_leaks_and_gaps(tmp_path: Path):
     assert "w2: в w2.png остались метаданные" in problems
     assert "w2/t1: первый ошибочный шаг вне транскрипции" in problems
     assert "w3/t1: тема 'calculus' не из справочника" in problems
+    assert "w4/t1: тип задачи 'integral' не из справочника" in problems
+    assert "w4/t2: тип derivative вне охвата, исключите задачу с причиной" in problems
+    assert "w4/t3: тип log_ineq из семейства inequalities, а не equations" in problems
 
 
 async def test_run_saves_replies_and_compares_with_the_expert(
@@ -135,6 +155,7 @@ async def test_run_saves_replies_and_compares_with_the_expert(
     assert run["error"] is None and run["review"]["tasks"][0]["task_id"] == "t1"
     assert (meta["variant"], meta["currency"], run["variant"]) == ("sim", "RUB", "sim")
     assert meta["codeCommit"]
+    assert (meta["catalogVersion"], run["catalog_version"]) == (CATALOG_VERSION, CATALOG_VERSION)
 
 
 def mark(out: Path, explanation: list[str], recognition: list[str]) -> None:
@@ -237,3 +258,26 @@ async def test_acceptance_runs_are_not_compared(clean_set: Path, tmp_path: Path,
         compare([out], tmp_path / "report")
     with pytest.raises(SystemExit):
         await run(["eval-compare", str(out), "--report", str(tmp_path / "report")], test_settings)
+
+
+def test_auto_summary_groups_rows_by_task_type():
+    rows = [
+        {"family": "equations", "taskType": "quadratic_eq", "taskTypeMatch": True},
+        {"family": "equations", "taskType": "quadratic_eq", "taskTypeMatch": False},
+        {"family": "equations", "taskType": "", "taskTypeMatch": None},
+    ]
+    base = {
+        "expertCorrect": True,
+        "verdictMatch": True,
+        "firstErrorMatch": True,
+        "falseError": False,
+        "refused": False,
+        "topicMatch": True,
+        "recognition": None,
+    }
+
+    summary = summarize([{**base, **row} for row in rows], [])
+
+    assert list(summary["taskTypes"]) == ["quadratic_eq"]
+    assert summary["taskTypes"]["quadratic_eq"]["tasks"] == 2
+    assert summary["total"]["taskTypeMatch"] == 0.5

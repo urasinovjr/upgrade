@@ -56,6 +56,7 @@ async def test_simulator_reply_passes_the_contract(provider):
     assert correct.supported and {step.verdict for step in correct.steps} == {"correct"}
     assert "error" in {step.verdict for step in error.steps}
     assert error.topic_id == "inequalities"
+    assert (correct.task_type_id, error.task_type_id) == ("quadratic_eq", "quadratic_ineq")
     assert error.gap is not None and error.gap.topic_id == "domain"
     assert unsupported.supported is False and unsupported.reason
 

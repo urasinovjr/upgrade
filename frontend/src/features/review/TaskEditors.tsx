@@ -1,11 +1,41 @@
 import { useState } from "react";
 import { Check, Trash2 } from "lucide-react";
+import { families, taskTypes } from "../../data/catalog";
 import { TopicSelect } from "../../shared/TopicSelect";
 import type { GapProposal, Task } from "../../domain/models";
 import { FormulaInput } from "../../shared/math";
 import { DialogKeyboard } from "./StepItem";
 
-type Condition = Pick<Task, "condition" | "formula" | "reference" | "topicId">;
+type Condition = Pick<Task, "condition" | "formula" | "reference" | "topicId" | "taskTypeId">;
+
+function TaskTypeSelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const groups = [
+    ...families.map((family) => ({
+      label: family.name,
+      items: taskTypes.filter((item) => item.inScope && item.family === family.id),
+    })),
+    { label: "Вне охвата", items: taskTypes.filter((item) => !item.inScope) },
+  ];
+  return (
+    <label>
+      Тип задачи
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="">Не указан</option>
+        {groups
+          .filter((group) => group.items.length)
+          .map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.items.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.inScope ? item.name : item.name + " · вне охвата"}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+      </select>
+    </label>
+  );
+}
 
 export function ConditionEditor({
   task,
@@ -25,6 +55,7 @@ export function ConditionEditor({
     formula: task.formula,
     reference: task.reference,
     topicId: task.topicId,
+    taskTypeId: task.taskTypeId,
   });
   return (
     <form
@@ -61,6 +92,10 @@ export function ConditionEditor({
         label="Тема задачи"
         value={draft.topicId}
         onChange={(topicId) => setDraft({ ...draft, topicId })}
+      />
+      <TaskTypeSelect
+        value={draft.taskTypeId ?? ""}
+        onChange={(taskTypeId) => setDraft({ ...draft, taskTypeId })}
       />
       <DialogKeyboard />
       <div className="dp-dialog-actions">

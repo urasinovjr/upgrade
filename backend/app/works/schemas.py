@@ -50,6 +50,7 @@ class Task(ApiModel):
     formula: str = Field(max_length=5000)
     reference: str = Text
     topic_id: str = Field(max_length=64)
+    task_type_id: str = Field(default="", max_length=64)
     steps: list[Step] = Field(max_length=200)
     feedback: str = Text
     reviewed: bool

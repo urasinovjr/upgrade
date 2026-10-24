@@ -130,4 +130,5 @@ class AnalysisRun(Base):
     sent_pages: Mapped[list] = mapped_column(JSONB, default=list)
     variant: Mapped[str] = mapped_column(String(64), default="")
     code_commit: Mapped[str] = mapped_column(String(40), default="")
+    catalog_version: Mapped[str] = mapped_column(String(32), default="")
     created_at: Mapped[datetime] = now_column()

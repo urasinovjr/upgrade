@@ -101,6 +101,29 @@ def test_unsupported_task_is_omitted_with_reason():
     assert merged.tasks[0].steps[0].verdict == "uncertain"
 
 
+def reviewed_as(task_type_id: str, **changes):
+    draft = draft_of(task("t1"))
+    tasks, _ = review_tasks(draft, None)
+    steps = [{"id": tasks[0].steps[0].id, "verdict": "correct", "explanation": ""}]
+    item = reviewed(task_type_id=task_type_id, steps=steps, **changes)
+    return merge_review(draft, tasks, read_review({"tasks": [item]}, tasks)).tasks[0]
+
+
+def test_task_out_of_scope_is_omitted_whatever_the_reply():
+    merged = reviewed_as("derivative", gap={"topic_id": "domain", "reason": "ОДЗ"})
+
+    assert (merged.omitted, merged.task_type_id, merged.gap) == (True, "derivative", None)
+    assert merged.feedback == (
+        "UpGrade пока не разбирает такие задачи: производная и исследование функции."
+    )
+
+
+def test_task_type_in_scope_is_kept():
+    merged = reviewed_as("quadratic_eq")
+
+    assert (merged.omitted, merged.task_type_id) == (False, "quadratic_eq")
+
+
 def test_illegible_step_stays_uncertain_whatever_the_verdict():
     draft = draft_of(task("t1"))
     found = recognition(
@@ -128,6 +151,7 @@ def test_recognition_must_cover_exactly_the_requested_tasks():
     [
         (reviewed("t9"), "task_ids"),
         (reviewed(topic_id="geometry"), "topic"),
+        (reviewed(task_type_id="calculus"), "task_type"),
         (reviewed(gap={"topic_id": "geometry", "reason": "x"}), "topic"),
         (reviewed(steps=[]), "step_ids"),
         (reviewed(steps=[{"id": "s1", "verdict": "error", "explanation": ""}]), "explanation"),

@@ -164,3 +164,4 @@ TASK_TYPES = (
 )
 TASK_TYPE_IDS = frozenset(item.id for item in TASK_TYPES)
 OUT_OF_SCOPE_TYPES = frozenset(item.id for item in TASK_TYPES if not item.in_scope)
+TASK_TYPE_NAMES = {item.id: item.name for item in TASK_TYPES}

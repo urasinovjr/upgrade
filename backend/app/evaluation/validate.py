@@ -9,10 +9,12 @@ from pypdf.errors import PdfReadError
 from app.analysis.names import mentions
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import JPEG, PDF, PNG, sniff_type
+from app.knowledge.task_types import TASK_TYPES
 from app.knowledge.topics import TOPIC_IDS
 
 MIN_TASKS = 100
 MIN_CORRECT = 50
+TASK_TYPES_BY_ID = {item.id: item for item in TASK_TYPES}
 
 
 TECHNICAL_KEYS = {
@@ -68,6 +70,19 @@ def file_problems(root: Path, work: WorkCard, names: list[str]) -> list[str]:
     return problems
 
 
+def task_type_problems(where: str, task: TaskCard) -> list[str]:
+    if not task.task_type:
+        return []
+    item = TASK_TYPES_BY_ID.get(task.task_type)
+    if item is None:
+        return [f"{where}: тип задачи {task.task_type!r} не из справочника"]
+    if not item.in_scope:
+        return [f"{where}: тип {item.id} вне охвата, исключите задачу с причиной"]
+    if task.family != "mixed" and item.family != task.family:
+        return [f"{where}: тип {item.id} из семейства {item.family}, а не {task.family}"]
+    return []
+
+
 def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]:
     where = f"{work.work_id}/{task.task_id}"
     text = " ".join([task.condition, task.formula, task.explanation, *task.transcription])
@@ -80,6 +95,7 @@ def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]
         problems.append(f"{where}: нет вывода о корректности")
     if task.topic_id not in TOPIC_IDS:
         problems.append(f"{where}: тема {task.topic_id!r} не из справочника")
+    problems += task_type_problems(where, task)
     if not task.transcription:
         problems.append(f"{where}: нет экспертной транскрипции")
     if task.correct is False:

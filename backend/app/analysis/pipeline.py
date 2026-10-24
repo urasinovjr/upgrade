@@ -15,6 +15,7 @@ from app.analysis.drafting import merge_review, review_tasks, task_input, tasks_
 from app.analysis.names import hide_names
 from app.analysis.variants import Variant
 from app.config import Settings
+from app.knowledge.catalog import CATALOG_VERSION
 from app.redaction import SanitizedPages
 from app.works.schemas import Draft
 from app.works.service import draft_too_large, dump
@@ -53,6 +54,7 @@ class RunRecord:
     sent_pages: list = field(default_factory=list)
     variant: str = ""
     code_commit: str = ""
+    catalog_version: str = CATALOG_VERSION
 
     def note(self, reply: ProviderReply) -> None:
         self.provider = reply.provider

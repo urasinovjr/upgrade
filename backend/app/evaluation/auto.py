@@ -47,6 +47,12 @@ def recognition_score(expected: list[str], found: list[str]) -> float | None:
     return total / max(len(expected), len(found))
 
 
+def type_match(card: TaskCard, task: Task | None) -> bool | None:
+    if not card.task_type:
+        return None
+    return task is not None and task.task_type_id == card.task_type
+
+
 def task_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
     view = ai_view(task)
     found = [step.latex for step in task.steps] if task and not task.omitted else []
@@ -64,6 +70,8 @@ def task_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
         "falseError": card.correct is True and view["verdict"] == "error",
         "refused": view["verdict"] == "refused",
         "topicMatch": view["topic"] == card.topic_id,
+        "taskType": card.task_type,
+        "taskTypeMatch": type_match(card, task),
         "recognition": recognition_score(card.transcription, found),
         "stepCount": [len(card.transcription), len(found)],
     }
@@ -84,6 +92,7 @@ def task_totals(rows: list[dict]) -> dict:
     correct = [row for row in rows if row["expertCorrect"] is True]
     wrong = [row for row in rows if row["expertCorrect"] is False]
     recognized = [row["recognition"] for row in rows if row["recognition"] is not None]
+    typed = [row["taskTypeMatch"] for row in rows if row.get("taskTypeMatch") is not None]
     return {
         "tasks": len(rows),
         "verdictMatch": share(sum(row["verdictMatch"] for row in rows), len(rows)),
@@ -93,6 +102,7 @@ def task_totals(rows: list[dict]) -> dict:
         "falseErrorShare": share(sum(row["falseError"] for row in correct), len(correct)),
         "refused": sum(row["refused"] for row in rows),
         "topicMatch": share(sum(row["topicMatch"] for row in rows), len(rows)),
+        "taskTypeMatch": share(sum(typed), len(typed)),
         "recognition": round(sum(recognized) / len(recognized), 4) if recognized else None,
         "autoOk": share(
             sum(row["verdictMatch"] and row["firstErrorMatch"] for row in rows), len(rows)
@@ -119,11 +129,17 @@ def run_totals(runs: list[tuple[RunRecord, str | None]]) -> dict:
     }
 
 
-def summarize(rows: list[dict], runs: list[tuple[RunRecord, str | None]]) -> dict:
-    families = defaultdict(list)
+def grouped(rows: list[dict], key: str) -> dict:
+    groups = defaultdict(list)
     for row in rows:
-        families[row["family"]].append(row)
+        if row.get(key):
+            groups[row[key]].append(row)
+    return {name: task_totals(items) for name, items in sorted(groups.items())}
+
+
+def summarize(rows: list[dict], runs: list[tuple[RunRecord, str | None]]) -> dict:
     return {
         "total": {**task_totals(rows), **run_totals(runs)},
-        "families": {name: task_totals(items) for name, items in sorted(families.items())},
+        "families": grouped(rows, "family"),
+        "taskTypes": grouped(rows, "taskType"),
     }

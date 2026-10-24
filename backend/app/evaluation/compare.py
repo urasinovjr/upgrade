@@ -14,6 +14,7 @@ COLUMNS = [
     ("refused", "Отказы"),
     ("recognition", "Распознавание"),
     ("topicMatch", "Тема"),
+    ("taskTypeMatch", "Тип задачи"),
     ("failedWorks", "Работ без ответа"),
     ("latencyP50Ms", "p50, мс"),
     ("latencyP90Ms", "p90, мс"),
@@ -37,6 +38,7 @@ def read_run(out: Path) -> dict:
         "variant": meta.get("variant", ""),
         "codeCommit": meta.get("codeCommit", ""),
         "datasetVersion": meta["datasetVersion"],
+        "catalog": meta.get("catalogVersion") or meta.get("topicsHash", ""),
         "currency": meta.get("currency", ""),
         **total,
     }
@@ -74,5 +76,10 @@ def compare(outs: list[Path], report: Path) -> str:
     if len(versions) > 1:
         table += "\nвнимание: прогоны сделаны на разных версиях набора: " + ", ".join(
             sorted(versions)
+        )
+    catalogs = {row["catalog"] for row in rows}
+    if len(catalogs) > 1:
+        table += "\nвнимание: прогоны сделаны с разными справочниками тем: " + ", ".join(
+            sorted(catalogs)
         )
     return table

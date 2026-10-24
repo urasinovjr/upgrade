@@ -3,6 +3,7 @@ import base64
 import httpx
 
 from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
+from app.knowledge.task_types import TASK_TYPES
 from app.knowledge.topics import TOPICS
 from app.provider import ProviderError
 from app.redaction import PageImage
@@ -59,7 +60,15 @@ class SimDraftProvider:
         return await self.post("/draft/recognize", payload)
 
     async def review(self, tasks: list[ReviewTask]) -> ProviderReply:
-        payload = {"tasks": [task.model_dump() for task in tasks], "topics": topic_payload()}
+        payload = {
+            "tasks": [task.model_dump() for task in tasks],
+            "topics": topic_payload(),
+            "task_types": [
+                {"id": item.id, "topic_ids": list(item.topic_ids)}
+                for item in TASK_TYPES
+                if item.in_scope
+            ],
+        }
         return await self.post("/draft/review", payload)
 
     async def post(self, path: str, payload: dict) -> ProviderReply:

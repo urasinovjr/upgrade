@@ -88,6 +88,11 @@ class DraftTopic(BaseModel):
     prerequisites: list[str]
 
 
+class DraftTaskType(BaseModel):
+    id: str
+    topic_ids: list[str]
+
+
 class RecognizeRequest(BaseModel):
     pages: list[DraftPage]
     tasks: list[DraftTask]
@@ -96,6 +101,7 @@ class RecognizeRequest(BaseModel):
 class ReviewRequest(BaseModel):
     tasks: list[DraftTask]
     topics: list[DraftTopic]
+    task_types: list[DraftTaskType] = []
 
 
 def task_text(task: DraftTask) -> str:
@@ -152,10 +158,21 @@ def topic_named(topic_id: str, topics: list[DraftTopic]) -> DraftTopic:
     return next(topic for topic in topics if topic.id == topic_id)
 
 
-def reviewed_task(task: DraftTask, topics: list[DraftTopic]) -> dict:
+def type_of(topic_id: str, task_types: list[DraftTaskType]) -> str:
+    return next((item.id for item in task_types if topic_id in item.topic_ids), "")
+
+
+def reviewed_task(
+    task: DraftTask, topics: list[DraftTopic], task_types: list[DraftTaskType]
+) -> dict:
     kind = scenario(task)
     topic = topic_named(topic_of(task, topics), topics)
-    result = {"task_id": task.id, "topic_id": topic.id, "gap": None}
+    result = {
+        "task_id": task.id,
+        "topic_id": topic.id,
+        "task_type_id": type_of(topic.id, task_types),
+        "gap": None,
+    }
     if kind == "unsupported":
         reason = "UpGrade пока не разбирает задачи этого типа."
         return {**result, "supported": False, "reason": reason, "steps": [], "feedback": ""}
@@ -294,6 +311,8 @@ async def draft_review(request: ReviewRequest) -> dict:
     if await draft_answer("draft_review", request.tasks, profile.analyze_median):
         return {"tasks": "unreadable", "usage": spent}
     return {
-        "tasks": [reviewed_task(task, request.topics) for task in request.tasks],
+        "tasks": [
+            reviewed_task(task, request.topics, request.task_types) for task in request.tasks
+        ],
         "usage": spent,
     }

@@ -1,5 +1,4 @@
 import csv
-import hashlib
 import json
 import time
 from collections.abc import AsyncIterator
@@ -16,7 +15,7 @@ from app.config import Settings
 from app.evaluation.auto import ai_view, summarize, task_row
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import sniff_type
-from app.knowledge.topics import TOPICS
+from app.knowledge.catalog import CATALOG_VERSION, catalog_hash
 from app.provider import ProviderError
 from app.redaction import PageUnreadable, SourceFile, sanitize_pages
 from app.works.review import initial_draft
@@ -26,6 +25,7 @@ EXPERT_COLUMNS = [
     "work_id",
     "task_id",
     "family",
+    "task_type",
     "expert_correct",
     "ai_verdict",
     "expert_first_error",
@@ -63,11 +63,6 @@ class FolderStorage:
 
     async def close(self) -> None:
         pass
-
-
-def topics_hash() -> str:
-    payload = json.dumps([(topic.id, topic.prerequisites) for topic in TOPICS])
-    return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
 def card_task(card: TaskCard) -> Task:
@@ -145,6 +140,7 @@ def expert_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
         "work_id": work.work_id,
         "task_id": card.task_id,
         "family": card.family,
+        "task_type": card.task_type,
         "expert_correct": "yes" if card.correct else "no",
         "ai_verdict": view["verdict"],
         "expert_first_error": expert_first,
@@ -188,7 +184,8 @@ async def run_split(
     meta = {
         "datasetVersion": manifest.dataset_version,
         "split": split,
-        "topicsHash": topics_hash(),
+        "topicsHash": catalog_hash(),
+        "catalogVersion": CATALOG_VERSION,
         "limits": [settings.redaction_dpi, settings.redaction_max_side],
         "startedAt": datetime.now(UTC).isoformat(),
         "works": 0,

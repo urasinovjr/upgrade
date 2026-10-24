@@ -28,6 +28,7 @@ class TaskCard(ApiModel):
     first_error_step: int | None = None
     explanation: str = ""
     topic_id: str = ""
+    task_type: str = ""
     legibility: Literal["legible", "partly", "illegible"] = "legible"
     admission: Literal["admitted", "excluded"] = "admitted"
     exclusion_reason: str = ""

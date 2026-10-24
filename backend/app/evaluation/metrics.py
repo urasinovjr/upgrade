@@ -90,22 +90,30 @@ def scores_line(title: str, scores: Scores) -> str:
     )
 
 
+def grouped_scores(rows: list[dict], key: str) -> dict[str, Scores]:
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        if row.get(key):
+            groups[row[key]].append(row)
+    return {name: scores_of(items) for name, items in sorted(groups.items())}
+
+
 def score(out: Path) -> str:
     rows = read_rows(out)
     meta = json.loads((out / "meta.json").read_text("utf-8"))
     total = scores_of(rows)
-    by_family: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_family[row["family"]].append(row)
-    families = {name: scores_of(items) for name, items in sorted(by_family.items())}
+    families = grouped_scores(rows, "family")
+    types = grouped_scores(rows, "task_type")
     verdict = "порог пройден" if total.passed else "порог не пройден"
     lines = [
         f"Набор {meta['datasetVersion']}, часть {meta['split']}, модель {meta['model']}, "
-        f"промпт {meta['promptVersion']}, справочник {meta['topicsHash']}",
+        f"промпт {meta['promptVersion']}, справочник "
+        f"{meta.get('catalogVersion', '')} {meta['topicsHash']}".replace("  ", " "),
         scores_line("Всего", total),
         f"Пороги: верных разборов не меньше {CORRECT_SHARE:.0%}, ложных ошибок не больше "
         f"{FALSE_ERROR_SHARE:.0%} — {verdict}",
         *[scores_line(name, item) for name, item in families.items()],
+        *[scores_line("тип " + name, item) for name, item in types.items()],
     ]
     if total.tasks < MIN_TASKS or total.correct_solutions < MIN_CORRECT:
         lines.append(
@@ -114,6 +122,7 @@ def score(out: Path) -> str:
     result = {
         "total": {**asdict(total), "passed": total.passed},
         "families": {name: asdict(item) for name, item in families.items()},
+        "taskTypes": {name: asdict(item) for name, item in types.items()},
     }
     (out / "metrics.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), "utf-8")
     return "\n".join(lines)
