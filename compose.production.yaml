@@ -1,0 +1,148 @@
+name: upgrade-production
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-backend: &backend
+  build:
+    context: ./backend
+    args:
+      APP_COMMIT: ${UPGRADE_RELEASE:?Set an immutable release label}
+  image: upgrade-backend:${UPGRADE_RELEASE:?Set an immutable release label}
+  user: "10001:10001"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs:
+    - /tmp:size=256m,mode=1777
+  restart: unless-stopped
+  logging: *logging
+  env_file: ${UPGRADE_ENV_FILE:-deployment/production.env}
+  environment:
+    APP_ENV: production
+    STAND_ENABLED: "false"
+    S3_ENDPOINT_URL: http://s3:8333
+  networks: [data]
+
+services:
+  db:
+    image: postgres:17-alpine
+    command: [postgres, -c, max_connections=100]
+    env_file: ${UPGRADE_ENV_FILE:-deployment/production.env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks: [data]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    command: >-
+      server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+      -volume.max=100 -master.volumeSizeLimitMB=64
+    volumes:
+      - s3_data:/data
+      - ${UPGRADE_S3_CONFIG:-./deployment/s3.json}:/etc/seaweedfs/s3.json:ro
+    networks: [data]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://localhost:8333/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    <<: *backend
+    command: [alembic, upgrade, head]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    command:
+      - uvicorn
+      - app.main:app
+      - --host=0.0.0.0
+      - --port=8000
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    networks: [data, edge, outbound]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      s3:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready', timeout=2)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    <<: *backend
+    command: [python, -m, app.worker]
+    networks: [data, outbound]
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -m, app.worker, check]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    image: upgrade-frontend:${UPGRADE_RELEASE:?Set an immutable release label}
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    restart: unless-stopped
+    logging: *logging
+    ports:
+      - "0.0.0.0:80:8080"
+      - "0.0.0.0:443:8443"
+    volumes:
+      - ${UPGRADE_TLS_DIR:?Set the TLS certificate directory}:/etc/upgrade/tls:ro
+      - ${UPGRADE_ACME_DIR:?Set the ACME webroot directory}:/var/www/acme:ro
+    networks: [edge]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+networks:
+  data:
+    internal: true
+  edge:
+  outbound:
+
+volumes:
+  db_data:
+  s3_data:

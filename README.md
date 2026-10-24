@@ -20,6 +20,31 @@ docker compose up -d --build --wait
 
 `GET /health` отвечает, пока процесс жив; `GET /health/ready` проверяет PostgreSQL и хранилище и отвечает 503 со списком `failed`, если что-то недоступно. `worker` раз в `HEARTBEAT_SECONDS` (10 с) обновляет файл `HEARTBEAT_FILE`, его healthcheck — `python -m app.worker check`. Образы backend и frontend работают без root: backend под пользователем 10001, nginx — непривилегированный на порту 8080 внутри контейнера.
 
+## Выпуск
+
+Production-стек описан в `compose.production.yaml`: PostgreSQL и SeaweedFS во внутренней сети без портов наружу, одноразовый `migrate`, `api`, `worker` и nginx с TLS. Контейнеры приложения работают без root, с файловой системой только для чтения и `restart: unless-stopped`; у каждого сервиса есть healthcheck, у `api` — `/health/ready`. Без метки релиза `UPGRADE_RELEASE` compose не запускается: она становится тегом образов и `APP_COMMIT`. Docker перезапускает только упавшие контейнеры; контейнер в состоянии unhealthy без внешнего наблюдателя продолжает работать, поэтому состояние нужно проверять (`docker compose ps`).
+
+Подготовка хоста:
+
+```sh
+cp deployment/production.env.example deployment/production.env
+cp deployment/s3.example.json deployment/s3.json
+export UPGRADE_TLS_DIR=/opt/upgrade/tls UPGRADE_ACME_DIR=/opt/upgrade/acme
+docker compose -f deployment/compose.acme.yaml up -d
+certbot certonly --webroot -w "$UPGRADE_ACME_DIR" -d upgrade.example.ru
+docker compose -f deployment/compose.acme.yaml down
+```
+
+В `production.env` задать пароли, адреса и ключи; ключ S3 должен совпадать с `s3.json`. Оба файла не попадают в git. Сертификат (`fullchain.pem`, `privkey.pem`) копируется в `UPGRADE_TLS_DIR` с правами на чтение для пользователя nginx (101).
+
+Запуск и обновление:
+
+```sh
+UPGRADE_RELEASE=$(git rev-parse --short HEAD) docker compose -f compose.production.yaml up -d --build --wait
+```
+
+Продление сертификата: `certbot renew --webroot -w "$UPGRADE_ACME_DIR" --deploy-hook "…копирование в UPGRADE_TLS_DIR…; docker compose -f compose.production.yaml exec frontend nginx -s reload"`. nginx отдаёт HSTS, CSP (`script-src 'self'`, `worker-src 'self' blob:` для pdf.js, `img-src 'self' data: blob:`), запрет фреймов и `server_tokens off`; `/api/docs` снаружи закрыт. `tests/test_deployment.py` проверяет конфигурацию compose: метка релиза, healthcheck, пользователи, порты.
+
 ## Приёмка PRD
 
 Тесты, которые закрывают функциональные проверки PRD, помечены номером сценария: `@pytest.mark.prd(n)` в backend и тегом `@prd-NN` в Playwright. Тест `tests/test_acceptance_matrix.py` проверяет, что у каждого из 16 сценариев есть тест, а сценарии интерфейса проверяются и в браузере. Сценарии 2 и 3 (альтернативное решение, верный ответ после неверного шага) в тестах проверяют подсчёт метрик; качество модели по ним измеряет срез `scenario` на наборе. Приёмочный набор запускается отдельно:

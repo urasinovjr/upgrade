@@ -1,0 +1,13 @@
+name: upgrade-acme
+
+services:
+  challenge:
+    image: nginxinc/nginx-unprivileged:1.29-alpine
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=8m,mode=1777"]
+    ports: ["0.0.0.0:80:8080"]
+    volumes:
+      - ./nginx.acme.conf:/etc/nginx/nginx.conf:ro
+      - ${UPGRADE_ACME_DIR:?Set the ACME webroot directory}:/var/www/acme:ro

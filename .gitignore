@@ -16,3 +16,6 @@ __pycache__/
 .ruff_cache/
 *.pyc
 .env
+
+deployment/production.env
+deployment/s3.json

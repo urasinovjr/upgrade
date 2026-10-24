@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "upgrade-app",
+      "credentials": [{ "accessKey": "upgrade-app", "secretKey": "change-me-storage" }],
+      "actions": ["Read", "Write", "List", "Tagging", "Admin"]
+    }
+  ]
+}
