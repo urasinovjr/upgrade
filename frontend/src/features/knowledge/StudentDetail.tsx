@@ -71,7 +71,7 @@ function evidenceLink(state: StoreState, item: Evidence) {
   const number = work?.published.find((revision) => revision.id === item.revisionId)?.number;
   return {
     to: "/works/" + item.workId + "/report?revision=" + item.revisionId,
-    label: number ? "отчёт · версия " + number : "отчёт",
+    label: number ? "отчёт, версия " + number : "отчёт",
   };
 }
 
@@ -266,17 +266,15 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
         </span>
         <div className="dp-student-gap-body">
           <div className="dp-student-gap-title">
-            <Title>
-              {gap.closed ? topicName(gap.topicId) : "Повторить: " + topicName(gap.topicId)}
-            </Title>
+            <Title>{topicName(gap.topicId)}</Title>
             {next && (
               <span className="dp-student-next">
                 <Target size={12} aria-hidden="true" />
-                Следующий шаг
+                Повторить первым
               </span>
             )}
             <span className="dp-student-gap-meta">
-              <span>{gap.closed ? "Пробел закрыт" : "Подтверждённый пробел"}</span> ·{" "}
+              <span>{gap.closed ? "Пробел закрыт" : "Открытый пробел"}</span> ·{" "}
               {gap.evidence.length}{" "}
               {wordForCount(gap.evidence.length, [
                 "подтверждение",
@@ -336,9 +334,9 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           <span>
             <strong>{open.length}</strong>{" "}
             {wordForCount(open.length, [
-              "тема для повторения",
-              "темы для повторения",
-              "тем для повторения",
+              "открытый пробел",
+              "открытых пробела",
+              "открытых пробелов",
             ])}
           </span>
           <span>
@@ -391,7 +389,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
               <section className="dp-student-section" aria-labelledby="student-gaps-title">
                 <div className="dp-student-heading">
                   <h2 id="student-gaps-title">
-                    Темы для повторения
+                    Открытые пробелы
                     <span className="dp-count">{open.length}</span>
                   </h2>
                   <button className="dp-text" onClick={() => showOnMap(defaultTopic)}>
@@ -408,7 +406,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                     <CircleHelp size={16} aria-hidden="true" />
                     <p>
                       {gaps.length ? "Открытых пробелов нет." : "Подтверждённых пробелов пока нет."}{" "}
-                      Они появятся, когда вы проверите работы этого ученика.
+                      Они появятся, когда вы подтвердите работы этого ученика.
                     </p>
                   </div>
                 )}
@@ -460,7 +458,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
                               className="dp-student-work-report"
                               to={`/works/${work.id}/report?revision=${current.id}`}
                             >
-                              Отчёт · v{current.number}
+                              Отчёт, версия {current.number}
                               <span className="dp-visually-hidden"> · {work.title}</span>
                             </Link>
                           )}

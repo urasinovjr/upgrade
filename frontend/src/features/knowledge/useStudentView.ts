@@ -4,7 +4,7 @@ import { topics } from "../../data/fixtures";
 
 export type StudentTab = "overview" | "map" | "history";
 export const studentTabs: { value: StudentTab; label: string }[] = [
-  { value: "overview", label: "Обзор" },
+  { value: "overview", label: "Сводка" },
   { value: "map", label: "Карта знаний" },
   { value: "history", label: "История" },
 ];

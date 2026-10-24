@@ -69,7 +69,7 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await page.reload();
   await expect(page.locator(".dp-student-gap.is-closed")).toContainText("Пробел закрыт");
   await page.getByRole("button", { name: "Открыть пробел снова" }).click();
-  await expect(page.getByText("Подтверждённый пробел", { exact: true })).toBeVisible();
+  await expect(page.getByText("Открытый пробел", { exact: true })).toBeVisible();
   await page.getByText("История изменений · 2").click();
   await expect(page.getByText("Пробел открыт снова", { exact: true })).toBeVisible();
   await expect(page.getByText("Три аналогичные задачи решены самостоятельно.")).toBeVisible();

@@ -119,8 +119,7 @@ function tasks(sheetId: string, reviewed = false): Task[] {
       ],
       gap: {
         topicId: "domain",
-        reason:
-          "Повторить, почему знаменатель не равен нулю и как ОДЗ сохраняется при сокращении дроби.",
+        reason: "Почему знаменатель не равен нулю и как ОДЗ сохраняется при сокращении дроби.",
         decision: reviewed ? "confirmed" : "hypothesis",
       },
     },

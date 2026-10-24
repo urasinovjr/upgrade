@@ -98,7 +98,7 @@ export function Roster({
                       );
                     })
                   ) : (
-                    <span className="dp-signal is-quiet">нет открытых задач</span>
+                    <span className="dp-signal is-quiet">всё проверено</span>
                   )}
                 </span>
                 <span className="dp-topic-strip" role="group" aria-label={"Темы · " + student.name}>

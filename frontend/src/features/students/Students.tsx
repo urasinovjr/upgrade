@@ -107,7 +107,7 @@ export default function Students() {
                 <Users size={16} aria-hidden="true" />
                 <span>
                   <strong>Учеников пока нет</strong>
-                  Добавьте ученика, чтобы загружать его работы и видеть темы для повторения.
+                  Добавьте ученика, чтобы загружать его работы и собирать карту знаний.
                 </span>
                 <button className="dp-text" onClick={add} disabled={!writeAccess.allowed}>
                   <UserPlus size={14} aria-hidden="true" />
