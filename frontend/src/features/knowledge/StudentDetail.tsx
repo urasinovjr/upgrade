@@ -110,17 +110,14 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const closures = state.closures.filter((item) => item.studentId === student.id);
   const dataIds = [...studentTopicIds(state, student.id)].sort().join(" ");
-  const overview = useMemo(
-    () => buildMap(knowledgeFragment(topics, dataIds.split(" "))),
-    [dataIds],
-  );
-  const defaultTopic =
-    open[0]?.topicId ?? gaps[0]?.topicId ?? overview.order[0]?.id ?? topics[0].id;
+  const stripTopics = useMemo(() => knowledgeFragment(topics, dataIds.split(" ")), [dataIds]);
+  const defaultTopic = open[0]?.topicId ?? gaps[0]?.topicId ?? stripTopics[0]?.id ?? topics[0].id;
   const view = useStudentView(defaultTopic);
   const { tab, topic: selected } = view;
   const map = useMemo(
-    () => buildMap(knowledgeFragment(topics, [...dataIds.split(" "), selected])),
-    [dataIds, selected],
+    () =>
+      tab === "map" ? buildMap(knowledgeFragment(topics, [...dataIds.split(" "), selected])) : null,
+    [dataIds, selected, tab],
   );
   const [editing, setEditing] = useState(false);
   const page = useRef<HTMLDivElement>(null);
@@ -366,11 +363,11 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
       >
         {tab === "overview" && (
           <>
-            {overview.order.length > 0 && (
+            {stripTopics.length > 0 && (
               <section className="dp-student-topics" aria-labelledby="student-topics-title">
                 <h2 id="student-topics-title">Темы</h2>
-                <ul style={{ "--topic-count": overview.order.length } as CSSProperties}>
-                  {overview.order.map((item) => {
+                <ul style={{ "--topic-count": stripTopics.length } as CSSProperties}>
+                  {stripTopics.map((item) => {
                     const status = statusOf(gapOf(item.id));
                     const label = item.name + " · " + status.label;
                     return (
@@ -504,7 +501,9 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           >
             <div className="dp-map-layout">
               <section className="dp-map-canvas" aria-label="Связи тем">
-                <KnowledgeMap map={map} gaps={gaps} selected={selected} onSelect={selectTopic} />
+                {map && (
+                  <KnowledgeMap map={map} gaps={gaps} selected={selected} onSelect={selectTopic} />
+                )}
                 <MapLegend />
               </section>
               <section ref={detail} key={selected} className="dp-topic-detail">

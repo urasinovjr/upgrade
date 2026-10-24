@@ -15,6 +15,7 @@ const rowGap = 64;
 const margin = 16;
 const portStep = 14;
 const maxCombinations = 50_000;
+const sweeps = 6;
 
 export function wrapName(name: string, limit = 18): string[] {
   const lines: string[] = [];
@@ -131,17 +132,21 @@ export function layoutKnowledgeMap(topics: LayoutTopic[]): MapLayout {
     for (let row = anchor + 1; row < order.length; row++) placeRow(order[row], incoming);
     return x;
   };
-  const score = (order: string[][]) => {
+  const pairs = segments.flatMap((s, a) =>
+    segments
+      .slice(a + 1)
+      .filter((t) => vertices.get(s.from)!.layer === vertices.get(t.from)!.layer)
+      .map((t) => [s, t] as const),
+  );
+  const crossingsOf = (order: string[][]) => {
     const position = new Map(order.flatMap((row) => row.map((id, index) => [id, index] as const)));
-    let crossings = 0;
-    for (let a = 0; a < segments.length; a++)
-      for (let b = a + 1; b < segments.length; b++) {
-        const [s, t] = [segments[a], segments[b]];
-        if (vertices.get(s.from)!.layer !== vertices.get(t.from)!.layer) continue;
-        const top = position.get(s.from)! - position.get(t.from)!;
-        const bottom = position.get(s.to)! - position.get(t.to)!;
-        if (top * bottom < 0) crossings++;
-      }
+    return pairs.filter(([s, t]) => {
+      const top = position.get(s.from)! - position.get(t.from)!;
+      const bottom = position.get(s.to)! - position.get(t.to)!;
+      return top * bottom < 0;
+    }).length;
+  };
+  const score = (order: string[][], crossings = crossingsOf(order)) => {
     const x = place(order);
     const length = segments.reduce(
       (sum, segment) => sum + Math.abs(x.get(segment.from)! - x.get(segment.to)!),
@@ -149,14 +154,56 @@ export function layoutKnowledgeMap(topics: LayoutTopic[]): MapLayout {
     );
     return { crossings, length, x };
   };
+  const barycenterOrder = () => {
+    const order = rows.map((row) => [...row]);
+    const sortBy = (row: number, neighbours: (id: string) => string[], other: string[]) => {
+      const index = new Map(other.map((id, position) => [id, position]));
+      const weight = (id: string, fallback: number) => {
+        const found = neighbours(id).filter((item) => index.has(item));
+        if (!found.length) return fallback;
+        return found.reduce((sum, item) => sum + index.get(item)!, 0) / found.length;
+      };
+      const weights = new Map(order[row].map((id, position) => [id, weight(id, position)]));
+      order[row].sort((a, b) => weights.get(a)! - weights.get(b)!);
+    };
+    for (let sweep = 0; sweep < sweeps; sweep++) {
+      for (let row = 1; row < order.length; row++) sortBy(row, incoming, order[row - 1]);
+      for (let row = order.length - 2; row >= 0; row--) sortBy(row, outgoing, order[row + 1]);
+    }
+    let crossings = crossingsOf(order);
+    for (let sweep = 0; sweep < sweeps; sweep++)
+      order.forEach((row, index) => {
+        if (row.length > 6) {
+          for (let place = 0; place + 1 < row.length; place++) {
+            [row[place], row[place + 1]] = [row[place + 1], row[place]];
+            const next = crossingsOf(order);
+            if (next < crossings) crossings = next;
+            else [row[place], row[place + 1]] = [row[place + 1], row[place]];
+          }
+          return;
+        }
+        for (const candidate of permutations(row)) {
+          const trial = order.map((other, position) => (position === index ? candidate : other));
+          const next = crossingsOf(trial);
+          if (next < crossings) {
+            crossings = next;
+            order[index] = candidate;
+          }
+        }
+      });
+    return order;
+  };
 
-  const options = rows.map((row) => (row.length <= 6 ? permutations(row) : [row]));
+  const start = barycenterOrder();
+  const options = start.map((row) => (row.length <= 6 ? permutations(row) : [row]));
   const total = options.reduce((product, list) => product * list.length, 1);
-  let best = { order: rows, ...score(rows) };
+  let best = { order: start, ...score(start) };
   if (total <= maxCombinations) {
     const visit = (index: number, order: string[][]) => {
       if (index === options.length) {
-        const candidate = score(order);
+        const crossings = crossingsOf(order);
+        if (crossings > best.crossings) return;
+        const candidate = score(order, crossings);
         if (
           candidate.crossings < best.crossings ||
           (candidate.crossings === best.crossings && candidate.length < best.length - 0.5)

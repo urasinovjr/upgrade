@@ -21,9 +21,21 @@ export function statusOf(gap?: StudentGap) {
 }
 export const topicName = topicLabel;
 
-export type KnowledgeMapModel = ReturnType<typeof buildMap>;
+export type KnowledgeMapModel = ReturnType<typeof layoutMap>;
+const builtMaps = new Map<string, KnowledgeMapModel>();
+const builtMapLimit = 20;
 
 export function buildMap(list: Topic[]) {
+  const key = list.map((topic) => topic.id).join(" ");
+  const cached = builtMaps.get(key);
+  if (cached) return cached;
+  if (builtMaps.size >= builtMapLimit) builtMaps.clear();
+  const built = layoutMap(list);
+  builtMaps.set(key, built);
+  return built;
+}
+
+function layoutMap(list: Topic[]) {
   const graph = layoutKnowledgeMap(list);
   const order = [...list].sort(
     (a, b) =>
