@@ -45,6 +45,18 @@ UPGRADE_RELEASE=$(git rev-parse --short HEAD) docker compose -f compose.producti
 
 Продление сертификата: `certbot renew --webroot -w "$UPGRADE_ACME_DIR" --deploy-hook "…копирование в UPGRADE_TLS_DIR…; docker compose -f compose.production.yaml exec frontend nginx -s reload"`. nginx отдаёт HSTS, CSP (`script-src 'self'`, `worker-src 'self' blob:` для pdf.js, `img-src 'self' data: blob:`), запрет фреймов и `server_tokens off`; `/api/docs` снаружи закрыт. `tests/test_deployment.py` проверяет конфигурацию compose: метка релиза, healthcheck, пользователи, порты.
 
+### Проверка перед запуском и резервные копии
+
+```sh
+docker compose -f compose.production.yaml run --rm --no-deps api python -m app.cli preflight
+cd backend && python3 -m deployment.backup /opt/upgrade/backups/$(date +%F)
+cd backend && python3 -m deployment.restore /opt/upgrade/backups/2026-10-24
+```
+
+`preflight` проверяет настройки production (https-адреса, `ALLOWED_ORIGINS` с адресом `PUBLIC_URL`, настоящий SMTP с TLS, ключи S3 и OAuth), доступность PostgreSQL, применённые миграции, хранилище, провайдера разбора и почтовый сервер. С неверными настройками `api` и `worker` не запускаются.
+
+`deployment.backup` (только стандартная библиотека Python) останавливает `worker`, чтобы очистка файлов не шла во время копирования, делает `pg_dump` и выгружает все объекты хранилища в `files.tar` (`app.cli storage-export --out -`), затем снова запускает `worker` и пишет `manifest.json` с sha256. `deployment.restore` сверяет контрольные суммы и восстанавливает копию только в отдельный проект с пустыми томами (`upgrade-restore-check`): `pg_restore`, `storage-import` в пустой бакет и `backup-verify`, который проверяет, что каждый файл работы и каждая отправленная ИИ копия страницы есть в хранилище. После проверки проект удаляется, `--keep` оставляет его запущенным. Восстановление в рабочий проект скрипт не выполняет.
+
 ## Приёмка PRD
 
 Тесты, которые закрывают функциональные проверки PRD, помечены номером сценария: `@pytest.mark.prd(n)` в backend и тегом `@prd-NN` в Playwright. Тест `tests/test_acceptance_matrix.py` проверяет, что у каждого из 16 сценариев есть тест, а сценарии интерфейса проверяются и в браузере. Сценарии 2 и 3 (альтернативное решение, верный ответ после неверного шага) в тестах проверяют подсчёт метрик; качество модели по ним измеряет срез `scenario` на наборе. Приёмочный набор запускается отдельно:

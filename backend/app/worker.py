@@ -147,11 +147,11 @@ async def main() -> None:
     configure_logging(settings.log_format, settings.log_level)
     tables = configure_models()
     engine = make_engine(settings.database_url, settings.db_pool_size)
+    variant = get_variant(settings.analysis_variant)
+    analysis_provider = make_provider(variant, settings)
     provider = Provider(settings.provider_url, settings.provider_timeout)
     storage = await S3Storage.connect(settings)
     mailer = SmtpMailer(settings)
-    variant = get_variant(settings.analysis_variant)
-    analysis_provider = make_provider(variant, settings)
     context = WorkerContext(
         make_session_factory(engine),
         provider,

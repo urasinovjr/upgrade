@@ -65,6 +65,11 @@ class FolderStorage:
     async def check(self) -> None:
         pass
 
+    async def list_keys(self, prefix: str) -> list[str]:
+        found = [path for path in self.folder.rglob("*") if path.is_file()]
+        keys = [path.relative_to(self.folder).as_posix() for path in found]
+        return sorted(key for key in keys if key.startswith(prefix))
+
     async def close(self) -> None:
         pass
 

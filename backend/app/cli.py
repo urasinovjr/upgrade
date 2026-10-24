@@ -4,7 +4,9 @@ import sys
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
+from typing import BinaryIO
 
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
@@ -24,8 +26,17 @@ from app.evaluation import (
     score,
     validate,
 )
+from app.files import S3Storage
+from app.files.archive import ArchiveRefused, export_objects, import_objects
 from app.knowledge.catalog import catalog_json, catalog_problems
 from app.knowledge.export import catalog_diff, write_catalog_xlsx
+from app.operations import (
+    database_problems,
+    mail_problems,
+    provider_problems,
+    storage_problems,
+    verify_backup,
+)
 from app.timing import enroll, leave
 from app.timing.report import timing_report
 
@@ -92,6 +103,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     diff = commands.add_parser("catalog-diff", help="show expert edits in a catalog workbook")
     diff.add_argument("--xlsx", type=Path, required=True)
+
+    dump = commands.add_parser("storage-export", help="write every stored file into a tar")
+    dump.add_argument("--out", required=True, help="file path or - for stdout")
+
+    load = commands.add_parser("storage-import", help="load a tar into an empty bucket")
+    load.add_argument("--file", required=True, help="file path or - for stdin")
+
+    commands.add_parser("backup-verify", help="check that every referenced file is stored")
+    commands.add_parser("preflight", help="check production settings and services")
     return parser
 
 
@@ -224,6 +244,67 @@ async def diff_catalog(args: argparse.Namespace, settings: Settings) -> str:
     return "\n".join(lines) if lines else "правок нет"
 
 
+def opened(path: str, mode: str) -> BinaryIO:
+    if path == "-":
+        return sys.stdout.buffer if "w" in mode else sys.stdin.buffer
+    return Path(path).open(mode)
+
+
+async def export_storage(args: argparse.Namespace, settings: Settings) -> str:
+    storage = await S3Storage.connect(settings)
+    try:
+        target = opened(args.out, "wb")
+        count = await export_objects(storage, target)
+        target.flush()
+    finally:
+        await storage.close()
+    print(f"файлов выгружено: {count}", file=sys.stderr)
+    return ""
+
+
+async def import_storage(args: argparse.Namespace, settings: Settings) -> str:
+    storage = await S3Storage.connect(settings)
+    try:
+        count = await import_objects(storage, opened(args.file, "rb"))
+    except ArchiveRefused as error:
+        raise SystemExit(f"загрузка остановлена: {error.reason}") from error
+    finally:
+        await storage.close()
+    return f"файлов загружено: {count}"
+
+
+async def with_services(settings: Settings, check: Callable) -> list[str]:
+    engine = make_engine(settings.database_url)
+    storage = await S3Storage.connect(settings)
+    try:
+        async with make_session_factory(engine)() as session:
+            return await check(session, storage)
+    finally:
+        await storage.close()
+        await engine.dispose()
+
+
+async def check_backup(args: argparse.Namespace, settings: Settings) -> str:
+    async def verify(session: AsyncSession, storage) -> list[str]:
+        counts, problems = await verify_backup(session, storage)
+        if problems:
+            raise SystemExit("\n".join(counts + problems))
+        return counts
+
+    return "\n".join([*await with_services(settings, verify), "резервная копия полная"])
+
+
+async def check_services(args: argparse.Namespace, settings: Settings) -> str:
+    async def services(session: AsyncSession, storage) -> list[str]:
+        return await database_problems(session) + await storage_problems(storage)
+
+    problems = await with_services(settings, services)
+    problems += await provider_problems(settings) + await mail_problems(settings)
+    if problems:
+        raise SystemExit("\n".join(f"ошибка: {item}" for item in problems))
+    return f"готово к работе: {settings.app_env}, {settings.public_url}"
+
+
 FILE_COMMANDS: dict[str, FileCommand] = {
     "eval-validate": check_control_set,
     "eval-run": run_control_set,
@@ -232,6 +313,10 @@ FILE_COMMANDS: dict[str, FileCommand] = {
     "catalog-json": write_catalog,
     "catalog-export": export_catalog,
     "catalog-diff": diff_catalog,
+    "storage-export": export_storage,
+    "storage-import": import_storage,
+    "backup-verify": check_backup,
+    "preflight": check_services,
 }
 
 COMMANDS: dict[str, Command] = {
@@ -257,10 +342,16 @@ async def run(argv: list[str], settings: Settings) -> str:
 
 def main() -> None:
     try:
-        print(asyncio.run(run(sys.argv[1:], Settings())))
+        settings = Settings()
+    except ValidationError as error:
+        raise SystemExit(f"ошибка настроек: {error.errors()[0]['msg']}") from error
+    try:
+        message = asyncio.run(run(sys.argv[1:], settings))
     except DomainError as error:
         print(f"error: {error.code}", file=sys.stderr)
         sys.exit(1)
+    if message:
+        print(message)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-FOLDERS = ["app", "alembic", "loadgen", "provider_sim", "tests"]
+FOLDERS = ["app", "alembic", "deployment", "loadgen", "provider_sim", "tests"]
 MAX_LINES = 500
 
 PYTHON_FILES = sorted(

@@ -35,6 +35,10 @@ class MemoryStorage:
     async def check(self) -> None:
         self.check_failure()
 
+    async def list_keys(self, prefix: str) -> list[str]:
+        self.check_failure()
+        return sorted(key for key in self.objects if key.startswith(prefix))
+
     async def delete_prefix(self, prefix: str) -> int:
         self.check_failure()
         keys = [key for key in self.objects if key.startswith(prefix)]

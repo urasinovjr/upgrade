@@ -28,6 +28,8 @@ class Storage(Protocol):
 
     async def check(self) -> None: ...
 
+    async def list_keys(self, prefix: str) -> list[str]: ...
+
     async def close(self) -> None: ...
 
 
@@ -97,6 +99,16 @@ class S3Storage:
                 yield chunk
         finally:
             body.close()
+
+    async def list_keys(self, prefix: str) -> list[str]:
+        keys = []
+        try:
+            paginator = self.client.get_paginator("list_objects_v2")
+            async for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
+                keys += [item["Key"] for item in page.get("Contents", [])]
+        except (BotoCoreError, ClientError) as error:
+            raise StorageError("storage_unavailable") from error
+        return keys
 
     async def delete_prefix(self, prefix: str) -> int:
         deleted = 0

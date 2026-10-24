@@ -3,6 +3,8 @@ from typing import Literal, Self
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "mailpit"}
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -95,6 +97,28 @@ class Settings(BaseSettings):
     max_pages_per_work: int = 40
     max_draft_bytes: int = 512 * 1024
 
+    def service_problems(self) -> list[str]:
+        problems = []
+        if self.smtp_host in LOCAL_HOSTS:
+            problems.append("SMTP_HOST must name a real mail server")
+        if self.smtp_tls == "none":
+            problems.append("SMTP_TLS must be tls or starttls")
+        if self.mail_from.rstrip(">").endswith(".local"):
+            problems.append("MAIL_FROM must use a real domain")
+        origin = "/".join(self.public_url.split("/")[:3])
+        if origin not in self.allowed_origins:
+            problems.append("ALLOWED_ORIGINS must contain the PUBLIC_URL origin")
+        if any(not item.startswith("https://") for item in self.allowed_origins):
+            problems.append("ALLOWED_ORIGINS must use https")
+        documents = (self.terms_url, self.personal_data_url)
+        if not all(url.startswith("https://") for url in documents):
+            problems.append("TERMS_URL and PERSONAL_DATA_URL must use https")
+        if self.yandex_client_id and not self.yandex_client_secret.get_secret_value():
+            problems.append("YANDEX_CLIENT_SECRET must be set")
+        if self.s3_access_key == "upgrade":
+            problems.append("S3_ACCESS_KEY must be set")
+        return problems
+
     @model_validator(mode="after")
     def check_production(self) -> Self:
         if self.app_env != "production":
@@ -114,6 +138,7 @@ class Settings(BaseSettings):
             problems.append("ANALYSIS_VARIANT must name a real provider")
         if not self.analysis_api_key.get_secret_value():
             problems.append("ANALYSIS_API_KEY must be set")
+        problems += self.service_problems()
         if problems:
             raise ValueError("; ".join(problems))
         return self
