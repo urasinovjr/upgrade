@@ -46,10 +46,10 @@ export const httpGateway: Gateway = {
     return requestBlob("/files/" + id);
   },
   async student(student: Student) {
-    const { name, grade, goal, color } = student;
+    const { name, grade, goal, color, aliases = [] } = student;
     await request("/students/" + student.id, {
       method: "PUT",
-      json: { name, grade, goal, color },
+      json: { name, grade, goal, color, aliases },
     });
   },
   async create(work: Work, uploads: Upload[]) {

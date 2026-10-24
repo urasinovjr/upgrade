@@ -91,7 +91,24 @@ function foundIn(text: string, nameForms: NameForms): boolean {
 }
 
 export function studentNames(student?: Student): string[] {
-  return student ? [student.name] : [];
+  return student ? [student.name, ...(student.aliases ?? [])] : [];
+}
+
+export const mostAliases = 10;
+export const longestAlias = 40;
+
+export function parsedAliases(text: string): string[] {
+  return text
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export function aliasProblem(aliases: string[]): string {
+  if (aliases.length > mostAliases) return `Укажите не больше ${mostAliases} форм имени.`;
+  if (aliases.some((item) => item.length > longestAlias))
+    return `Каждая форма имени — не длиннее ${longestAlias} символов.`;
+  return "";
 }
 
 export function mentions(names: string[], text: string): boolean {

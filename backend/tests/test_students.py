@@ -26,6 +26,27 @@ async def test_student_fields_are_validated(teacher):
     assert {blank.status_code, grade.status_code, extra.status_code} == {422}
 
 
+async def test_student_keeps_other_forms_of_the_name(teacher):
+    student_id = await create_student(teacher)
+
+    saved = await teacher.put(
+        f"/api/students/{student_id}", json=student_data(aliases=[" Машуня ", "Masha"])
+    )
+    kept = await teacher.put(f"/api/students/{student_id}", json=student_data())
+    state = await teacher.get("/api/state")
+
+    assert saved.json()["aliases"] == ["Машуня", "Masha"]
+    assert kept.json()["aliases"] == []
+    assert state.json()["students"][0]["aliases"] == []
+
+
+@pytest.mark.parametrize("aliases", [[""], ["я" * 41], [f"Имя{index}" for index in range(11)]])
+async def test_other_forms_of_the_name_are_limited(teacher, aliases):
+    response = await teacher.put(f"/api/students/{uuid4()}", json=student_data(aliases=aliases))
+
+    assert response.status_code == 422
+
+
 async def test_archived_student_stays_in_state(teacher):
     student_id = await create_student(teacher)
 

@@ -102,17 +102,36 @@ async def test_analysis_is_refused_while_the_name_is_in_the_text(teacher):
     }
 
 
+async def test_analysis_is_refused_for_a_form_from_the_card_or_in_latin(teacher):
+    student_id = await create_student(teacher, name="Дарья Иванова", aliases=["Дашуня"])
+    tasks = [
+        task("t1", condition="Дашуня, решите x+1=2"),
+        task("t2", formula="\\text{Ivanova}: x=1"),
+        task("t3", condition="Дано: max(a, b) = 3"),
+    ]
+    work = await checked_work(teacher, student_id, tasks=tasks)
+
+    response = await teacher.post(f"/api/works/{work['id']}/actions/analyse")
+
+    assert response.status_code == 409
+    assert response.json()["places"] == [
+        {"taskId": "t1", "field": "condition"},
+        {"taskId": "t2", "field": "formula"},
+    ]
+
+
 async def test_name_read_from_the_page_is_hidden_from_the_review_call(
     teacher, sessions, test_settings, storage
 ):
-    student_id = await create_student(teacher, name="Иван Петров")
+    student_id = await create_student(teacher, name="Иван Петров", aliases=["Ванюшка"])
     work = await checked_work(teacher, student_id)
     assert (await act(teacher, work["id"], "analyse")).status_code == 200
-    provider = FakeDraftProvider(latex="\\text{Петров} x=2")
+    provider = FakeDraftProvider(latex="\\text{Петров, Ванюшка, Vanya} x=2")
 
     await run_next_job(sessions, test_settings, storage, provider)
     [run] = await stored_runs(sessions, work["id"])
     [[sent]] = provider.reviewed
 
-    assert sent.steps[0].latex == "\\text{[скрыто]} x=2"
+    assert sent.steps[0].latex == "\\text{[скрыто], [скрыто], [скрыто]} x=2"
     assert "Петров" not in json.dumps(run.input["review"], ensure_ascii=False)
+    assert "Ванюшка" not in json.dumps(run.input["review"], ensure_ascii=False)

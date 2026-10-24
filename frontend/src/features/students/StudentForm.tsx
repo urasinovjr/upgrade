@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { gateway } from "../../data/gateway";
 import type { Student } from "../../domain/models";
+import { aliasProblem, parsedAliases } from "../../domain/nameGuard";
 import { useCommand } from "../../shared/query";
 import { ErrorMessage, Modal } from "../../shared/ui";
 
@@ -45,21 +46,27 @@ function Form({
   const [name, setName] = useState(student?.name || "");
   const [grade, setGrade] = useState(student?.grade || 10);
   const [goal, setGoal] = useState(student?.goal || "");
+  const [aliases, setAliases] = useState((student?.aliases ?? []).join(", "));
   const command = useCommand();
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         const id = student?.id || crypto.randomUUID();
+        const forms = parsedAliases(aliases);
         command.mutate(
-          () =>
-            gateway.student({
+          async () => {
+            const problem = aliasProblem(forms);
+            if (problem) throw new Error(problem);
+            await gateway.student({
               id,
               name: name.trim(),
               grade,
               goal,
               color: student?.color || "teal",
-            }),
+              aliases: forms,
+            });
+          },
           {
             onSuccess: () => {
               onSaved?.(id);
@@ -77,6 +84,19 @@ function Form({
           onChange={(event) => setName(event.target.value)}
           autoComplete="off"
         />
+      </label>
+      <label>
+        Как ещё называют
+        <input
+          value={aliases}
+          onChange={(event) => setAliases(event.target.value)}
+          autoComplete="off"
+          aria-describedby="student-aliases-note"
+          placeholder="Даша, Дашуля, Dasha"
+        />
+        <small id="student-aliases-note">
+          Через запятую. Эти формы имени тоже проверяются перед разбором и не уходят ИИ.
+        </small>
       </label>
       <label>
         Класс

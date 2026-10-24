@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from app.analysis.contract import ReviewTask
 from app.analysis.name_forms import NAME_GROUPS, STOP_WORDS, TRANSLIT
+from app.students.models import Student
 from app.works.schemas import Task
 
 TOKEN = re.compile(r"\\[a-z]+|[a-zа-яё]+", re.IGNORECASE)
@@ -89,6 +90,10 @@ def is_name(word: str, forms: NameForms) -> bool:
 
 def found_in(text: str, forms: NameForms) -> bool:
     return any(is_name(word, forms) for word in words_of(text))
+
+
+def student_names(student: Student | None) -> list[str]:
+    return [student.name, *student.aliases] if student else []
 
 
 def mentions(names: list[str], text: str) -> bool:

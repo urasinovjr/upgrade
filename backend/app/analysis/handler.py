@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analysis.contract import InvalidReply
 from app.analysis.drafting import layout_signature
+from app.analysis.names import student_names
 from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft, elapsed_ms
 from app.analysis.service import accept_draft, mark_failed
 from app.files.storage import Storage, StorageError
@@ -66,7 +67,7 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         work.status = "processing"
         teacher_id = work.teacher_id
         student = await session.get(Student, work.student_id)
-        student_names = [student.name] if student else []
+        names = student_names(student)
         files = await files_of(session, [work.id])
         draft = read_draft(work)
         previous_layout = await last_layout(session, work.id)
@@ -88,7 +89,7 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         sanitize_ms=elapsed_ms(started),
         layout=layout_signature(files),
         last_layout=previous_layout,
-        student_names=student_names,
+        student_names=names,
     )
 
 

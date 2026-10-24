@@ -1,7 +1,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base, now_column
@@ -22,6 +23,7 @@ class Student(Base):
     name: Mapped[str] = mapped_column(String(100))
     grade: Mapped[int]
     goal: Mapped[str] = mapped_column(String(500))
+    aliases: Mapped[list] = mapped_column(JSONB, server_default=text("'[]'"))
     color: Mapped[str] = mapped_column(String(16))
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = now_column()
