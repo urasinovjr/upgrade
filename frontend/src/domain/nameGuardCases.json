@@ -1,45 +1,272 @@
 [
-  { "names": ["Иван Петров"], "text": "Ответ Ивану: x=2", "found": true },
-  { "names": ["Иван Петров"], "text": "Работа Иваном сдана", "found": true },
-  { "names": ["Мария Иванова"], "text": "Проверила Ивановой", "found": true },
-  { "names": ["Мария"], "text": "Задача Марии", "found": true },
-  { "names": ["Мария"], "text": "марка и маринад", "found": false },
-  { "names": ["Пётр"], "text": "петр решил", "found": true },
-  { "names": ["Петя"], "text": "петля функции", "found": false },
-  { "names": ["Аня"], "text": "Ани нет", "found": false },
-  { "names": ["Иван"], "text": "\\text{Иван}: x^2=4", "found": true },
-  { "names": ["Иван"], "text": "Ивановский округ", "found": false },
-  { "names": [""], "text": "Иван", "found": false },
-  { "names": [], "text": "Иван", "found": false },
-  { "names": ["Ян"], "text": "Ян решил", "found": true },
-  { "names": ["Ян"], "text": "Яну поставить 5", "found": false },
-  { "names": ["Ли"], "text": "является ли x корнем", "found": false },
-  { "names": ["Дарья Иванова"], "text": "Даше поставить 5", "found": true },
-  { "names": ["Дарья"], "text": "Дашенька решила", "found": true },
-  { "names": ["Даша"], "text": "Дарья решила", "found": true },
-  { "names": ["Дарья"], "text": "Dasha, x=2", "found": true },
-  { "names": ["Дарья"], "text": "\\text{Daria}", "found": true },
-  { "names": ["Дарья Иванова"], "text": "Ivanovoy", "found": true },
-  { "names": ["Максим"], "text": "max(a, b) = 3", "found": false },
-  { "names": ["Максим"], "text": "\\max(a, b)", "found": false },
-  { "names": ["Максим"], "text": "Maxim, x=1", "found": true },
-  { "names": ["Максим"], "text": "Макс решил", "found": true },
-  { "names": ["Даниил"], "text": "Дано: x=2", "found": false },
-  { "names": ["Даниил"], "text": "Даня решил", "found": true },
-  { "names": ["Артём"], "text": "тем самым x=2", "found": false },
-  { "names": ["Артём"], "text": "Тёма решил", "found": true },
-  { "names": ["Лев"], "text": "левая часть равна 2", "found": false },
-  { "names": ["Лев"], "text": "Лев решил", "found": true },
-  { "names": ["Любовь"], "text": "при любом x", "found": false },
-  { "names": ["Любовь"], "text": "Люба решила", "found": true },
-  { "names": ["Надежда"], "text": "надо найти x", "found": false },
-  { "names": ["Семён"], "text": "семь корней", "found": false },
-  { "names": ["Иван"], "text": "\\sin x + \\text{Ivan}", "found": true },
-  { "names": ["Юлия"], "text": "Julia", "found": true },
-  { "names": ["Юлия"], "text": "Yulia", "found": true },
-  { "names": ["Ксения"], "text": "Xenia", "found": true },
-  { "names": ["Алексей"], "text": "Alexey", "found": true },
-  { "names": ["Полина"], "text": "Polina", "found": true },
-  { "names": ["Мария", "Машуня"], "text": "Машуне 5", "found": true },
-  { "names": ["Мария", "Dasha"], "text": "Dashe", "found": true }
+  {
+    "names": ["Иван Петров"],
+    "text": "Ответ Ивану: x=2",
+    "found": true
+  },
+  {
+    "names": ["Иван Петров"],
+    "text": "Работа Иваном сдана",
+    "found": true
+  },
+  {
+    "names": ["Мария Иванова"],
+    "text": "Проверила Ивановой",
+    "found": true
+  },
+  {
+    "names": ["Мария"],
+    "text": "Задача Марии",
+    "found": true
+  },
+  {
+    "names": ["Мария"],
+    "text": "марка и маринад",
+    "found": false
+  },
+  {
+    "names": ["Пётр"],
+    "text": "петр решил",
+    "found": true
+  },
+  {
+    "names": ["Петя"],
+    "text": "петля функции",
+    "found": false
+  },
+  {
+    "names": ["Аня"],
+    "text": "Ани нет",
+    "found": true
+  },
+  {
+    "names": ["Иван"],
+    "text": "\\text{Иван}: x^2=4",
+    "found": true
+  },
+  {
+    "names": ["Иван"],
+    "text": "Ивановский округ",
+    "found": false
+  },
+  {
+    "names": [""],
+    "text": "Иван",
+    "found": false
+  },
+  {
+    "names": [],
+    "text": "Иван",
+    "found": false
+  },
+  {
+    "names": ["Ян"],
+    "text": "Ян решил",
+    "found": true
+  },
+  {
+    "names": ["Ян"],
+    "text": "Яну поставить 5",
+    "found": false
+  },
+  {
+    "names": ["Ли"],
+    "text": "является ли x корнем",
+    "found": true
+  },
+  {
+    "names": ["Дарья Иванова"],
+    "text": "Даше поставить 5",
+    "found": true
+  },
+  {
+    "names": ["Дарья"],
+    "text": "Дашенька решила",
+    "found": true
+  },
+  {
+    "names": ["Даша"],
+    "text": "Дарья решила",
+    "found": true
+  },
+  {
+    "names": ["Дарья"],
+    "text": "Dasha, x=2",
+    "found": true
+  },
+  {
+    "names": ["Дарья"],
+    "text": "\\text{Daria}",
+    "found": true
+  },
+  {
+    "names": ["Дарья Иванова"],
+    "text": "Ivanovoy",
+    "found": true
+  },
+  {
+    "names": ["Максим"],
+    "text": "max(a, b) = 3",
+    "found": false
+  },
+  {
+    "names": ["Максим"],
+    "text": "\\max(a, b)",
+    "found": false
+  },
+  {
+    "names": ["Максим"],
+    "text": "Maxim, x=1",
+    "found": true
+  },
+  {
+    "names": ["Максим"],
+    "text": "Макс решил",
+    "found": true
+  },
+  {
+    "names": ["Даниил"],
+    "text": "Дано: x=2",
+    "found": false
+  },
+  {
+    "names": ["Даниил"],
+    "text": "Даня решил",
+    "found": true
+  },
+  {
+    "names": ["Артём"],
+    "text": "тем самым x=2",
+    "found": false
+  },
+  {
+    "names": ["Артём"],
+    "text": "Тёма решил",
+    "found": true
+  },
+  {
+    "names": ["Лев"],
+    "text": "левая часть равна 2",
+    "found": false
+  },
+  {
+    "names": ["Лев"],
+    "text": "Лев решил",
+    "found": true
+  },
+  {
+    "names": ["Любовь"],
+    "text": "при любом x",
+    "found": false
+  },
+  {
+    "names": ["Любовь"],
+    "text": "Люба решила",
+    "found": true
+  },
+  {
+    "names": ["Надежда"],
+    "text": "надо найти x",
+    "found": false
+  },
+  {
+    "names": ["Семён"],
+    "text": "семь корней",
+    "found": false
+  },
+  {
+    "names": ["Иван"],
+    "text": "\\sin x + \\text{Ivan}",
+    "found": true
+  },
+  {
+    "names": ["Юлия"],
+    "text": "Julia",
+    "found": true
+  },
+  {
+    "names": ["Юлия"],
+    "text": "Yulia",
+    "found": true
+  },
+  {
+    "names": ["Ксения"],
+    "text": "Xenia",
+    "found": true
+  },
+  {
+    "names": ["Алексей"],
+    "text": "Alexey",
+    "found": true
+  },
+  {
+    "names": ["Полина"],
+    "text": "Polina",
+    "found": true
+  },
+  {
+    "names": ["Мария", "Машуня"],
+    "text": "Машуне 5",
+    "found": true
+  },
+  {
+    "names": ["Мария", "Dasha"],
+    "text": "Dashe",
+    "found": true
+  },
+  {
+    "names": ["Анна"],
+    "text": "Ане нужно повторить",
+    "found": true
+  },
+  {
+    "names": ["Ольга"],
+    "text": "Помогите Оле",
+    "found": true
+  },
+  {
+    "names": ["Таисия"],
+    "text": "Тае 5",
+    "found": true
+  },
+  {
+    "names": ["Ирина"],
+    "text": "Ирой решено",
+    "found": true
+  },
+  {
+    "names": ["Александр"],
+    "text": "x=3\\\\Sasha",
+    "found": true
+  },
+  {
+    "names": ["Максим", "Max"],
+    "text": "Max ошибся",
+    "found": true
+  },
+  {
+    "names": ["Максим"],
+    "text": "maximum функции",
+    "found": false
+  },
+  {
+    "names": ["Артём"],
+    "text": "по темам и темах",
+    "found": false
+  },
+  {
+    "names": ["Полина"],
+    "text": "на поле и полу",
+    "found": false
+  },
+  {
+    "names": ["Вера"],
+    "text": "верх параболы",
+    "found": false
+  },
+  {
+    "names": ["Лев"],
+    "text": "в левом конце",
+    "found": false
+  }
 ]

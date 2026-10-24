@@ -76,6 +76,7 @@ def test_task_corrections_count_steps_verdicts_and_task_changes():
                 gap=gap,
             ),
             task("t2", [step("s4", "a=1", "a=1")]),
+            task("t4", [step("s5", "b=1", "b=1")], gap=gap),
         ],
     }
     final = {
@@ -102,7 +103,7 @@ def test_task_corrections_count_steps_verdicts_and_task_changes():
         ],
     }
 
-    first, second, added = draft_corrections(ai, final)
+    first, second, added, removed = draft_corrections(ai, final)
 
     assert dict(first.steps) == {"unchanged": 1, "minor": 1, "added": 1, "removed": 1}
     assert first.changed_steps == 3 and first.total_steps == 4
@@ -114,6 +115,8 @@ def test_task_corrections_count_steps_verdicts_and_task_changes():
     assert second.type_changed and second.omitted_change == "omitted"
     assert second.ai_gap == "" and second.teacher_gap
     assert added.added_task and added.steps["added"] == 1
+    assert removed.removed_task and removed.steps["removed"] == 1
+    assert removed.ai_gap == "deleted"
     assert not edited_manually(ai, final)
     assert edited_manually(ai, {**final, "analysedInputRevision": 3})
 

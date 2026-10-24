@@ -13,6 +13,7 @@ class TaskCorrection:
     task_id: str
     task_type_id: str
     added_task: bool = False
+    removed_task: bool = False
     steps: Counter = field(default_factory=Counter)
     verdicts: Counter = field(default_factory=Counter)
     explanations_edited: int = 0
@@ -44,6 +45,8 @@ def compact(latex: str) -> str:
 
 
 def edit_distance(left: str, right: str) -> int:
+    if left == right:
+        return 0
     previous = list(range(len(right) + 1))
     for row in range(1, len(left) + 1):
         current = [row]
@@ -133,9 +136,27 @@ def task_correction(ai_task: dict | None, final_task: dict) -> TaskCorrection:
     return correction
 
 
+def removed_task_correction(ai_task: dict) -> TaskCorrection:
+    correction = TaskCorrection(
+        task_id=ai_task["id"],
+        task_type_id=ai_task.get("taskTypeId", ""),
+        removed_task=True,
+        ai_gap="deleted" if ai_task.get("gap") else "",
+    )
+    correction.steps["removed"] = len(ai_task.get("steps", []))
+    return correction
+
+
 def draft_corrections(ai_draft: dict, final_draft: dict) -> list[TaskCorrection]:
     ai_tasks = {task["id"]: task for task in ai_draft.get("tasks", [])}
-    return [task_correction(ai_tasks.get(task["id"]), task) for task in final_draft["tasks"]]
+    final_ids = {task["id"] for task in final_draft["tasks"]}
+    kept = [task_correction(ai_tasks.get(task["id"]), task) for task in final_draft["tasks"]]
+    removed = [
+        removed_task_correction(task)
+        for task_id, task in ai_tasks.items()
+        if task_id not in final_ids
+    ]
+    return kept + removed
 
 
 def edited_manually(ai_draft: dict, final_draft: dict) -> bool:

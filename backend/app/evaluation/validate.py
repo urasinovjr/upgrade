@@ -6,7 +6,7 @@ from PIL import Image
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
-from app.analysis.names import mentions
+from app.analysis.names import NameForms, found_in, name_forms
 from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import JPEG, PDF, PNG, sniff_type
 from app.knowledge.task_types import TASK_TYPES
@@ -101,10 +101,10 @@ def condition_problems(where: str, work: WorkCard, task: TaskCard) -> list[str]:
     return problems
 
 
-def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]:
+def task_problems(work: WorkCard, task: TaskCard, forms: NameForms) -> list[str]:
     where = f"{work.work_id}/{task.task_id}"
     text = " ".join([task.condition, task.formula, task.explanation, *task.transcription])
-    problems = [f"{where}: имя ученика в тексте карточки"] if mentions(names, text) else []
+    problems = [f"{where}: имя ученика в тексте карточки"] if found_in(text, forms) else []
     problems += condition_problems(where, work, task)
     if task.admission == "excluded":
         if not task.exclusion_reason.strip():
@@ -168,8 +168,9 @@ def size_warnings(manifest: Manifest) -> list[str]:
 
 def validate(manifest: Manifest, root: Path, names: list[str]) -> tuple[list[str], list[str]]:
     problems = split_problems(manifest) + duplicate_problems(manifest)
+    forms = name_forms(names)
     for work in manifest.works:
         problems += file_problems(root, work, names)
         for task in work.tasks:
-            problems += task_problems(work, task, names)
+            problems += task_problems(work, task, forms)
     return problems, size_warnings(manifest)

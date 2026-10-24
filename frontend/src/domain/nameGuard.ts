@@ -8,17 +8,23 @@ export interface NamePlace {
 }
 
 interface NameForms {
-  stems: Set<string>;
+  own: Set<string>;
   exact: Set<string>;
+  cyrillicStems: Set<string>;
+  latinStems: Set<string>;
 }
 
-const token = /\\[a-z]+|[a-zа-яё]+/giu;
+const token = /\\\\|\\[a-z]+|[a-zа-яё]+/giu;
 const cyrillic = /^[а-яё]+$/u;
 const cyrillicEndings = "аеиоуыэюяйь";
 const latinEndings = "aeiouy";
 const cyrillicInflection = /^[аеиоуыэюяйьмвх]{0,3}$/u;
 const latinInflection = /^[aeiouyjmvhk]{0,4}$/u;
 const shortestStem = 3;
+const shortCases: Record<string, string[]> = {
+  а: ["ы", "е", "у", "ой"],
+  я: ["и", "е", "ю", "ей"],
+};
 const mostVariants = 64;
 const textFields = ["condition", "formula", "reference"] as const;
 const stopWords = new Set(forms.stopWords);
@@ -58,32 +64,48 @@ function stemOf(word: string, endings: string): string {
   return endings.includes(word.at(-1)!) && word.length > shortestStem ? word.slice(0, -1) : word;
 }
 
-function nameForms(names: string[]): NameForms {
-  const words = new Set(names.flatMap(wordsOf).map(normalized));
-  const stems = new Set<string>();
-  const exact = new Set<string>();
-  for (const form of groupForms(words)) {
-    if (form.length < shortestStem) {
-      if (cyrillic.test(form)) exact.add(form);
-      continue;
-    }
-    if (cyrillic.test(form)) stems.add(stemOf(form, cyrillicEndings));
-    for (const variant of latinVariants(form)) {
-      if (variant.length >= shortestStem) stems.add(stemOf(variant, latinEndings));
-    }
-  }
-  return { stems, exact };
+function casesOf(form: string): string[] {
+  if (form.length !== shortestStem) return [];
+  return (shortCases[form.at(-1)!] ?? []).map((ending) => form.slice(0, -1) + ending);
 }
 
-function isName(found: string, nameForms: NameForms): boolean {
-  if (stopWords.has(found.toLowerCase())) return false;
-  const item = normalized(found);
-  if (nameForms.exact.has(item)) return true;
-  for (const stem of nameForms.stems) {
-    const inflection = cyrillic.test(stem) ? cyrillicInflection : latinInflection;
+function nameForms(names: string[]): NameForms {
+  const words = new Set(names.flatMap(wordsOf).map(normalized));
+  const exact = new Set<string>();
+  const cyrillicStems = new Set<string>();
+  const latinStems = new Set<string>();
+  for (const form of groupForms(words)) {
+    if (cyrillic.test(form) && form.length < shortestStem) {
+      exact.add(form);
+      continue;
+    }
+    if (cyrillic.test(form)) {
+      for (const item of casesOf(form)) exact.add(item);
+      cyrillicStems.add(stemOf(form, cyrillicEndings));
+    }
+    for (const variant of latinVariants(form)) {
+      if (variant.length >= shortestStem) latinStems.add(stemOf(variant, latinEndings));
+    }
+  }
+  return { own: words, exact, cyrillicStems, latinStems };
+}
+
+function hasStem(item: string, stems: Set<string>, inflection: RegExp): boolean {
+  for (const stem of stems) {
     if (item.startsWith(stem) && inflection.test(item.slice(stem.length))) return true;
   }
   return false;
+}
+
+function isName(found: string, nameForms: NameForms): boolean {
+  const item = normalized(found);
+  if (nameForms.own.has(item)) return true;
+  if (stopWords.has(found.toLowerCase())) return false;
+  return (
+    nameForms.exact.has(item) ||
+    hasStem(item, nameForms.cyrillicStems, cyrillicInflection) ||
+    hasStem(item, nameForms.latinStems, latinInflection)
+  );
 }
 
 function foundIn(text: string, nameForms: NameForms): boolean {

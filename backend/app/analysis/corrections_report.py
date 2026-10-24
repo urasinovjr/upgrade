@@ -49,6 +49,7 @@ CSV_COLUMNS = [
     "task_type",
     "manual",
     "added_task",
+    "removed_task",
     *[f"steps_{kind}" for kind in STEP_KINDS],
     "verdicts_changed",
     "verdict_changes",
@@ -192,6 +193,7 @@ def task_lines(tasks: list[TaskCorrection]) -> list[str]:
         f"Тип задачи изменён: {sum(task.type_changed for task in tasks)}",
         f"Пропуск задачи: {counts(OMITTED_NAMES, omitted)}",
         f"Задачи, добавленные репетитором: {sum(task.added_task for task in tasks)}",
+        f"Задачи ИИ, удалённые репетитором: {sum(task.removed_task for task in tasks)}",
         *gap_lines(tasks),
     ]
 
@@ -262,6 +264,7 @@ def csv_report(works: list[WorkCorrections]) -> str:
                     task.task_type_id,
                     int(work.manual),
                     int(task.added_task),
+                    int(task.removed_task),
                     *[task.steps[kind] for kind in STEP_KINDS],
                     task.changed_verdicts,
                     verdict_changes(task),

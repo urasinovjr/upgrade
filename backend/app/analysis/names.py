@@ -7,13 +7,14 @@ from app.analysis.name_forms import NAME_GROUPS, STOP_WORDS, TRANSLIT
 from app.students.models import Student
 from app.works.schemas import Task
 
-TOKEN = re.compile(r"\\[a-z]+|[a-zа-яё]+", re.IGNORECASE)
+TOKEN = re.compile(r"\\\\|\\[a-z]+|[a-zа-яё]+", re.IGNORECASE)
 CYRILLIC = re.compile(r"[а-яё]+")
 CYRILLIC_ENDINGS = "аеиоуыэюяйь"
 LATIN_ENDINGS = "aeiouy"
 CYRILLIC_INFLECTION = re.compile(r"[аеиоуыэюяйьмвх]{0,3}")
 LATIN_INFLECTION = re.compile(r"[aeiouyjmvhk]{0,4}")
 SHORTEST_STEM = 3
+SHORT_CASES = {"а": ("ы", "е", "у", "ой"), "я": ("и", "е", "ю", "ей")}
 MOST_VARIANTS = 64
 HIDDEN = "[скрыто]"
 TEXT_FIELDS = ("condition", "formula", "reference")
@@ -21,8 +22,10 @@ TEXT_FIELDS = ("condition", "formula", "reference")
 
 @dataclass(frozen=True)
 class NameForms:
-    stems: frozenset[str]
+    own: frozenset[str]
     exact: frozenset[str]
+    cyrillic_stems: frozenset[str]
+    latin_stems: frozenset[str]
 
 
 def normalized(word: str) -> str:
@@ -55,36 +58,46 @@ def stem_of(word: str, endings: str) -> str:
     return word[:-1] if word[-1] in endings and len(word) > SHORTEST_STEM else word
 
 
+def short_cases(form: str) -> set[str]:
+    if len(form) != SHORTEST_STEM:
+        return set()
+    return {form[:-1] + ending for ending in SHORT_CASES.get(form[-1], ())}
+
+
 def name_forms(names: list[str]) -> NameForms:
     words = {normalized(word) for name in names for word in words_of(name)}
-    stems = set()
     exact = set()
+    cyrillic_stems = set()
+    latin_stems = set()
     for form in group_forms(words):
-        if len(form) < SHORTEST_STEM:
-            if CYRILLIC.fullmatch(form):
-                exact.add(form)
+        if CYRILLIC.fullmatch(form) and len(form) < SHORTEST_STEM:
+            exact.add(form)
             continue
         if CYRILLIC.fullmatch(form):
-            stems.add(stem_of(form, CYRILLIC_ENDINGS))
+            exact |= short_cases(form)
+            cyrillic_stems.add(stem_of(form, CYRILLIC_ENDINGS))
         for variant in latin_variants(form):
             if len(variant) >= SHORTEST_STEM:
-                stems.add(stem_of(variant, LATIN_ENDINGS))
-    return NameForms(frozenset(stems), frozenset(exact))
+                latin_stems.add(stem_of(variant, LATIN_ENDINGS))
+    return NameForms(
+        frozenset(words), frozenset(exact), frozenset(cyrillic_stems), frozenset(latin_stems)
+    )
 
 
-def inflection_of(stem: str) -> re.Pattern:
-    return CYRILLIC_INFLECTION if CYRILLIC.fullmatch(stem) else LATIN_INFLECTION
+def has_stem(word: str, stems: frozenset[str], inflection: re.Pattern) -> bool:
+    return any(word.startswith(stem) and inflection.fullmatch(word[len(stem) :]) for stem in stems)
 
 
 def is_name(word: str, forms: NameForms) -> bool:
+    if normalized(word) in forms.own:
+        return True
     if word.lower() in STOP_WORDS:
         return False
     word = normalized(word)
-    if word in forms.exact:
-        return True
-    return any(
-        word.startswith(stem) and inflection_of(stem).fullmatch(word[len(stem) :])
-        for stem in forms.stems
+    return (
+        word in forms.exact
+        or has_stem(word, forms.cyrillic_stems, CYRILLIC_INFLECTION)
+        or has_stem(word, forms.latin_stems, LATIN_INFLECTION)
     )
 
 
