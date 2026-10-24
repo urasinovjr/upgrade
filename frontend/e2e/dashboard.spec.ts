@@ -49,9 +49,7 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
     page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
   ).toHaveAttribute("aria-pressed", "true");
   await home.click();
-  await expect(
-    page.getByRole("link", { name: "Темы для повторения: 0", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Открытые пробелы: 0", exact: true })).toBeVisible();
   await expect(page.getByText("Открытых пробелов нет.", { exact: false })).toBeVisible();
   await page.goto("/students/anna?topic=unknown");
   await expect(
@@ -72,17 +70,13 @@ test("dashboard navigation, filters and confirmed gaps follow current data", asy
   await page.goto("/students/anna?topic=domain");
   await page.getByRole("button", { name: "Открыть пробел снова" }).click();
   await home.click();
-  await expect(
-    page.getByRole("link", { name: "Темы для повторения: 1", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Открытые пробелы: 1", exact: true })).toBeVisible();
   await page.goto("/works/demo-confirmed");
   await page.getByRole("button", { name: "Отозвать", exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
   await home.click();
   await expect(page.getByRole("link", { name: "Подтверждены: 0", exact: true })).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Темы для повторения: 0", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Открытые пробелы: 0", exact: true })).toBeVisible();
 });
 
 test("an impossible day in the URL is ignored instead of breaking the queue", async ({ page }) => {

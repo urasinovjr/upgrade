@@ -87,7 +87,7 @@ export function CommonGaps({ state, topics }: { state: StoreState; topics: Topic
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Сейчас повторять нечего.</WidgetEmpty>
+        <WidgetEmpty>Общих пробелов у учеников нет.</WidgetEmpty>
       )}
     </WidgetSection>
   );

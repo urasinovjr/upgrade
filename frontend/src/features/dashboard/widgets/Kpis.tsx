@@ -42,7 +42,7 @@ export function Kpis({ summary }: { summary: DashboardSummary }) {
       to: "/students",
     },
     {
-      label: "Темы для повторения",
+      label: "Открытые пробелы",
       value: summary.openGaps,
       Icon: Target,
       tone: summary.openGaps ? "danger" : "neutral",

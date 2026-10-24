@@ -55,7 +55,7 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   kpis: {
     title: "Сводка",
     description:
-      "Сколько работ ждёт проверки или уточнения, сколько подтверждено, сколько учеников и тем.",
+      "Сколько работ ждёт проверки или сверки, сколько подтверждено, сколько учеников и открытых пробелов.",
     Icon: LayoutList,
     skeletonHeight: 72,
     divider: false,
@@ -122,7 +122,7 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   roster: {
     title: "Ученики и темы",
     description:
-      "Каждый ученик по темам карты знаний: пробелы, закрытые темы и то, что к ним ведёт.",
+      "Каждый ученик по темам карты знаний: открытые и закрытые пробелы и темы, которые к ним ведут.",
     Icon: TableProperties,
     skeletonHeight: 220,
     divider: false,
@@ -162,7 +162,7 @@ export const widgets: Record<WidgetId, WidgetDefinition> = {
   },
   inactive: {
     title: "Давно не сдавали",
-    description: "Ученики без новых работ две недели и дольше.",
+    description: "Ученики без новых работ 14 дней и дольше.",
     Icon: UserRoundX,
     skeletonHeight: 180,
     divider: true,

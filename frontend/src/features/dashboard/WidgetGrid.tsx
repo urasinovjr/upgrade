@@ -37,6 +37,7 @@ import {
   type Span,
   type WidgetId,
 } from "../../domain/dashboardLayout";
+import { plural } from "../../domain/analytics";
 import { widgets } from "./widgets";
 import type { LayoutEditor } from "./useLayoutEditor";
 
@@ -205,7 +206,9 @@ export function WidgetGrid({
                   const parts = [
                     axis !== "y" && spanLabels[stored.span].toLowerCase(),
                     axis !== "x" &&
-                      (stored.height ? `высота ${stored.height} px` : "высота по содержимому"),
+                      (stored.height
+                        ? `высота ${plural(stored.height, ["пиксель", "пикселя", "пикселей"])}`
+                        : "высота по содержимому"),
                   ].filter(Boolean);
                   announce(`«${title(item.id)}»: ${parts.join(", ")}.`);
                 }}
