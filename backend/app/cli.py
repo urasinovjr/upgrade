@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
+from app.analysis.corrections_report import corrections_report
 from app.analysis.providers import ProviderNotConfigured, make_provider
 from app.analysis.report import Period, analysis_report
 from app.analysis.variants import UnknownVariant, get_variant
@@ -77,6 +78,12 @@ def build_parser() -> argparse.ArgumentParser:
     timing.add_argument("--since", type=date.fromisoformat)
     timing.add_argument("--until", type=date.fromisoformat)
     timing.add_argument("--csv", action="store_true")
+
+    edits = commands.add_parser("corrections-report", help="teacher corrections of AI drafts")
+    edits.add_argument("--since", type=date.fromisoformat)
+    edits.add_argument("--until", type=date.fromisoformat)
+    edits.add_argument("--csv", action="store_true")
+    edits.add_argument("--pilot", action="store_true", help="only pilot participants")
 
     check = commands.add_parser("eval-validate", help="check a control set before a run")
     check.add_argument("--root", type=Path, required=True)
@@ -163,6 +170,10 @@ async def enroll_teacher(session: AsyncSession, args: argparse.Namespace) -> str
 async def report_timing(session: AsyncSession, args: argparse.Namespace) -> str:
     period = period_of(args)
     return await timing_report(session, period.since, period.until, args.csv)
+
+
+async def report_corrections(session: AsyncSession, args: argparse.Namespace) -> str:
+    return await corrections_report(session, period_of(args), args.pilot, args.csv)
 
 
 def names_of(path: Path | None) -> list[str]:
@@ -325,6 +336,7 @@ COMMANDS: dict[str, Command] = {
     "analysis-report": report_runs,
     "pilot-enroll": enroll_teacher,
     "timing-report": report_timing,
+    "corrections-report": report_corrections,
 }
 
 
