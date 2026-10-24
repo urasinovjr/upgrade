@@ -440,7 +440,7 @@ const router = createRouter([
                 description="Проверьте адрес или откройте список работ."
                 icon={SearchX}
                 to="/works"
-                linkLabel="Открыть работы"
+                linkLabel="К работам"
               />
             ),
           },

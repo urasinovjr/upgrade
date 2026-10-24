@@ -19,15 +19,20 @@ export function PencilDemo() {
         <p className="dp-landing-task">Упростите выражение и укажите допустимые значения x.</p>
         <div className="dp-landing-step">
           <span className="dp-landing-step-number">1</span>
-          <Formula value={"\\frac{(x-3)(x+3)}{x-3}=x+3"} />
+          <Formula value={"\\frac{x^2-9}{x-3}=\\frac{(x-3)(x+3)}{x-3}"} />
+          <Check className="dp-landing-step-ok" size={18} aria-label="Верно" />
+        </div>
+        <div className="dp-landing-step">
+          <span className="dp-landing-step-number">2</span>
+          <Formula value={"=x+3"} />
           <Check className="dp-landing-step-ok" size={18} aria-label="Верно" />
         </div>
         <div className="dp-landing-step is-wrong">
-          <span className="dp-landing-step-number">2</span>
+          <span className="dp-landing-step-number">3</span>
           <div>
             <strong>
               <AlertCircle size={16} aria-hidden="true" />
-              Есть ошибка
+              Ошибка
             </strong>
             <Formula value={"x\\in\\mathbb{R}"} />
             <p>При x&nbsp;=&nbsp;3 исходное выражение не определено.</p>
@@ -42,9 +47,10 @@ export function PencilDemo() {
             )}
             {confirmed ? "Пробел подтверждён" : "Гипотеза ИИ"}
           </h3>
-          <p className="dp-landing-gap-topic">Тема для повторения: область допустимых значений</p>
+          <p className="dp-landing-gap-topic">Тема: область допустимых значений</p>
           <p>
-            Повторить, почему знаменатель не равен нулю и как ОДЗ сохраняется при сокращении дроби.
+            Что повторить: почему знаменатель не равен нулю и как ОДЗ сохраняется при сокращении
+            дроби.
           </p>
           <button type="button" onClick={() => setConfirmed(!confirmed)}>
             {confirmed ? "Отменить подтверждение" : "Подтвердить пробел"}

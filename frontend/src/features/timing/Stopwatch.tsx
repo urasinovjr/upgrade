@@ -81,7 +81,7 @@ export default function Stopwatch() {
     return (
       <PageState
         title="Замер не включён"
-        description="Секундомер ручной проверки доступен участникам пилота."
+        description="Замер ручной проверки доступен участникам пилота."
         icon={Timer}
         to="/settings"
         linkLabel="Открыть настройки"
@@ -119,7 +119,7 @@ export default function Stopwatch() {
   };
   return (
     <div className="dp-page dp-account">
-      <h1>Ручная проверка</h1>
+      <h1>Замер ручной проверки</h1>
       <section className="dp-account-section" aria-labelledby="stopwatch-title">
         <h2 id="stopwatch-title">Секундомер</h2>
         <p className="dp-caption">

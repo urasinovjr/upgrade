@@ -52,7 +52,7 @@ export function Hero({ links }: { links: LandingLinks }) {
             Ошибка в шаге 3
           </strong>
           <span>При x&nbsp;=&nbsp;3 знаменатель равен нулю. Добавьте условие x&nbsp;≠&nbsp;3.</span>
-          <em>Повторить: область допустимых значений</em>
+          <em>Что повторить: область допустимых значений</em>
         </figcaption>
       </figure>
     </section>

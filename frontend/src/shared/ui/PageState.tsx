@@ -44,7 +44,7 @@ export function PageState({
           <Heading>{title}</Heading>
         )}
         {(description || failedLoad) && (
-          <p>{description || "Попробуйте ещё раз. Ваши данные не пропали."}</p>
+          <p>{description || "Проверьте подключение и попробуйте ещё раз."}</p>
         )}
         <ErrorMessage error={error} />
         {(retry || to) && (
@@ -90,7 +90,7 @@ export function PageLoading({
     <div className="dp-state-page dp-page-loading" role="status" aria-busy="true">
       <span className="dp-loading-caption">
         <LoaderCircle className="dp-spin" size={16} aria-hidden="true" />
-        Открываем кабинет
+        Открываем кабинет…
       </span>
       {children ? (
         <div aria-hidden="true">{children}</div>

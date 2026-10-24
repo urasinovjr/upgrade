@@ -22,10 +22,10 @@ import "./states.css";
 
 const statuses = Object.keys(statusMeta) as WorkStatus[];
 const sampleStudents = [
-  { name: "Анна Смирнова", color: "teal" },
-  { name: "Максим Орлов", color: "sand" },
-  { name: "София Ким", color: "lilac" },
-  { name: "Илья Петров", color: "blue" },
+  { name: "Анна Соколова", color: "teal" },
+  { name: "Михаил Орлов", color: "sand" },
+  { name: "Полина Волкова", color: "lilac" },
+  { name: "Иван Лебедев", color: "blue" },
   { name: "Без цвета", color: "" },
 ];
 const tabs = [
@@ -101,21 +101,21 @@ export default function States() {
             <Callout
               tone="neutral"
               icon={<LoaderCircle className="dp-spin" size={16} aria-hidden="true" />}
-              title="Обработка… Можно вернуться к работе позже."
+              title="ИИ разбирает работу. Можно уйти со страницы и вернуться позже."
             />
             <Callout
               tone="warning"
               icon={<CircleHelp size={16} aria-hidden="true" />}
-              title="Нужна сверка с оригиналом."
-              more="Исходные данные изменились."
+              title="Сверьте распознанное с оригиналом."
+              more="Работа изменилась после разбора."
             >
-              <button>Завершить сверку</button>
+              <button>Всё сверено</button>
             </Callout>
             <Callout
               tone="info"
               icon={<ShieldCheck size={16} aria-hidden="true" />}
-              title="Черновик новой редакции."
-              more="Отчёт v1 остаётся актуальным."
+              title="Черновик новой версии."
+              more="Пока вы его не подтвердите, действует версия 1."
             />
           </div>
           <Callout
@@ -129,12 +129,12 @@ export default function States() {
             tone="warning"
             boxed
             icon={<AlertCircle size={16} aria-hidden="true" />}
-            title="Это архивная редакция."
+            title="Это старая версия отчёта. В карте знаний учтена более новая."
           />
-          <ErrorMessage error={new Error("Не удалось сохранить черновик. Повторите сохранение.")} />
+          <ErrorMessage error={new Error("Не удалось сохранить черновик. Попробуйте ещё раз.")} />
         </section>
         <section className="dp-states-card" aria-labelledby="states-processing">
-          <h2 id="states-processing">Обработка учебного примера</h2>
+          <h2 id="states-processing">Разбор учебного примера</h2>
           <p>Эти кнопки изменяют только пример demo-ready.</p>
           <div className="dp-inline-actions">
             {(["ready", "failed", "needs_input"] as const).map((outcome) => (

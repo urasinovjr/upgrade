@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { account, providerTitles, type Provider } from "../../data/account";
 import { useAuthConfig } from "../../shared/session";
-import { ErrorMessage, PageLoading } from "../../shared/ui";
+import { ErrorMessage, PageLoading, PageState } from "../../shared/ui";
 import "./account.css";
 import { useTiming } from "../timing/useTiming";
 
@@ -94,7 +94,10 @@ export default function AccountSettings() {
   const details = useQuery({ queryKey: ["account"], queryFn: account.details });
   const timingEnabled = useTiming();
   if (details.isPending) return <PageLoading variant="list" />;
-  if (details.isError) return <ErrorMessage error={details.error} />;
+  if (details.isError)
+    return (
+      <PageState title="Настройки" error={details.error} retry={() => void details.refetch()} />
+    );
   const { displayName, email, hasPassword, identities } = details.data;
   return (
     <div className="dp-page dp-account">
@@ -123,7 +126,7 @@ export default function AccountSettings() {
             работой: подготовка, закраска, проверка, отчёт. Ожидание ИИ и паузы дольше двух минут не
             считаются. Цифры видит только исследователь пилота.
           </p>
-          <Link to="/timing">Секундомер ручной проверки</Link>
+          <Link to="/timing">Замер ручной проверки</Link>
         </section>
       )}
       <section className="dp-account-section dp-account-danger" aria-labelledby="delete-title">
