@@ -43,7 +43,7 @@ test("copied text and PDF come from the same confirmed revision", async ({
   await waitForAnalysis(page);
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   await page.getByRole("button", { name: "Скопировать текст" }).click();
   await expect(page.getByRole("button", { name: "Скопировано" })).toBeVisible();
   const copied = await page.evaluate(() => navigator.clipboard.readText());

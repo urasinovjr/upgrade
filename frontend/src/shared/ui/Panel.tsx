@@ -155,8 +155,8 @@ export function Panel({
       document.getElementById("main-content");
     target?.focus({ preventScroll: true });
   };
-  const collapseLabel = mode === "collapsed" ? "Развернуть содержимое" : "Свернуть панель";
-  const expandLabel = mode === "expanded" ? "Вернуть размер панели" : "На весь экран приложения";
+  const collapseLabel = mode === "collapsed" ? "Раскрыть панель" : "Свернуть панель";
+  const expandLabel = mode === "expanded" ? "Обычный размер" : "На весь экран";
   return (
     <section
       ref={root}
@@ -205,7 +205,7 @@ export function Panel({
             </>
           )}
         </div>
-        {mode === "expanded" && <span className="dp-window-hint">Esc — обычный вид</span>}
+        {mode === "expanded" && <span className="dp-window-hint">Esc — обычный размер</span>}
       </header>
       <div
         className="dp-window-reveal"

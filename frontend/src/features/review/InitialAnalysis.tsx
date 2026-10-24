@@ -12,14 +12,18 @@ function analysisSource(analysis: AnalysisInfo) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(analysis.finishedAt));
-  return analysis.model + " · версия разбора " + analysis.promptVersion + " · " + finished;
+  return finished;
 }
 
 export function InitialAnalysis({ task, analysis }: { task?: Task; analysis?: AnalysisInfo }) {
   if (!task) return <p>Эту работу вы проверяете вручную, без ИИ.</p>;
   return (
     <>
-      {analysis && <p>Разбор ИИ: {analysisSource(analysis)}</p>}
+      {analysis && (
+        <p title={analysis.model + " · " + analysis.promptVersion}>
+          Разбор ИИ от {analysisSource(analysis)}
+        </p>
+      )}
       {task.omitted ? (
         <p>ИИ не разобрал задачу: {task.feedback}</p>
       ) : (

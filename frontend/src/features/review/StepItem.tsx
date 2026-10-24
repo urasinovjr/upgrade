@@ -8,7 +8,7 @@ import { verdictMeta } from "../../shared/status";
 const verdicts: { value: Verdict; label: string }[] = [
   { value: "correct", label: "Верно" },
   { value: "error", label: "Ошибка" },
-  { value: "uncertain", label: "Уточнить" },
+  { value: "uncertain", label: "Неясно" },
 ];
 
 export function DialogKeyboard() {
@@ -191,7 +191,7 @@ export function StepItem({
           <span className="dp-step-number">{index}</span>
           <span className="dp-step-formula">{formula}</span>
           <Check className="dp-step-check" size={16} aria-hidden="true" />
-          <span className="dp-visually-hidden">Верно. Почему верно</span>
+          <span className="dp-visually-hidden">Верно, показать объяснение</span>
         </button>
         {tools}
         {origin}

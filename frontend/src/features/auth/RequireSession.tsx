@@ -19,7 +19,7 @@ export function RequireSession({ children }: { children: ReactNode }) {
     return (
       <AuthLayout title="Нет связи с сервером">
         <ErrorMessage error={session.error} />
-        <button onClick={() => void session.refetch()}>Повторить</button>
+        <button onClick={() => void session.refetch()}>Попробовать ещё раз</button>
       </AuthLayout>
     );
   if (!session.data) {

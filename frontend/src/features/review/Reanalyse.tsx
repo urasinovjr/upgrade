@@ -31,11 +31,11 @@ export function Reanalyse({
         onClick={() => (work.analysis ? setOpen(true) : run())}
       >
         <RefreshCw size={14} aria-hidden="true" />
-        {work.demo ? "Повторить разбор" : "Запустить разбор"}
+        {work.demo || work.analysis ? "Запустить разбор заново" : "Запустить разбор"}
       </button>
       {blocked && (
         <span id={noteId} className="dp-reanalyse-note">
-          {unchecked > 0 && `Перед разбором проверьте ещё ${unchecked} стр. оригинала. `}
+          {unchecked > 0 && `Отметьте «Данные скрыты» ещё на ${unchecked} стр. оригинала. `}
           {nameIssues.length > 0 && `В тексте осталось имя ученика: ${nameIssues.join("; ")}.`}
         </span>
       )}
@@ -43,7 +43,7 @@ export function Reanalyse({
         open={open}
         onOpenChange={setOpen}
         title="Запустить разбор заново?"
-        description="ИИ разберёт работу заново и заменит вердикты, объяснения, темы и комментарии. Шаги, которые вы исправили, сохранятся, если файлы и порядок страниц не менялись."
+        description="ИИ разберёт работу заново и заменит вердикты, объяснения, гипотезы о пробелах и комментарии. Шаги, которые вы исправили, сохранятся, если файлы и порядок страниц не менялись."
       >
         <div className="dp-dialog-actions">
           <button type="button" onClick={() => setOpen(false)}>

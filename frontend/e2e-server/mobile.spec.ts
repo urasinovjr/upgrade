@@ -15,8 +15,8 @@ test("teacher uploads, checks the original, edits and confirms on a phone @mobil
   await page.getByLabel("Загрузить решение").setInputFiles("e2e/fixtures/solution.png");
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
   await page.getByRole("button", { name: "Закрасить данные" }).click();
-  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
-  await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
+  await page.getByRole("button", { name: "Отметить: данные скрыты" }).click();
+  await expect(page.getByText("Данные скрыты: 1 из 1 стр.")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await expect(page).toHaveURL(/\/works\/[0-9a-f-]{36}$/);
 
@@ -26,7 +26,7 @@ test("teacher uploads, checks the original, edits and confirms on a phone @mobil
   await page.getByRole("tab", { name: "Оригинал", exact: true }).click();
   await expect(page.getByAltText("Оригинал: solution.png")).toBeVisible();
   await page.getByRole("tab", { name: "Разбор", exact: true }).click();
-  await page.getByRole("textbox", { name: "Общий комментарий" }).fill("Проверено с телефона");
+  await page.getByRole("textbox", { name: "Что дальше" }).fill("Проверено с телефона");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();

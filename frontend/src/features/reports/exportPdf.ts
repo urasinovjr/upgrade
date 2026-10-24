@@ -89,7 +89,7 @@ export async function downloadReport(report: Report) {
     { text: work.title, fontSize: 19, bold: true, margin: [0, 0, 0, 8] },
     { text: student.name + " · " + student.grade + " класс", fontSize: 12, color: colors.text },
     {
-      text: "Версия " + revision.number + " · проверено репетитором",
+      text: "Проверено репетитором · версия " + revision.number,
       color: colors.muted,
       fontSize: 9,
       margin: [0, 5, 0, 20],

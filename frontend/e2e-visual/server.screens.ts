@@ -82,7 +82,8 @@ export const serverScreens: Screen[] = [
     path: "/dashboard",
     widths: [phone, 1440],
     scenario: { session: "offline" },
-    prepare: (page) => expect(page.getByRole("button", { name: "Повторить" })).toBeVisible(),
+    prepare: (page) =>
+      expect(page.getByRole("button", { name: "Попробовать ещё раз" })).toBeVisible(),
   },
   {
     name: "settings",

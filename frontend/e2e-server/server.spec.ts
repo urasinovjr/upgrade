@@ -33,17 +33,17 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
   await page.getByRole("button", { name: "Закрасить данные" }).click();
   await page.getByRole("button", { name: "Закрасить область" }).click();
-  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
-  await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
+  await page.getByRole("button", { name: "Отметить: данные скрыты" }).click();
+  await expect(page.getByText("Данные скрыты: 1 из 1 стр.")).toBeVisible();
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await expect(page).toHaveURL(/\/works\/[0-9a-f-]{36}$/);
-  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные скрыты", { exact: true })).toBeVisible();
   await expect(page.locator(".mask-box")).toHaveCount(1);
 
   await page.getByRole("button", { name: "Запустить разбор" }).first().click();
   await waitForAnalysis(page);
   await page.getByRole("button", { name: "Первый разбор ИИ" }).click();
-  await expect(page.getByText(/Разбор ИИ: sim-draft · версия разбора sim-1/)).toBeVisible();
+  await expect(page.getByText(/^Разбор ИИ от /)).toBeVisible();
   await page.getByRole("button", { name: "Что получил ИИ" }).click();
   await expect(page.getByAltText("Страница 1 · solution.png")).toBeVisible();
   await page.getByRole("button", { name: "Показать шаг 1 в оригинале" }).click();
@@ -74,8 +74,8 @@ test("teacher registers, uploads a work, runs analysis and confirms it", async (
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole("link", { name: "Отчёт · v1" })).toBeVisible();
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await expect(page.getByRole("link", { name: "Отчёт, версия 1" })).toBeVisible();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   await expect(page.getByRole("main")).toContainText("Решите x + 1 = 2");
 
   await page.getByRole("button", { name: "Выйти" }).click();

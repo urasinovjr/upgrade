@@ -56,7 +56,7 @@ export default function Report() {
         error={query.error}
         retry={() => void query.refetch()}
         to={"/works/" + id}
-        linkLabel="К работе"
+        linkLabel="К разбору работы"
       />
     );
   const report = query.data;
@@ -127,6 +127,7 @@ export default function Report() {
         heading={
           <>
             <h1>Отчёт по работе</h1>
+            <span className="dp-window-meta">Шаг 3 из 3 · Отчёт</span>
             <span className="dp-window-meta">
               Версия {revision.number} · {date(revision.confirmedAt)}
             </span>
@@ -144,7 +145,7 @@ export default function Report() {
           <Callout
             tone="warning"
             icon={<History size={16} aria-hidden="true" />}
-            title="Это старая версия отчёта. В карте ученика учтена более новая."
+            title="Это старая версия отчёта. В карте знаний учтена более новая."
           />
         )}
         {Boolean(error) && (
@@ -159,7 +160,7 @@ export default function Report() {
           <article className="dp-report-sheet report-paper">
             <header className="dp-report-head">
               <Wordmark className="dp-report-brand" />
-              <span className="dp-caption">Разбор для ученика</span>
+              <span className="dp-caption">Для ученика и родителей</span>
             </header>
             <h2>{work.title}</h2>
             <p className="dp-report-student">

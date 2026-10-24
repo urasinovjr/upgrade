@@ -172,7 +172,7 @@ test("focused controls and math keyboard stay above the fixed action panel", asy
     await expect(apply).toBeInViewport({ timeout: 500 });
   }).toPass();
   await cancel();
-  const comment = page.getByRole("textbox", { name: "Общий комментарий" });
+  const comment = page.getByRole("textbox", { name: "Что дальше" });
   await comment.focus();
   await expect
     .poll(async () =>

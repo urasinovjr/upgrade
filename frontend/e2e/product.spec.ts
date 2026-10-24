@@ -27,7 +27,7 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
   await page.reload();
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   await expect(page.getByText("Отчёт по работе", { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Скачать PDF" }).click();
@@ -36,12 +36,10 @@ test("review → confirmation → report/PDF → versions → gap closure", asyn
   await download.saveAs(path.resolve("../output/pdf/report-" + testInfo.project.name + ".pdf"));
   await page.getByRole("link", { name: "К разбору работы" }).click();
   await page.getByRole("button", { name: "Новая версия" }).click();
-  await page
-    .getByRole("textbox", { name: "Общий комментарий" })
-    .fill("Проверка сохранения черновика.");
+  await page.getByRole("textbox", { name: "Что дальше" }).fill("Проверка сохранения черновика.");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("textbox", { name: "Общий комментарий" })).toHaveValue(
+  await expect(page.getByRole("textbox", { name: "Что дальше" })).toHaveValue(
     "Проверка сохранения черновика.",
   );
   await firstTask.click();
@@ -92,9 +90,9 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   await expect(left).toBeFocused();
   await expect(left).toHaveValue("20");
   await page.getByRole("button", { name: "Сохранить обрезку" }).click();
-  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
-  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные не проверены", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Отметить: данные скрыты" }).click();
+  await expect(page.getByText("Данные скрыты", { exact: true })).toBeVisible();
   if (testInfo.project.name.includes("mobile"))
     await page.getByRole("tab", { name: "Разбор", exact: true }).click();
   await expect(page.getByText("Сверьте распознанное с оригиналом.", { exact: true })).toBeVisible();
@@ -111,7 +109,7 @@ test("original, formula edit, stale state and simulated job survive reload", asy
   });
   await page.getByRole("button", { name: "Сохранить шаг" }).click();
   await expect(page.getByText("Сверьте распознанное с оригиналом.", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Повторить разбор" }).click();
+  await page.getByRole("button", { name: "Запустить разбор заново" }).click();
   await page.reload();
   await expect(
     page.getByText("ИИ разбирает работу. Можно уйти со страницы и вернуться позже."),
@@ -127,14 +125,14 @@ test("masks hide personal data and every page is checked before analysis", async
   const toReview = () => page.getByRole("tab", { name: "Разбор", exact: true }).click();
   await page.goto("/works/demo-ready");
   if (mobile) await toOriginal();
-  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные скрыты", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Закрасить данные" }).click();
   await page.getByRole("spinbutton", { name: "Ширина", exact: true }).fill("40");
   await page.getByRole("button", { name: "Закрасить область" }).click();
   await expect(page.getByText(/^Область 1: 0% слева, 0% сверху, 40×8%/)).toBeVisible();
   await expect(page.locator(".mask-box")).toHaveCount(1);
-  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
-  await expect(page.getByText("Проверено 0 из 1")).toBeVisible();
+  await expect(page.getByText("Данные не проверены", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные скрыты: 0 из 1 стр.")).toBeVisible();
   if (!mobile) {
     const layer = await page.getByTestId("mask-layer").boundingBox();
     expect(layer).not.toBeNull();
@@ -145,22 +143,22 @@ test("masks hide personal data and every page is checked before analysis", async
     await expect(page.locator(".mask-box")).toHaveCount(2);
   }
   if (mobile) await toReview();
-  const reanalyse = page.getByRole("button", { name: "Повторить разбор" });
+  const reanalyse = page.getByRole("button", { name: "Запустить разбор заново" });
   await expect(reanalyse).toBeDisabled();
-  await expect(page.getByText("Перед разбором проверьте ещё 1 стр. оригинала.")).toBeVisible();
+  await expect(page.getByText("Отметьте «Данные скрыты» ещё на 1 стр. оригинала.")).toBeVisible();
   if (mobile) await toOriginal();
-  await page.getByRole("button", { name: "Отметить страницу проверенной" }).click();
-  await expect(page.getByText("Проверено 1 из 1")).toBeVisible();
+  await page.getByRole("button", { name: "Отметить: данные скрыты" }).click();
+  await expect(page.getByText("Данные скрыты: 1 из 1 стр.")).toBeVisible();
   if (mobile) await toReview();
   await expect(reanalyse).toBeEnabled();
   await page.reload();
   if (mobile) await toOriginal();
   await expect(page.locator(".mask-box")).toHaveCount(mobile ? 1 : 2);
-  await expect(page.getByText("Страница проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные скрыты", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Закрасить данные" }).click();
   await page.getByRole("button", { name: "Удалить область 1" }).click();
   await expect(page.locator(".mask-box")).toHaveCount(mobile ? 0 : 1);
-  await expect(page.getByText("Страница не проверена", { exact: true })).toBeVisible();
+  await expect(page.getByText("Данные не проверены", { exact: true })).toBeVisible();
 });
 
 test("a recognized step opens its place in the original", async ({ page }, testInfo) => {
@@ -203,7 +201,7 @@ test("user upload remains manual; corrupted files are rejected", async ({ page }
   await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
   await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Повторить разбор" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Запустить разбор заново" })).toHaveCount(0);
   await page.getByRole("button", { name: "Изменить шаг 1" }).click();
   await page
     .getByRole("dialog")
@@ -323,7 +321,7 @@ test("multi-page PDF, image condition, page order and student creation", async (
   await page.getByRole("button", { name: "Всё сверено" }).click();
   await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Скачать PDF" }).click();
   await (
@@ -351,7 +349,7 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
     };
   });
   await page
-    .getByRole("textbox", { name: "Общий комментарий" })
+    .getByRole("textbox", { name: "Что дальше" })
     .fill("Изменения должны сохраниться после повтора.");
   await expect(page.getByRole("alert")).toContainText("закончилось место");
   await page.evaluate(() =>
@@ -360,10 +358,10 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   await page.getByRole("button", { name: "Сохранить", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("textbox", { name: "Общий комментарий" })).toHaveValue(
+  await expect(page.getByRole("textbox", { name: "Что дальше" })).toHaveValue(
     "Изменения должны сохраниться после повтора.",
   );
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   await expect(page.getByText("Изменения должны сохраниться после повтора.")).toHaveCount(0);
   if (browserName === "chromium")
     await context.grantPermissions(["clipboard-read", "clipboard-write"], {
@@ -386,11 +384,11 @@ test("saving failure keeps edits; keyboard dialog and withdrawal preserve histor
   await expect(trigger).toBeFocused();
   await trigger.click();
   await dialog.getByRole("button", { name: "Отозвать подтверждение" }).click();
-  await expect(page.getByRole("link", { name: "Отчёт · v1" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Отчёт, версия 1" })).toHaveCount(0);
   await page.getByText("История версий · 1").click();
   await page.getByRole("link", { name: "Версия 1 · архивная" }).click();
   await expect(
-    page.getByText("Это старая версия отчёта. В карте ученика учтена более новая."),
+    page.getByText("Это старая версия отчёта. В карте знаний учтена более новая."),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -448,14 +446,14 @@ test("the review keeps its task in the URL and stays visible when leaving is can
   await expect(page).toHaveURL(/[?&]task=/);
   await page.reload();
   await expect(firstTask).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("textbox", { name: "Общий комментарий" }).fill("Не уходить.");
+  await page.getByRole("textbox", { name: "Что дальше" }).fill("Не уходить.");
   await page.getByRole("button", { name: "Закрыть панель" }).click();
   const guard = page.getByRole("dialog", { name: "Сохранить изменения?" });
   await guard.getByRole("button", { name: "Остаться" }).click();
   await expect(guard).toHaveCount(0);
   await expect(page).toHaveURL(/\/works\/demo-ready/);
   await expect(page.locator(".dp-review-window")).toHaveCSS("opacity", "1");
-  await expect(page.getByRole("textbox", { name: "Общий комментарий" })).toHaveValue("Не уходить.");
+  await expect(page.getByRole("textbox", { name: "Что дальше" })).toHaveValue("Не уходить.");
 });
 
 test("a new work started from a student page preselects that student", async ({ page }) => {

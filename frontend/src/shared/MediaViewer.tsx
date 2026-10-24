@@ -184,7 +184,7 @@ export function MediaViewer({
               </button>
               <button onClick={() => move(1)} disabled={files.at(-1)?.id === file.id}>
                 <ArrowDown size={14} />
-                Ниже
+                Файл ниже
               </button>
             </>
           )}
@@ -298,7 +298,7 @@ export function MediaViewer({
           ) : error ? (
             <div className="media-placeholder">
               <p>Оригинал недоступен</p>
-              <button onClick={() => setAttempt((value) => value + 1)}>Повторить</button>
+              <button onClick={() => setAttempt((value) => value + 1)}>Попробовать ещё раз</button>
             </div>
           ) : (
             <MediaPlaceholder />

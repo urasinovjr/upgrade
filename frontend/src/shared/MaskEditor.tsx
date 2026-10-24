@@ -153,18 +153,18 @@ export function PageCheck({
   const done = total - uncheckedPages(files).length;
   const Icon = checked ? CircleCheck : CircleAlert;
   return (
-    <div className="page-check" role="group" aria-label="Проверка страницы на личные данные">
+    <div className="page-check" role="group" aria-label="Личные данные на странице">
       <span className={"dp-badge dp-tone-" + (checked ? "success" : "warning")}>
         <Icon size={12} aria-hidden="true" />
-        {checked ? "Страница проверена" : "Страница не проверена"}
+        {checked ? "Данные скрыты" : "Данные не проверены"}
       </span>
       {onCheck && (
         <button type="button" onClick={() => onCheck(!checked)}>
-          {checked ? "Снять отметку" : "Отметить страницу проверенной"}
+          {checked ? "Снять отметку" : "Отметить: данные скрыты"}
         </button>
       )}
       <span className="page-check-count">
-        Проверено {done} из {total}
+        Данные скрыты: {done} из {total} стр.
       </span>
     </div>
   );

@@ -52,7 +52,7 @@ test("unclear and unsupported tasks are marked and the rest is confirmed", async
   await confirmTask(page, 1);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
-  await page.getByRole("link", { name: "Отчёт · v1" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
   await expect(page.getByRole("main")).toContainText(
     "Разберём отдельно. UpGrade пока не разбирает задачи этого типа.",
   );
@@ -97,20 +97,18 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
   await page.getByRole("button", { name: "Новая версия" }).click();
-  await page
-    .getByRole("textbox", { name: "Общий комментарий" })
-    .fill("Комментарий второй редакции");
+  await page.getByRole("textbox", { name: "Что дальше" }).fill("Комментарий второй редакции");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await confirmTask(page);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
   await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
-  await page.getByRole("link", { name: "Отчёт · v2" }).click();
+  await page.getByRole("link", { name: "Отчёт, версия 2" }).click();
   await expect(page.getByRole("main")).toContainText("Комментарий второй редакции");
 
   await page.getByRole("link", { name: "К разбору работы" }).click();
   await page.getByRole("button", { name: "Отозвать", exact: true }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
-  await expect(page.getByRole("link", { name: "Отчёт · v2" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Отчёт, версия 2" })).toHaveCount(0);
   await page.getByText("История версий · 2").click();
   await expect(page.getByRole("link", { name: "Версия 1 · архивная" })).toBeVisible();
   await page.getByRole("link", { name: "Версия 2 · архивная" }).click();

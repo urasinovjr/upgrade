@@ -76,7 +76,8 @@ function taskState(task: Task) {
   const { errors, unclear } = taskIssues(task);
   return [
     errors && errors + " " + wordForCount(errors, ["ошибка", "ошибки", "ошибок"]),
-    unclear && unclear + " " + wordForCount(unclear, ["шаг", "шага", "шагов"]) + " уточнить",
+    unclear &&
+      unclear + " " + wordForCount(unclear, ["неясный шаг", "неясных шага", "неясных шагов"]),
     task.omitted ? "отложена" : task.reviewed ? "проверена" : "не проверена",
   ]
     .filter(Boolean)
@@ -137,16 +138,16 @@ function TaskTab({ task }: { task: Task }) {
 
 const gapNotes: Record<GapDecision, { editable: string; readOnly: string }> = {
   confirmed: {
-    editable: "Тема попадёт в карту ученика после подтверждения работы.",
-    readOnly: "Подтверждено репетитором",
+    editable: "Пробел попадёт в карту знаний, когда вы подтвердите работу.",
+    readOnly: "Подтверждено вами",
   },
   rejected: {
-    editable: "Гипотеза останется в истории и не попадёт в карту.",
+    editable: "Гипотеза останется в истории и не попадёт в карту знаний.",
     readOnly: "Гипотеза отклонена",
   },
   hypothesis: {
-    editable: "Гипотеза не учитывается в карте ученика.",
-    readOnly: "Гипотеза не учитывается в карте ученика",
+    editable: "Пока вы не решите, гипотеза не попадает в карту знаний.",
+    readOnly: "Гипотеза не попала в карту знаний",
   },
 };
 
@@ -174,7 +175,8 @@ function GapSection({
         ) : (
           <PencilLine size={14} aria-hidden="true" />
         )}
-        Тема для повторения · {topic?.name ?? "Тема не найдена"}
+        {gap.decision === "confirmed" ? "Пробел" : "Гипотеза о пробеле"} ·{" "}
+        {topic?.name ?? "Тема не найдена"}
       </h3>
       <p className={gap.reason.trim() ? undefined : "dp-gap-empty"}>
         {gap.reason.trim() || "Укажите, что повторить."}
@@ -202,7 +204,7 @@ function GapSection({
             <button
               className="dp-text dp-gap-edit"
               disabled={busy}
-              aria-label="Изменить тему для повторения"
+              aria-label="Изменить гипотезу о пробеле"
               onClick={onEdit}
             >
               <Pencil size={14} />
@@ -246,7 +248,7 @@ function PaneSwitch({
     onChange(target);
   };
   return (
-    <div className="dp-mobile-panes dp-segmented" role="tablist" aria-label="Проверка работы">
+    <div className="dp-mobile-panes dp-segmented" role="tablist" aria-label="Разбор работы">
       {panes.map(({ value, label, Icon }) => (
         <button
           key={value}
@@ -271,7 +273,7 @@ export default function Review() {
   if (query.isPending) return <PageLoading variant="review" />;
   if (!query.data)
     return (
-      <PageState title="Проверка работы" error={query.error} retry={() => void query.refetch()} />
+      <PageState title="Разбор работы" error={query.error} retry={() => void query.refetch()} />
     );
   const work = query.data.works.find((item) => item.id === id);
   if (!work)
@@ -280,7 +282,7 @@ export default function Review() {
         title="Работа не найдена"
         description="Проверьте ссылку или выберите работу из списка."
         to="/works"
-        linkLabel="К списку работ"
+        linkLabel="К работам"
       />
     );
   const student = query.data.students.find((item) => item.id === work.studentId)!;
@@ -442,7 +444,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
   const reportLink = published && (
     <Link className="dp-button" to={"/works/" + work.id + "/report"}>
       <FileText size={14} aria-hidden="true" />
-      Отчёт · v{published.number}
+      Отчёт, версия {published.number}
     </Link>
   );
   const reanalyse = (work.demo || serverMode) && (
@@ -631,7 +633,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                 }}
               >
                 <PencilLine size={14} />
-                Добавить тему для повторения
+                Добавить пробел
               </button>
             )
           )}
@@ -688,17 +690,17 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       <section className="dp-work-comment">
         {editable ? (
           <label>
-            Общий комментарий
+            Что дальше
             <textarea
               value={draft.feedback}
               disabled={busy}
-              placeholder="Итог по всей работе. В отчёте он идёт после задач"
+              placeholder="Итог по всей работе, в отчёте идёт после задач"
               onChange={(event) => change({ ...draft, feedback: event.target.value })}
             />
           </label>
         ) : (
           <>
-            <h3>Общий комментарий</h3>
+            <h3>Что дальше</h3>
             <p>{draft.feedback || "Комментария нет."}</p>
           </>
         )}
@@ -755,7 +757,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       <section
         id={ids.analysis}
         className="dp-analysis"
-        aria-label="Разбор работы"
+        aria-label="Задачи и шаги"
         role={narrow ? "tabpanel" : undefined}
       >
         <div className="dp-review-toolbar">
@@ -822,13 +824,14 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         }
       />
       <Panel
-        title="Проверка решения"
+        title="Разбор работы"
         className="dp-review-window"
         headerClassName="review-header"
         heading={
           <>
             <h1 title={work.title}>{work.title}</h1>
             <span className="dp-window-sub">
+              {work.editing && <span className="dp-window-meta">Шаг 2 из 3 · Проверка</span>}
               <Link className="dp-window-meta" to={"/students/" + student.id}>
                 {student.name} · {student.grade} класс
               </Link>
@@ -876,8 +879,8 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               <Callout
                 tone="danger"
                 icon={<AlertCircle size={16} aria-hidden="true" />}
-                title="Разбор не получился."
-                more="Запустите его ещё раз или проверьте работу вручную по оригиналу."
+                title="Разбор не удался."
+                more="Запустите разбор заново или проверьте работу вручную по оригиналу."
               >
                 {reanalyse}
                 {finishSync}
@@ -899,7 +902,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
               tone="info"
               icon={<ShieldCheck size={16} aria-hidden="true" />}
               title="Черновик новой версии."
-              more={`Пока вы его не подтвердите, действует отчёт v${published.number}.`}
+              more={`Пока вы его не подтвердите, действует версия ${published.number}.`}
             >
               {reportLink}
               <button className="dp-text dp-danger-text" onClick={() => setWithdraw(true)}>
@@ -954,7 +957,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
                   <p>
                     <strong>Версия {published?.number} подтверждена</strong>
                     <span className="dp-confirmed-note">
-                      Темы для повторения обновлены в карте ученика.
+                      Карта знаний ученика обновлена. Следующий шаг: отчёт для ученика.
                     </span>
                   </p>
                 </div>
@@ -1027,8 +1030,8 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       <Modal
         open={gapEdit && !!task?.gap}
         onOpenChange={setGapEdit}
-        title="Тема для повторения"
-        description="Тема попадёт в карту ученика, только когда вы подтвердите пробел и работу."
+        title="Гипотеза о пробеле"
+        description="Тема попадёт в карту знаний, когда вы подтвердите пробел и работу."
       >
         {task?.gap && (
           <GapEditor
@@ -1045,7 +1048,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       <Modal
         open={removeTask && !!task}
         onOpenChange={setRemoveTask}
-        title={"Удалить " + (task?.title ?? "задачу") + "?"}
+        title={"Удалить " + (task?.title.replace(/^Задача/, "задачу") ?? "задачу") + "?"}
         description="Условие, шаги и комментарий к задаче удалятся из черновика."
       >
         <div className="dp-dialog-actions">
