@@ -56,6 +56,6 @@ test("copied text and PDF come from the same confirmed revision", async ({
     expect(copied).toContain(line);
     expect(compact(text)).toContain(compact(line));
   }
-  expect(compact(text)).toContain(compact("Версия 1"));
+  expect(compact(text)).toContain(compact("Проверено репетитором · версия 1"));
   expect(images).toBeGreaterThan(0);
 });

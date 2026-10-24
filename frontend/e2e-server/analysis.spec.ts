@@ -85,7 +85,7 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   test.setTimeout(150_000);
   await signUp(page, request, "revision");
   const studentId = await addStudent(page, "Мария");
-  const workId = await addCheckedWork(page, studentId, "Две редакции", [
+  const workId = await addCheckedWork(page, studentId, "Две версии", [
     { condition: "Решите x + 1 = 2" },
   ]);
 
@@ -97,13 +97,13 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
 
   await page.getByRole("button", { name: "Начать новую версию" }).click();
-  await page.getByRole("textbox", { name: "Что дальше" }).fill("Комментарий второй редакции");
+  await page.getByRole("textbox", { name: "Что дальше" }).fill("Комментарий второй версии");
   await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
   await confirmTask(page);
   await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
   await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
   await page.getByRole("link", { name: "Отчёт, версия 2" }).click();
-  await expect(page.getByRole("main")).toContainText("Комментарий второй редакции");
+  await expect(page.getByRole("main")).toContainText("Комментарий второй версии");
 
   await page.getByRole("link", { name: "К разбору работы" }).click();
   await page.getByRole("button", { name: "Отозвать", exact: true }).click();
@@ -112,5 +112,5 @@ test("a new revision replaces the report and withdrawal keeps the history", asyn
   await page.getByText("История версий · 2").click();
   await expect(page.getByRole("link", { name: "Версия 1 · архивная" })).toBeVisible();
   await page.getByRole("link", { name: "Версия 2 · архивная" }).click();
-  await expect(page.getByRole("main")).toContainText("Комментарий второй редакции");
+  await expect(page.getByRole("main")).toContainText("Комментарий второй версии");
 });

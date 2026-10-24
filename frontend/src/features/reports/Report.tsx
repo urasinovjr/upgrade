@@ -127,9 +127,8 @@ export default function Report() {
         heading={
           <>
             <h1>Отчёт по работе</h1>
-            <span className="dp-window-meta">Шаг 3 из 3 · Отчёт</span>
             <span className="dp-window-meta">
-              Версия {revision.number} · {date(revision.confirmedAt)}
+              Шаг 3 из 3 · версия {revision.number} · {date(revision.confirmedAt)}
             </span>
             {archived && <span className="dp-report-archived">Архивная</span>}
           </>

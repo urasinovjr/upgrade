@@ -442,9 +442,13 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
       </button>
     );
   const reportLink = published && (
-    <Link className="dp-button" to={"/works/" + work.id + "/report"}>
+    <Link
+      className="dp-button"
+      to={"/works/" + work.id + "/report"}
+      aria-label={"Отчёт, версия " + published.number}
+    >
       <FileText size={14} aria-hidden="true" />
-      Отчёт, версия {published.number}
+      Отчёт
     </Link>
   );
   const reanalyse = (work.demo || serverMode) && (
@@ -831,7 +835,9 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           <>
             <h1 title={work.title}>{work.title}</h1>
             <span className="dp-window-sub">
-              {work.editing && <span className="dp-window-meta">Шаг 2 из 3 · Проверка</span>}
+              {work.editing && (
+                <span className="dp-window-meta dp-review-step">Шаг 2 из 3 · Проверка</span>
+              )}
               <Link className="dp-window-meta" to={"/students/" + student.id}>
                 {student.name} · {student.grade} класс
               </Link>
