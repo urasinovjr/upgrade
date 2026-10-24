@@ -34,6 +34,7 @@ const messages: Record<string, string> = {
   editing_closed: "Начните новую версию разбора.",
   closure_note_required: "Напишите, почему пробел закрыт.",
   topic_unknown: "Этой темы нет в справочнике. Обновите страницу.",
+  work_in_progress: "Работа ещё обрабатывается. Повторите чуть позже.",
   file_too_large: "Файл слишком большой. Уменьшите его или разделите на части.",
   request_too_large: "Слишком большой объём файлов в одной работе. Разделите работу на две.",
   file_type_unsupported: "Поддерживаются JPG, PNG и PDF.",

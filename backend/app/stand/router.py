@@ -1,18 +1,21 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Header, status
+from fastapi import APIRouter, Form, Header, UploadFile, status
 
-from app.dependencies import ProviderDep, SessionDep, SettingsDep
+from app.dependencies import ProviderDep, SessionDep, SettingsDep, StorageDep
 from app.errors import DomainError
+from app.files import Storage
 from app.provider import ProviderError
 from app.queue import Job
-from app.stand.intake import STAND_JOB, accept_work, process_now
+from app.stand.intake import STAND_JOB, accept_work, process_idempotent, process_now
 from app.stand.schemas import ErrorOut, JobOut, ResultOut, WorkCreate
 
 router = APIRouter(tags=["stand"])
 
 UploadKey = Annotated[str, Header(min_length=1, max_length=64)]
+OptionalKey = Annotated[str | None, Header(min_length=1, max_length=64)]
+PAGE_TYPE = "application/octet-stream"
 PROVIDER_ERRORS: dict[int | str, dict] = {
     status.HTTP_502_BAD_GATEWAY: {"model": ErrorOut},
     status.HTTP_503_SERVICE_UNAVAILABLE: {"model": ErrorOut},
@@ -35,7 +38,51 @@ async def create_work_sync(
     provider: ProviderDep,
     settings: SettingsDep,
     x_upload_id: UploadKey,
+    idempotency_key: OptionalKey = None,
 ) -> ResultOut:
+    try:
+        if idempotency_key:
+            result = await process_idempotent(session, provider, settings, data, idempotency_key)
+        else:
+            result = await process_now(session, provider, settings, data, x_upload_id)
+    except ProviderError as error:
+        raise DomainError(error.code) from error
+    return ResultOut.model_validate(result)
+
+
+async def store_pages(storage: Storage, data: WorkCreate, key: str, pages: list[UploadFile]):
+    for number, page in enumerate(pages, start=1):
+        content = await page.read()
+        await storage.put(f"stand/{data.teacher_id}/{key}/{number}", content, PAGE_TYPE)
+
+
+@router.post("/works/upload", status_code=status.HTTP_202_ACCEPTED)
+async def upload_work(
+    meta: Annotated[str, Form()],
+    pages: list[UploadFile],
+    session: SessionDep,
+    settings: SettingsDep,
+    storage: StorageDep,
+    idempotency_key: UploadKey,
+) -> JobOut:
+    data = WorkCreate.model_validate_json(meta)
+    await store_pages(storage, data, idempotency_key, pages)
+    job = await accept_work(session, data, idempotency_key, settings.job_attempts)
+    return JobOut.model_validate(job)
+
+
+@router.post("/sync/works/upload", responses=PROVIDER_ERRORS)
+async def upload_work_sync(
+    meta: Annotated[str, Form()],
+    pages: list[UploadFile],
+    session: SessionDep,
+    provider: ProviderDep,
+    settings: SettingsDep,
+    storage: StorageDep,
+    x_upload_id: UploadKey,
+) -> ResultOut:
+    data = WorkCreate.model_validate_json(meta)
+    await store_pages(storage, data, x_upload_id, pages)
     try:
         result = await process_now(session, provider, settings, data, x_upload_id)
     except ProviderError as error:

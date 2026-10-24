@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from pathlib import Path
 
@@ -7,6 +8,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from app.config import Settings
+from app.files import S3Storage
 from loadgen.scenario import CRASH_AT_SECONDS, CRASH_DOWN_SECONDS
 
 COMPOSE_FILE = Path(__file__).resolve().parents[2] / "compose.yaml"
@@ -30,7 +33,7 @@ OUTCOMES = text(
 )
 
 
-async def compose(*args: str) -> None:
+async def compose(*args: str, env: dict[str, str] | None = None) -> None:
     process = await asyncio.create_subprocess_exec(
         "docker",
         "compose",
@@ -39,12 +42,21 @@ async def compose(*args: str) -> None:
         *args,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
+        env={**os.environ, **(env or {})},
     )
     await process.wait()
 
 
-async def ensure_running(workers: int = 1) -> None:
-    await compose("up", "-d", "--wait", "--scale", f"worker={workers}")
+async def ensure_running(workers: int = 1, env: dict[str, str] | None = None) -> None:
+    await compose("up", "-d", "--wait", "--scale", f"worker={workers}", env=env)
+
+
+async def clear_pages() -> None:
+    storage = await S3Storage.connect(Settings())
+    try:
+        await storage.delete_prefix("stand/")
+    finally:
+        await storage.close()
 
 
 async def reset_database(engine: AsyncEngine) -> None:

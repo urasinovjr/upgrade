@@ -17,7 +17,7 @@ async def handle_stand_job(context: WorkerContext, job: Job) -> None:
     try:
         text, analysis = await run_pipeline(context.provider, work.upload_id, work.pages)
     except ProviderError as error:
-        raise JobFailure(error.code) from error
+        raise JobFailure(error.code, deferred=error.code == "provider_rate_limited") from error
     async with context.sessions() as session:
         await session.execute(
             insert(StandResult)

@@ -64,6 +64,10 @@ services:
     environment: &backend-environment
       DATABASE_URL: postgresql+asyncpg://upgrade:upgrade@db:5432/upgrade
       PROVIDER_URL: http://provider-sim:8001
+      PROVIDER_TIMEOUT: ${PROVIDER_TIMEOUT:-6.0}
+      PROVIDER_CONCURRENCY: ${PROVIDER_CONCURRENCY:-0}
+      RATE_LIMIT_DELAY: ${RATE_LIMIT_DELAY:-5.0}
+      RATE_LIMIT_MAX_DELAY: ${RATE_LIMIT_MAX_DELAY:-120.0}
       ANALYSIS_VARIANT: ${ANALYSIS_VARIANT:-sim}
       ANALYSIS_API_KEY: ${ANALYSIS_API_KEY:-}
       ANALYSIS_FOLDER_ID: ${ANALYSIS_FOLDER_ID:-}

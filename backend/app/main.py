@@ -41,7 +41,9 @@ def create_app(
         app.state.settings = app_settings
         app.state.sessions = make_session_factory(engine)
         app.state.provider = provider or Provider(
-            app_settings.provider_url, app_settings.provider_timeout
+            app_settings.provider_url,
+            app_settings.provider_timeout,
+            app_settings.provider_concurrency,
         )
         app.state.storage = storage or await S3Storage.connect(app_settings)
         app.state.mailer = mailer or SmtpMailer(app_settings)

@@ -37,7 +37,7 @@ TOPIC_HINTS = (
     (">", "inequalities"),
 )
 DEFAULT_TOPIC = "equations"
-HANG_SECONDS = 120.0
+HANG_SECONDS = 300.0
 FAIL_MARKER = re.compile(r"\[\[fail:(\d+)\]\]")
 
 

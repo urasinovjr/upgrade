@@ -1,12 +1,13 @@
+import argparse
 import csv
 import json
 import random
 from collections import defaultdict
 from pathlib import Path
 
-from loadgen.run import RESULTS_DIR
+from loadgen.run import PROTOCOL, PROTOCOL_DIRS
 
-SUMMARY_PATH = RESULTS_DIR.parent / "summary.csv"
+SYNC_MODES = {"sync", "sync-idem"}
 BOOTSTRAP_ROUNDS = 2000
 ACCEPT_LIMIT_SECONDS = 1.0
 READY_LIMIT_SECONDS = 120.0
@@ -59,9 +60,11 @@ def read_run(csv_path: Path) -> tuple[dict, list[dict]]:
     return meta, rows
 
 
-def run_metrics(rows: list[dict]) -> dict:
+def run_metrics(rows: list[dict], protocol: int = 1) -> dict:
     accepted = [float(row["accept_s"]) for row in rows if row["accepted"] == "True"]
-    ready = [float(row["ready_s"]) for row in rows if row["ready_s"]]
+    stored = [float(row["ready_s"]) for row in rows if row["ready_s"]]
+    polled = [float(row["polled_ready_s"]) for row in rows if row.get("polled_ready_s")]
+    ready = polled if protocol >= 2 else stored
     delivered = [row for row in rows if int(row["results"]) > 0]
     undelivered = [row for row in rows if not int(row["results"])]
     saved_failures = [row for row in undelivered if row["failed"] == "True"]
@@ -70,6 +73,8 @@ def run_metrics(rows: list[dict]) -> dict:
         "uploads": len(rows),
         "accepted_values": accepted,
         "ready_values": ready,
+        "stored_ready_values": stored,
+        "polls": sum(int(row.get("poll_count") or 0) for row in rows),
         "delivered": len(delivered),
         "duplicated": sum(1 for row in rows if int(row["results"]) > 1),
         "failed_saved": len(saved_failures),
@@ -81,7 +86,7 @@ def run_metrics(rows: list[dict]) -> dict:
 
 
 def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
-    mode, profile, level, workers = key
+    mode, profile, level, workers, condition = key
     time_scale = runs[0][0]["time_scale"]
     metrics = [run for _, run in runs]
     accepted_runs = [run["accepted_values"] for run in metrics]
@@ -91,7 +96,8 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
     accept_p95 = pooled_p95(accepted_runs)
     ready_p95 = pooled_p95(ready_runs)
     ready_min, ready_max = run_range([run["ready_p95"] for run in metrics])
-    accept_scale = time_scale if mode == "sync" else 1.0
+    accept_scale = time_scale if mode in SYNC_MODES else 1.0
+    stored_p95 = pooled_p95([run["stored_ready_values"] for run in metrics])
     delivered = sum(run["delivered"] for run in metrics)
     analyze_calls = sum(meta["provider"].get("analyze_calls", 0) for meta, _ in runs)
     uploads = sum(run["uploads"] for run in metrics)
@@ -100,6 +106,8 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
         "profile": profile,
         "level": level,
         "workers": workers,
+        "condition": condition,
+        "protocol": runs[0][0].get("protocol", 1),
         "runs": len(runs),
         "uploads": uploads,
         "accepted": sum(len(values) for values in accepted_runs),
@@ -119,6 +127,8 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
         "ready_p95_real_s": scaled(ready_p95, time_scale),
         "ready_p95_run_min_real_s": scaled(ready_min, time_scale),
         "ready_p95_run_max_real_s": scaled(ready_max, time_scale),
+        "stored_ready_p95_real_s": scaled(stored_p95, time_scale),
+        "polls_per_upload": sum(run["polls"] for run in metrics) / uploads,
         "analyze_calls_per_delivered": analyze_calls / delivered if delivered else None,
     }
     summary["meets_h1"] = (
@@ -133,21 +143,37 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
     return summary
 
 
-def main() -> None:
+def run_key(meta: dict) -> tuple:
+    return (
+        meta["mode"],
+        meta["profile"],
+        meta["level"],
+        meta.get("workers", 1),
+        meta.get("condition", "base"),
+    )
+
+
+def summarize(protocol: int) -> list[dict]:
     groups: dict[tuple, list[tuple[dict, dict]]] = defaultdict(list)
-    for csv_path in sorted(RESULTS_DIR.glob("*.csv")):
+    for csv_path in sorted((PROTOCOL_DIRS[protocol] / "runs").glob("*.csv")):
         meta, rows = read_run(csv_path)
-        key = (meta["mode"], meta["profile"], meta["level"], meta.get("workers", 1))
-        groups[key].append((meta, run_metrics(rows)))
-    summaries = [condition_summary(key, runs) for key, runs in sorted(groups.items())]
-    with SUMMARY_PATH.open("w", newline="") as file:
+        groups[run_key(meta)].append((meta, run_metrics(rows, protocol)))
+    return [condition_summary(key, runs) for key, runs in sorted(groups.items())]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--protocol", type=int, choices=list(PROTOCOL_DIRS), default=PROTOCOL)
+    protocol = parser.parse_args().protocol
+    summaries = summarize(protocol)
+    with (PROTOCOL_DIRS[protocol] / "summary.csv").open("w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=list(summaries[0]))
         writer.writeheader()
         writer.writerows(summaries)
     for summary in summaries:
         print(
-            f"{summary['mode']:>5} {summary['profile']:>8} x{summary['level']:<2} "
-            f"w{summary['workers']} "
+            f"{summary['mode']:>9} {summary['profile']:>8} x{summary['level']:<2} "
+            f"w{summary['workers']} {summary['condition']} "
             f"accepted={summary['accepted_share']:.1%} "
             f"accept_p95_real={show(summary['accept_p95_real_s'], 2)}s "
             f"ready_p95_real={show(summary['ready_p95_real_s'], 0)}s "

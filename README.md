@@ -317,13 +317,20 @@ uv run python -m app.cli eval-compare ~/runs/sim ~/runs/qwen --report ~/runs/com
 - `worker` забирает задачи через `SELECT … FOR UPDATE SKIP LOCKED`, продлевает аренду и повторяет неудачные попытки с паузой. Продуктовые задачи используют ту же очередь.
 - `provider-sim` имитирует OCR и LLM с задержками и сбоями по профилю `normal` или `degraded`.
 
+- `POST /sync/works` с заголовком `Idempotency-Key` работает идемпотентно: работа с ключом сначала захватывается отдельной транзакцией, повтор с тем же ключом получает готовый результат (200) или 409 `work_in_progress`, пока идёт обработка; захват старше `SYNC_CLAIM_SECONDS` считается брошенным (например, API упал) и перехватывается повтором. При ошибке провайдера захват снимается.
+- `POST /works/upload` и `POST /sync/works/upload` принимают те же данные формой (`meta`) со страницами и до обработки кладут страницы в S3 под `stand/<учитель>/<ключ>/<N>`.
+- `PROVIDER_TIMEOUT` и `PROVIDER_CONCURRENCY` (0 — без ограничения, иначе число одновременных вызовов на процесс) передаются в `api` и `worker` из окружения compose, как и `RATE_LIMIT_DELAY` и `RATE_LIMIT_MAX_DELAY`. Ответ 429 откладывает задачу стенда, не расходуя попытку; нагрузочный клиент задаёт эти паузы в масштабе стенда (0,5 и 12 с). Прогоны стоит запускать на свободной машине: фоновая нагрузка хоста заметно увеличивает время готовности.
+
 Нагрузочный прогон и сводка:
 
 ```sh
-uv run python -m loadgen.run --mode async --level 1 --seed 1
+uv run python -m loadgen.run --mode sync-idem --level 1 --seed 1
 uv run python -m loadgen.matrix --skip-done
-uv run python -m loadgen.matrix --scaling --skip-done
+uv run python -m loadgen.matrix --modes async --profiles normal --levels 5 --workers 2 --skip-done
+uv run python -m loadgen.matrix --modes async --profiles degraded --condition t110-cap4 --skip-done
+uv run python -m loadgen.matrix --levels 1 5 --profiles normal --condition storage --skip-done
 uv run python -m loadgen.analyze
+uv run python -m loadgen.analyze --protocol 1
 ```
 
-Время на стенде сжато в 10 раз (`TIME_SCALE = 0.1`): одна секунда стенда соответствует десяти секундам реальной работы провайдера. Флаг `--scaling` повторяет асинхронные прогоны на нагрузке ×5 и ×10 с четырьмя экземплярами worker'а. Сырые данные прогонов лежат в `backend/loadgen/results/runs`, сводка — в `backend/loadgen/results/summary.csv`.
+Время на стенде сжато в 10 раз (`TIME_SCALE = 0.1`): одна секунда стенда соответствует десяти секундам реальной работы провайдера. Режимы: `sync`, `async`, `sync-idem`. Условия (`--condition`): `base`; `t110-cap4` — таймаут вызова 110 с реального времени и не больше четырёх одновременных вызовов на процесс; `storage` — страницы по 1,5 МБ загружаются через S3. Протокол 2 добавил опрос `GET /jobs/{id}` клиентом каждые 2 с реального времени: время готовности для проверки H1 — момент, когда клиент узнал о готовом результате (`polled_ready_s`), время записи результата в БД сохраняется отдельно (`ready_s`). Прогоны протокола 2 лежат в `backend/loadgen/results/protocol-2/runs`, сводка — в `backend/loadgen/results/protocol-2/summary.csv`; прогоны протокола 1 (без опроса) остаются в `backend/loadgen/results/runs` и `summary.csv`.

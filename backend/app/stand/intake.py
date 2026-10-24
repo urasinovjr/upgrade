@@ -1,9 +1,12 @@
-from sqlalchemy import select
+from datetime import timedelta
+
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
-from app.provider import Provider
+from app.errors import DomainError
+from app.provider import Provider, ProviderError
 from app.queue import Job, enqueue
 from app.stand.models import StandResult, StandWork
 from app.stand.processing import run_with_retries
@@ -71,4 +74,81 @@ async def process_now(
     result = StandResult(work_id=work.id, text=text, analysis=analysis)
     session.add(result)
     await session.commit()
+    return result
+
+
+async def claim_work(
+    session: AsyncSession, data: WorkCreate, key: str, claim_seconds: float
+) -> tuple[StandWork | None, StandResult | None]:
+    claimed = await session.scalar(
+        insert(StandWork)
+        .values(
+            teacher_id=data.teacher_id,
+            student_id=data.student_id,
+            upload_id=key,
+            idempotency_key=key,
+            pages=data.pages,
+            claimed_at=func.clock_timestamp(),
+        )
+        .on_conflict_do_nothing(index_elements=["teacher_id", "idempotency_key"])
+        .returning(StandWork)
+    )
+    if claimed is not None:
+        await session.commit()
+        return claimed, None
+    work = await session.scalar(
+        select(StandWork).where(
+            StandWork.teacher_id == data.teacher_id, StandWork.idempotency_key == key
+        )
+    )
+    assert work is not None
+    result = await session.scalar(select(StandResult).where(StandResult.work_id == work.id))
+    if result is not None:
+        await session.commit()
+        return None, result
+    stale = func.clock_timestamp() - timedelta(seconds=claim_seconds)
+    taken = await session.scalar(
+        update(StandWork)
+        .where(
+            StandWork.id == work.id,
+            or_(StandWork.claimed_at.is_(None), StandWork.claimed_at < stale),
+        )
+        .values(claimed_at=func.clock_timestamp())
+        .returning(StandWork)
+    )
+    await session.commit()
+    if taken is None:
+        raise DomainError("work_in_progress")
+    return taken, None
+
+
+async def process_idempotent(
+    session: AsyncSession,
+    provider: Provider,
+    settings: Settings,
+    data: WorkCreate,
+    key: str,
+) -> StandResult:
+    work, done = await claim_work(session, data, key, settings.sync_claim_seconds)
+    if done is not None:
+        return done
+    assert work is not None
+    try:
+        text, analysis = await run_with_retries(
+            provider, key, data.pages, settings.sync_attempts, settings.retry_delay
+        )
+    except ProviderError:
+        await session.execute(
+            update(StandWork).where(StandWork.id == work.id).values(claimed_at=None)
+        )
+        await session.commit()
+        raise
+    await session.execute(
+        insert(StandResult)
+        .values(work_id=work.id, text=text, analysis=analysis)
+        .on_conflict_do_nothing(index_elements=["work_id"])
+    )
+    result = await session.scalar(select(StandResult).where(StandResult.work_id == work.id))
+    await session.commit()
+    assert result is not None
     return result

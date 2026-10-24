@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import nullcontext
+
 import httpx
 
 
@@ -8,7 +11,8 @@ class ProviderError(Exception):
 
 
 class Provider:
-    def __init__(self, base_url: str, timeout: float):
+    def __init__(self, base_url: str, timeout: float, concurrency: int = 0):
+        self.slots = asyncio.Semaphore(concurrency) if concurrency else nullcontext()
         self.client = httpx.AsyncClient(
             base_url=base_url,
             timeout=timeout,
@@ -24,6 +28,10 @@ class Provider:
         return await self.post("/analyze", {"upload_id": upload_id, "text": text})
 
     async def post(self, path: str, payload: dict) -> dict:
+        async with self.slots:
+            return await self.send(path, payload)
+
+    async def send(self, path: str, payload: dict) -> dict:
         try:
             response = await self.client.post(path, json=payload)
         except httpx.TimeoutException as error:

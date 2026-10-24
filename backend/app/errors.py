@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 REGISTRY: dict[str, int] = {
     "job_not_found": status.HTTP_404_NOT_FOUND,
+    "work_in_progress": status.HTTP_409_CONFLICT,
     "provider_timeout": status.HTTP_504_GATEWAY_TIMEOUT,
     "provider_unavailable": status.HTTP_502_BAD_GATEWAY,
     "provider_rate_limited": status.HTTP_503_SERVICE_UNAVAILABLE,

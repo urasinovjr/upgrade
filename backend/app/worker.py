@@ -149,7 +149,9 @@ async def main() -> None:
     engine = make_engine(settings.database_url, settings.db_pool_size)
     variant = get_variant(settings.analysis_variant)
     analysis_provider = make_provider(variant, settings)
-    provider = Provider(settings.provider_url, settings.provider_timeout)
+    provider = Provider(
+        settings.provider_url, settings.provider_timeout, settings.provider_concurrency
+    )
     storage = await S3Storage.connect(settings)
     mailer = SmtpMailer(settings)
     context = WorkerContext(

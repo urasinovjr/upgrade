@@ -1,5 +1,6 @@
 import io
 import tarfile
+from pathlib import Path
 
 import pytest
 
@@ -60,7 +61,10 @@ async def test_backup_check_finds_missing_files(teacher, sessions, storage):
 
 
 def test_latest_migration_is_known():
-    assert migration_head() == "0015"
+    files = (Path(__file__).resolve().parents[1] / "alembic" / "versions").glob("*.py")
+    latest = max(path.name.split("_")[0] for path in files)
+
+    assert migration_head() == latest
 
 
 async def test_preflight_reports_an_unconfigured_provider(test_settings):

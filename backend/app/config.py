@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     db_pool_size: int = 20
     provider_url: str = "http://localhost:8011"
     provider_timeout: float = 6.0
+    provider_concurrency: int = 0
+    sync_claim_seconds: float = 3.0
     analysis_variant: str = "sim"
     analysis_api_key: SecretStr = SecretStr("")
     analysis_folder_id: str = ""

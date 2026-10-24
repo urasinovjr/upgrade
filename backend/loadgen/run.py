@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import csv
 import json
+import os
 import time
 from pathlib import Path
 
@@ -9,8 +10,9 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from loadgen.client import send_upload
-from loadgen.scenario import TIME_SCALE, build_uploads
+from loadgen.scenario import CONDITIONS, PAGE_BYTES, POLL_INTERVAL, TIME_SCALE, build_uploads
 from loadgen.stand import (
+    clear_pages,
     clock_offset,
     collect_outcomes,
     configure_provider,
@@ -21,16 +23,28 @@ from loadgen.stand import (
     wait_until_settled,
 )
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results" / "runs"
+PROTOCOL = 2
+PROTOCOL_DIRS = {
+    1: Path(__file__).resolve().parent / "results",
+    2: Path(__file__).resolve().parent / "results" / "protocol-2",
+}
+RESULTS_DIR = PROTOCOL_DIRS[PROTOCOL] / "runs"
 DATABASE_URL = "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
 API_URL = "http://localhost:8010"
 SIM_URL = "http://localhost:8011"
-PROCESSING_SERVICE = {"sync": "api", "async": "worker"}
+PROCESSING_SERVICE = {"sync": "api", "async": "worker", "sync-idem": "api"}
+MODES = list(PROCESSING_SERVICE)
 
 
-def run_name(mode: str, profile: str, level: int, seed: int, workers: int = 1) -> str:
+def run_name(
+    mode: str, profile: str, level: int, seed: int, workers: int = 1, condition: str = "base"
+) -> str:
     name = f"{mode}-{profile}-x{level}-s{seed}"
-    return name if workers == 1 else f"{name}-w{workers}"
+    if workers != 1:
+        name += f"-w{workers}"
+    if condition != "base":
+        name += f"-c{condition}"
+    return name
 
 
 def merge_row(client_row: dict, outcome: dict | None, offset: float) -> dict:
@@ -56,9 +70,14 @@ async def run_once(
     seed: int,
     crashes: bool,
     workers: int = 1,
+    condition: str = "base",
 ) -> Path:
-    await ensure_running(workers)
+    setup = CONDITIONS[condition]
+    await ensure_running(workers, setup.env)
     await reset_database(engine)
+    if setup.upload:
+        await clear_pages()
+    page = os.urandom(PAGE_BYTES) if setup.upload else None
     await configure_provider(SIM_URL, profile, seed, TIME_SCALE)
     offset = await clock_offset(engine)
     uploads = build_uploads(level, seed)
@@ -70,16 +89,16 @@ async def run_once(
         if crashes:
             crash = asyncio.create_task(crash_processing(PROCESSING_SERVICE[mode], started))
         client_rows = await asyncio.gather(
-            *(send_upload(http, mode, upload, started) for upload in uploads)
+            *(send_upload(http, mode, upload, started, page) for upload in uploads)
         )
         if crash:
             await crash
-    await ensure_running(workers)
+    await ensure_running(workers, setup.env)
     await wait_until_settled(engine)
 
     outcomes = await collect_outcomes(engine)
     rows = [merge_row(row, outcomes.get(row["upload_id"]), offset) for row in client_rows]
-    name = run_name(mode, profile, level, seed, workers)
+    name = run_name(mode, profile, level, seed, workers, condition)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     csv_path = RESULTS_DIR / f"{name}.csv"
     with csv_path.open("w", newline="") as file:
@@ -93,6 +112,10 @@ async def run_once(
         "seed": seed,
         "crashes": crashes,
         "workers": workers,
+        "condition": condition,
+        "condition_env": setup.env,
+        "protocol": PROTOCOL,
+        "poll_interval": POLL_INTERVAL,
         "time_scale": TIME_SCALE,
         "uploads": len(uploads),
         "clock_offset": offset,
@@ -104,12 +127,13 @@ async def run_once(
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["sync", "async"], required=True)
+    parser.add_argument("--mode", choices=MODES, required=True)
     parser.add_argument("--profile", choices=["normal", "degraded"], default="normal")
     parser.add_argument("--level", type=int, default=1)
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--no-crashes", action="store_true")
     parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument("--condition", choices=list(CONDITIONS), default="base")
     args = parser.parse_args()
     engine = create_async_engine(DATABASE_URL)
     try:
@@ -121,6 +145,7 @@ async def main() -> None:
             args.seed,
             not args.no_crashes,
             args.workers,
+            args.condition,
         )
     finally:
         await engine.dispose()

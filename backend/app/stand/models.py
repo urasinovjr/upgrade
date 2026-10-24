@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base, now_column
@@ -17,6 +17,7 @@ class StandWork(Base):
     upload_id: Mapped[str] = mapped_column(String(64), index=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(64))
     pages: Mapped[int]
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = now_column()
 
 
