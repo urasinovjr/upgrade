@@ -15,6 +15,7 @@ from app.analysis.drafting import (
     condition_images,
     condition_record,
     merge_review,
+    page_crops,
     review_tasks,
     task_input,
     tasks_to_recognize,
@@ -99,14 +100,15 @@ async def build_draft(
     record.sanitize_ms = source.sanitize_ms
     record.sent_pages = source.sanitized.sent
     targets = tasks_to_recognize(source.draft, source.layout, source.last_layout)
+    crops = page_crops(source.layout)
     record.input = {
         "layout": source.layout,
-        "tasks": [task_input(task).model_dump() for task in source.draft.tasks],
+        "tasks": [task_input(task, crops).model_dump() for task in source.draft.tasks],
         "recognize": [task.id for task in targets],
     }
     recognition = None
     if targets:
-        inputs = [task_input(task) for task in targets]
+        inputs = [task_input(task, crops) for task in targets]
         started = time.monotonic()
         reply = await provider.recognize(source.sanitized.pages, inputs)
         record.recognize_ms = elapsed_ms(started)
@@ -116,7 +118,7 @@ async def build_draft(
         recognition = read_recognition(reply.raw, inputs)
     tasks, origins = review_tasks(source.draft, recognition, source.sanitized.pages, source.layout)
     sent = hide_names(tasks, source.student_name)
-    conditions = condition_images(source.draft, source.sanitized.pages)
+    conditions = condition_images(source.draft, source.sanitized.pages, source.layout)
     record.input["review"] = [task.model_dump() for task in sent]
     record.input["reviewConditions"] = condition_record(conditions)
     started = time.monotonic()

@@ -23,6 +23,23 @@ describe("confirmation and versions", () => {
       true,
     );
   });
+  it("counts a frame on a page as the condition and treats moving it as a new input", () => {
+    const work = seedState().works[0];
+    const fileId = work.attachments[0].id;
+    const draft = structuredClone(work.draft);
+    Object.assign(draft.tasks[0], { condition: "", formula: "", conditionAttachmentIds: [] });
+    const blank = applyDraft(work, draft);
+    expect(reviewBlockers(blank)).toContain("Задача 1: добавьте условие.");
+    const framed = structuredClone(blank.draft);
+    framed.tasks[0].conditionRegion = {
+      fileId,
+      page: 1,
+      region: { x: 0, y: 0, width: 1, height: 0.2 },
+    };
+    const withFrame = applyDraft(blank, framed);
+    expect(reviewBlockers(withFrame)).not.toContain("Задача 1: добавьте условие.");
+    expect(withFrame.draft.inputRevision).toBe(blank.draft.inputRevision + 1);
+  });
   it("keeps the previous confirmed snapshot while editing and publishes idempotently", () => {
     const original = seedState().works[1];
     const revision = currentRevision(original)!;

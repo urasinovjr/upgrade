@@ -28,6 +28,12 @@ class StepOrigin(ApiModel):
     recognized_latex: str = Field(max_length=5000)
 
 
+class ConditionRegion(ApiModel):
+    file_id: str = Field(max_length=64)
+    page: int = Field(ge=1)
+    region: CropRect
+
+
 class Step(ApiModel):
     id: str = Field(max_length=64)
     latex: str = Field(max_length=5000)
@@ -47,6 +53,7 @@ class Task(ApiModel):
     title: str = ShortText
     condition: str = Text
     condition_attachment_ids: list[str] | None = Field(default=None, max_length=20)
+    condition_region: ConditionRegion | None = None
     formula: str = Field(max_length=5000)
     reference: str = Text
     topic_id: str = Field(max_length=64)

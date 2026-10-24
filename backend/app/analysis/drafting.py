@@ -2,10 +2,12 @@ import hashlib
 from uuid import uuid4
 
 from app.analysis.contract import (
+    ConditionArea,
     ConditionImage,
     Recognition,
     RecognizedStep,
     RecognizedTask,
+    Region,
     Review,
     ReviewedStep,
     ReviewedTask,
@@ -15,7 +17,8 @@ from app.analysis.contract import (
 )
 from app.knowledge.task_types import OUT_OF_SCOPE_TYPES, TASK_TYPE_NAMES
 from app.redaction import PageImage
-from app.redaction.geometry import inside_page, to_original
+from app.redaction.condition import crop_page
+from app.redaction.geometry import inside_page, to_original, to_sanitized
 from app.works.models import WorkFile
 from app.works.schemas import CropRect, Draft, GapProposal, Step, StepOrigin, Task
 
@@ -41,18 +44,30 @@ def tasks_to_recognize(
     return [task for task in draft.tasks if not has_steps(task)]
 
 
-def task_input(task: Task) -> TaskInput:
+def page_crops(layout: list[dict]) -> dict[str, dict]:
+    return {item["id"]: item["crops"] for item in layout}
+
+
+def condition_area(task: Task, crops: dict[str, dict]) -> ConditionArea | None:
+    found = task.condition_region
+    if found is None:
+        return None
+    crop = crops.get(found.file_id, {}).get(str(found.page))
+    area = to_sanitized(found.region.model_dump(), crop)
+    if area is None:
+        return None
+    return ConditionArea(file_id=found.file_id, page=found.page, region=Region(**area))
+
+
+def task_input(task: Task, crops: dict[str, dict] | None = None) -> TaskInput:
     return TaskInput(
         id=task.id,
         condition=task.condition,
         formula=task.formula,
         reference=task.reference,
         condition_file_ids=task.condition_attachment_ids or [],
+        condition_region=condition_area(task, crops or {}),
     )
-
-
-def page_crops(layout: list[dict]) -> dict[str, dict]:
-    return {item["id"]: item["crops"] for item in layout}
 
 
 def fitted(region: dict) -> CropRect:
@@ -117,17 +132,35 @@ def review_tasks(
             pairs = kept_steps(task)
         origins.update({step.id: origin for step, origin in pairs})
         steps = [step for step, _ in pairs]
-        result.append(ReviewTask(**task_input(task).model_dump(), steps=steps))
+        result.append(ReviewTask(**task_input(task, crops).model_dump(), steps=steps))
     return result, origins
 
 
-def condition_images(draft: Draft, pages: list[PageImage]) -> list[ConditionImage]:
+def region_image(task_id: str, area: ConditionArea, pages: list[PageImage]) -> list:
+    found = [page for page in pages if (page.file_id, page.page) == (area.file_id, area.page)]
+    return [
+        ConditionImage(
+            task_id=task_id,
+            image=crop_page(page, area.region.model_dump()),
+            region=area.region,
+        )
+        for page in found
+    ]
+
+
+def condition_images(
+    draft: Draft, pages: list[PageImage], layout: list[dict] | None = None
+) -> list[ConditionImage]:
+    crops = page_crops(layout or [])
     images = []
     for task in draft.tasks:
         files = set(task.condition_attachment_ids or [])
         images += [
             ConditionImage(task_id=task.id, image=page) for page in pages if page.file_id in files
         ]
+        area = condition_area(task, crops)
+        if area is not None:
+            images += region_image(task.id, area, pages)
     return images
 
 
@@ -141,6 +174,7 @@ def condition_record(conditions: list[ConditionImage]) -> list[dict]:
             "sha256": hashlib.sha256(item.image.data).hexdigest(),
             "width": item.image.width,
             "height": item.image.height,
+            "region": item.region.model_dump() if item.region else None,
         }
         for item in conditions
     ]

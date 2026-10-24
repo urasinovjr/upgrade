@@ -10,6 +10,7 @@ export function inputSignature(draft: Draft): string {
       id: task.id,
       condition: task.condition,
       conditionAttachmentIds: task.conditionAttachmentIds,
+      conditionRegion: task.conditionRegion,
       formula: task.formula,
       reference: task.reference,
       steps: task.steps.map((step) => ({ id: step.id, latex: step.latex })),
@@ -54,10 +55,13 @@ export function reviewBlockers(work: Work): string[] {
       if (!task.feedback.trim()) blockers.push(task.title + ": напишите, почему задача отложена.");
       continue;
     }
+    const known = (id: string) => work.attachments.some((file) => file.id === id);
+    const regionFile = task.conditionRegion?.fileId;
     if (
       !task.condition.trim() &&
       !task.formula.trim() &&
-      !task.conditionAttachmentIds?.some((id) => work.attachments.some((file) => file.id === id))
+      !task.conditionAttachmentIds?.some(known) &&
+      !(regionFile && known(regionFile))
     )
       blockers.push(task.title + ": добавьте условие.");
     if (!task.steps.length || task.steps.some((step) => !step.latex.trim()))

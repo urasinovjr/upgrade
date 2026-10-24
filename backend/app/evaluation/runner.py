@@ -19,7 +19,7 @@ from app.knowledge.catalog import CATALOG_VERSION, catalog_hash
 from app.provider import ProviderError
 from app.redaction import PageUnreadable, SourceFile, sanitize_pages
 from app.works.review import initial_draft
-from app.works.schemas import Draft, Task
+from app.works.schemas import ConditionRegion, CropRect, Draft, Task
 
 EXPERT_COLUMNS = [
     "work_id",
@@ -65,11 +65,27 @@ class FolderStorage:
         pass
 
 
-def card_task(card: TaskCard) -> Task:
+def file_id(work: WorkCard, index: int) -> str:
+    return f"{work.work_id}-{index}"
+
+
+def card_region(work: WorkCard, card: TaskCard) -> ConditionRegion | None:
+    area = card.condition_region
+    if area is None:
+        return None
+    return ConditionRegion(
+        file_id=file_id(work, area.file), page=area.page, region=CropRect(**area.region)
+    )
+
+
+def card_task(work: WorkCard, card: TaskCard) -> Task:
+    files = [file_id(work, index) for index in card.condition_files]
     return Task(
         id=card.task_id,
         title=card.task_id,
         condition=card.condition,
+        condition_attachment_ids=files or None,
+        condition_region=card_region(work, card),
         formula=card.formula,
         reference=card.reference,
         topic_id="",
@@ -85,10 +101,10 @@ def sources_of(root: Path, work: WorkCard) -> tuple[list[SourceFile], list[dict]
     layout = []
     for index, card in enumerate(work.files):
         data = (root / card.path).read_bytes()
-        file_id = f"{work.work_id}-{index + 1}"
+        own_id = file_id(work, index + 1)
         sources.append(
             SourceFile(
-                file_id=file_id,
+                file_id=own_id,
                 content_type=sniff_type(data[:16]) or "",
                 data=data,
                 page_order=card.page_order,
@@ -97,7 +113,7 @@ def sources_of(root: Path, work: WorkCard) -> tuple[list[SourceFile], list[dict]
             )
         )
         layout.append(
-            {"id": file_id, "pageOrder": card.page_order, "crops": card.crops, "masks": card.masks}
+            {"id": own_id, "pageOrder": card.page_order, "crops": card.crops, "masks": card.masks}
         )
     return sources, layout
 
@@ -117,7 +133,7 @@ async def run_work(
         sanitized = await sanitize_pages(FolderStorage(pages), settings, uuid4(), uuid4(), sources)
         source = AnalysisSource(
             input_revision=0,
-            draft=initial_draft([card_task(card) for card in admitted_tasks(work)]),
+            draft=initial_draft([card_task(work, card) for card in admitted_tasks(work)]),
             sanitized=sanitized,
             sanitize_ms=elapsed_ms(started),
             layout=layout,

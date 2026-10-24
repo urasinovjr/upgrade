@@ -280,7 +280,7 @@ export function MediaViewer({
             onDraw={(mask) => saveFile(withMasks(file, activePage, [...masks, mask]))}
           />
           {focus && focus.fileId === file.id && focus.page === activePage && (
-            <FocusBox ref={focusBox} region={focus.region} />
+            <FocusBox ref={focusBox} region={focus.region} label={focus.label} />
           )}
           {source?.id === file.id && width > 0 ? (
             file.type === "application/pdf" ? (

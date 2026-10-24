@@ -170,10 +170,18 @@ export function PageCheck({
   );
 }
 
-export function FocusBox({ region, ref }: { region: CropRect; ref: Ref<HTMLDivElement> }) {
+export function FocusBox({
+  region,
+  label = "Шаг здесь",
+  ref,
+}: {
+  region: CropRect;
+  label?: string;
+  ref: Ref<HTMLDivElement>;
+}) {
   return (
     <div ref={ref} className="focus-box" style={boxStyle(region)}>
-      <span>Шаг здесь</span>
+      <span>{label}</span>
     </div>
   );
 }

@@ -6,6 +6,7 @@ def task_signature(task: Task) -> dict:
         "id": task.id,
         "condition": task.condition,
         "condition_attachment_ids": task.condition_attachment_ids,
+        "condition_region": task.condition_region.model_dump() if task.condition_region else None,
         "formula": task.formula,
         "reference": task.reference,
         "steps": [{"id": step.id, "latex": step.latex} for step in task.steps],
@@ -46,6 +47,8 @@ def keep_known_attachments(draft: Draft, attachment_ids: set[str]) -> Draft:
             task.condition_attachment_ids = [
                 item for item in task.condition_attachment_ids if item in attachment_ids
             ]
+        if task.condition_region and task.condition_region.file_id not in attachment_ids:
+            task.condition_region = None
     return draft
 
 
@@ -56,6 +59,8 @@ def task_problems(task: Task, attachment_ids: set[str]) -> list[str]:
         return []
     problems = []
     has_file = any(item in attachment_ids for item in task.condition_attachment_ids or [])
+    region = task.condition_region
+    has_file = has_file or (region is not None and region.file_id in attachment_ids)
     if not task.condition.strip() and not task.formula.strip() and not has_file:
         problems.append(f"{task.title}: добавьте условие.")
     if not task.steps or any(not step.latex.strip() for step in task.steps):

@@ -7,6 +7,7 @@ export interface OriginFocus {
   page: number;
   region: CropRect;
   nonce: number;
+  label?: string;
 }
 
 function compact(latex: string): string {

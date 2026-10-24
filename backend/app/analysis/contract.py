@@ -16,12 +16,26 @@ class InvalidReply(Exception):
         self.reason = reason
 
 
+class Region(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+class ConditionArea(BaseModel):
+    file_id: str
+    page: int
+    region: Region
+
+
 class TaskInput(BaseModel):
     id: str
     condition: str
     formula: str
     reference: str
     condition_file_ids: list[str]
+    condition_region: ConditionArea | None = None
 
 
 class StepInput(BaseModel):
@@ -37,6 +51,7 @@ class ReviewTask(TaskInput):
 class ConditionImage(BaseModel):
     task_id: str
     image: PageImage
+    region: Region | None = None
 
 
 class ProviderReply(BaseModel):
@@ -46,13 +61,6 @@ class ProviderReply(BaseModel):
     prompt_version: str
     input_tokens: int = 0
     output_tokens: int = 0
-
-
-class Region(BaseModel):
-    x: float
-    y: float
-    width: float
-    height: float
 
 
 class RecognizedStep(BaseModel):

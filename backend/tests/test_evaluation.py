@@ -17,6 +17,7 @@ from app.evaluation import (
     validate,
 )
 from app.evaluation.auto import normalize_latex, recognition_score, similarity, summarize
+from app.evaluation.runner import card_task
 from app.knowledge.catalog import CATALOG_VERSION
 from tests.fakes import FakeDraftProvider
 from tests.samples import PNG_BYTES, picture
@@ -281,3 +282,31 @@ def test_auto_summary_groups_rows_by_task_type():
     assert list(summary["taskTypes"]) == ["quadratic_eq"]
     assert summary["taskTypes"]["quadratic_eq"]["tasks"] == 2
     assert summary["total"]["taskTypeMatch"] == 0.5
+
+
+def test_condition_files_and_region_map_to_work_files(tmp_path: Path):
+    area = {"file": 1, "page": 1, "region": {"x": 0, "y": 0, "width": 1, "height": 0.2}}
+    works = [
+        work(
+            "w1",
+            "dev",
+            "g1",
+            "w1.png",
+            [
+                card("t1", True, conditionFiles=[1], conditionRegion=area),
+                card("t2", True, conditionFiles=[3]),
+                card("t3", True, conditionRegion={**area, "region": {**area["region"], "x": 0.9}}),
+            ],
+        )
+    ]
+    root = dataset(tmp_path, works, {"w1.png": picture("PNG")})
+    manifest = load_manifest(root)
+
+    problems, _ = validate(manifest, root, [])
+    mapped = card_task(manifest.works[0], manifest.works[0].tasks[0])
+
+    assert "w1/t2: файла условия 3 нет в работе" in problems
+    assert "w1/t3: область условия выходит за страницу" in problems
+    assert mapped.condition_attachment_ids == ["w1-1"]
+    assert mapped.condition_region is not None
+    assert (mapped.condition_region.file_id, mapped.condition_region.region.height) == ("w1-1", 0.2)

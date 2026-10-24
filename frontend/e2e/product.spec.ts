@@ -498,3 +498,24 @@ test("the condition editor groups topics, finds them by name and keeps the task 
     "quadratic_eq",
   );
 });
+
+test("a condition can be a frame on a page of the original", async ({ page }) => {
+  await page.goto("/works");
+  await page.getByRole("link", { name: /Уравнения и преобразования/ }).click();
+  await page.getByRole("tab", { name: "Задача 1", exact: true }).click();
+  await page.getByRole("button", { name: /^Изменить условие: / }).click();
+  const dialog = page.getByRole("dialog");
+  const pageSelect = dialog.getByRole("combobox", { name: "Страница с условием" });
+  const firstPage = await pageSelect.locator("option").nth(1).getAttribute("value");
+  await pageSelect.selectOption(firstPage!);
+  await dialog.getByRole("spinbutton", { name: "Высота" }).fill("30");
+  await dialog.getByRole("button", { name: "Сохранить" }).click();
+  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Показать условие на странице" }).click();
+  await expect(page.getByText("Условие здесь")).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /^Изменить условие: / }).click();
+  await expect(page.getByRole("dialog").getByRole("spinbutton", { name: "Высота" })).toHaveValue(
+    "30",
+  );
+});

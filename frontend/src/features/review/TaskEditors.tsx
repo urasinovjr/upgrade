@@ -2,11 +2,76 @@ import { useState } from "react";
 import { Check, Trash2 } from "lucide-react";
 import { families, taskTypes } from "../../data/catalog";
 import { TopicSelect } from "../../shared/TopicSelect";
-import type { GapProposal, Task } from "../../domain/models";
+import type { Attachment, ConditionRegion, GapProposal, Task } from "../../domain/models";
+import { RectFields } from "../../shared/RectFields";
+import { rectFromPercent, useRectFields, type PercentValues } from "../../shared/rectPercent";
 import { FormulaInput } from "../../shared/math";
 import { DialogKeyboard } from "./StepItem";
 
-type Condition = Pick<Task, "condition" | "formula" | "reference" | "topicId" | "taskTypeId">;
+type Condition = Pick<
+  Task,
+  "condition" | "formula" | "reference" | "topicId" | "taskTypeId" | "conditionRegion"
+>;
+const startArea = { x: 0, y: 0, width: 1, height: 0.25 };
+
+function pageOptions(files: Attachment[]) {
+  return files.flatMap((file) =>
+    file.pageOrder.map((page) => ({
+      value: file.id + "#" + page,
+      label: file.pages > 1 ? file.name + ", стр. " + page : file.name,
+      fileId: file.id,
+      page,
+    })),
+  );
+}
+
+function ConditionArea({
+  files,
+  value,
+  onChange,
+}: {
+  files: Attachment[];
+  value?: ConditionRegion;
+  onChange: (value: ConditionRegion | undefined) => void;
+}) {
+  const options = pageOptions(files);
+  const [values, setValues] = useRectFields(value?.region ?? startArea);
+  const chosen = value ? value.fileId + "#" + value.page : "";
+  const apply = (next: PercentValues, key = chosen) => {
+    const option = options.find((item) => item.value === key);
+    onChange(
+      option && { fileId: option.fileId, page: option.page, region: rectFromPercent(next, 0.02) },
+    );
+  };
+  return (
+    <fieldset className="dp-condition-area">
+      <legend>Условие на странице</legend>
+      <p>Если условие записано на фото, укажите страницу и область, где оно стоит.</p>
+      <label>
+        Страница с условием
+        <select value={chosen} onChange={(event) => apply(values, event.target.value)}>
+          <option value="">Не указана</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {value && (
+        <RectFields
+          values={values}
+          setValues={(update) => {
+            const next = update(values);
+            setValues(next);
+            apply(next);
+          }}
+          minSize={0.02}
+        />
+      )}
+    </fieldset>
+  );
+}
 
 function TaskTypeSelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const groups = [
@@ -39,12 +104,14 @@ function TaskTypeSelect({ value, onChange }: { value: string; onChange: (id: str
 
 export function ConditionEditor({
   task,
+  files,
   removable,
   save,
   remove,
   close,
 }: {
   task: Task;
+  files: Attachment[];
   removable: boolean;
   save: (value: Condition) => void;
   remove: () => void;
@@ -56,6 +123,7 @@ export function ConditionEditor({
     reference: task.reference,
     topicId: task.topicId,
     taskTypeId: task.taskTypeId,
+    conditionRegion: task.conditionRegion,
   });
   return (
     <form
@@ -72,6 +140,13 @@ export function ConditionEditor({
           onChange={(event) => setDraft({ ...draft, condition: event.target.value })}
         />
       </label>
+      {files.length > 0 && (
+        <ConditionArea
+          files={files}
+          value={draft.conditionRegion}
+          onChange={(conditionRegion) => setDraft({ ...draft, conditionRegion })}
+        />
+      )}
       <label>
         Формула условия
         <FormulaInput

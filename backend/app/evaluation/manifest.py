@@ -17,12 +17,20 @@ class CardFile(ApiModel):
     masks: dict[str, list[dict]] = Field(default_factory=dict)
 
 
+class CardRegion(ApiModel):
+    file: int = Field(ge=1)
+    page: int = Field(default=1, ge=1)
+    region: dict[str, float]
+
+
 class TaskCard(ApiModel):
     task_id: str = Field(min_length=1, max_length=64)
     family: Family
     condition: str = ""
     formula: str = ""
     reference: str = ""
+    condition_files: list[int] = Field(default_factory=list)
+    condition_region: CardRegion | None = None
     transcription: list[str] = Field(default_factory=list)
     correct: bool | None = None
     first_error_step: int | None = None

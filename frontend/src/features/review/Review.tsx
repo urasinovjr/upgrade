@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   CheckCheck,
+  Crosshair,
   FileText,
   ListChecks,
   LoaderCircle,
@@ -417,6 +418,12 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         ?.focus({ preventScroll: true }),
     );
   };
+  const showCondition = (task: Task) => {
+    const area = task.conditionRegion;
+    if (!area) return;
+    setFocus((current) => ({ ...area, label: "Условие здесь", nonce: (current?.nonce ?? 0) + 1 }));
+    if (narrow) changePane("original");
+  };
   const showOrigin = (step: Step) => {
     const origin = step.origin;
     if (!origin) return;
@@ -528,6 +535,12 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
           <div className="dp-condition">
             <Formula value={task.formula} />
           </div>
+        )}
+        {task.conditionRegion && (
+          <button className="dp-text" onClick={() => showCondition(task)}>
+            <Crosshair size={14} aria-hidden="true" />
+            Показать условие на странице
+          </button>
         )}
         {conditionFiles.length > 0 && (
           <Disclosure title="Условие во вложении">
@@ -1014,12 +1027,13 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         open={conditionEdit && !!task}
         onOpenChange={setConditionEdit}
         title={task ? "Условие · " + task.title : "Условие"}
-        description="Текст, формула, правильный ответ и тема. Если измените условие, шаги нужно будет сверить заново."
+        description="Текст, место на странице, формула, правильный ответ, тема и тип задачи. Если измените условие, шаги нужно будет сверить заново."
       >
         {task && (
           <ConditionEditor
             key={task.id}
             task={task}
+            files={work.attachments}
             removable={tasks.length > 1}
             close={() => setConditionEdit(false)}
             remove={() => {

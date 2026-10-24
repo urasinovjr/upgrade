@@ -34,6 +34,7 @@ export interface Task {
   title: string;
   condition: string;
   conditionAttachmentIds?: string[];
+  conditionRegion?: ConditionRegion;
   formula: string;
   reference: string;
   topicId: string;
@@ -43,6 +44,11 @@ export interface Task {
   reviewed: boolean;
   omitted: boolean;
   gap?: GapProposal;
+}
+export interface ConditionRegion {
+  fileId: string;
+  page: number;
+  region: CropRect;
 }
 export interface CropRect {
   x: number;

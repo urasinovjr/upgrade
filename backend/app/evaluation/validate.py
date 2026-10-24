@@ -11,9 +11,11 @@ from app.evaluation.manifest import Manifest, TaskCard, WorkCard, admitted_tasks
 from app.files.inspection import JPEG, PDF, PNG, sniff_type
 from app.knowledge.task_types import TASK_TYPES
 from app.knowledge.topics import TOPIC_IDS
+from app.redaction.geometry import inside_page
 
 MIN_TASKS = 100
 MIN_CORRECT = 50
+RECT_KEYS = ("x", "y", "width", "height")
 TASK_TYPES_BY_ID = {item.id: item for item in TASK_TYPES}
 
 
@@ -83,10 +85,27 @@ def task_type_problems(where: str, task: TaskCard) -> list[str]:
     return []
 
 
+def condition_problems(where: str, work: WorkCard, task: TaskCard) -> list[str]:
+    count = len(work.files)
+    problems = [
+        f"{where}: файла условия {index} нет в работе"
+        for index in task.condition_files
+        if not 1 <= index <= count
+    ]
+    area = task.condition_region
+    if area is not None:
+        if not 1 <= area.file <= count:
+            problems.append(f"{where}: файла {area.file} для области условия нет в работе")
+        if not inside_page({key: area.region.get(key, -1.0) for key in RECT_KEYS}):
+            problems.append(f"{where}: область условия выходит за страницу")
+    return problems
+
+
 def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]:
     where = f"{work.work_id}/{task.task_id}"
     text = " ".join([task.condition, task.formula, task.explanation, *task.transcription])
     problems = [f"{where}: имя ученика в тексте карточки" for name in names if mentions(name, text)]
+    problems += condition_problems(where, work, task)
     if task.admission == "excluded":
         if not task.exclusion_reason.strip():
             problems.append(f"{where}: укажите причину исключения")
