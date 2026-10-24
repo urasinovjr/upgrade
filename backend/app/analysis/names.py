@@ -1,62 +1,142 @@
+import json
 import re
+from dataclasses import dataclass
 
 from app.analysis.contract import ReviewTask
+from app.analysis.name_forms import NAME_GROUPS, STOP_WORDS, TRANSLIT
 from app.works.schemas import Task
 
-WORD = re.compile(r"[a-zа-яё]+", re.IGNORECASE)
-ENDINGS = "аеиоуыэюяйь"
-INFLECTION = re.compile(r"[аеиоуыэюяйьмвх]{0,3}")
+TOKEN = re.compile(r"\\[a-z]+|[a-zа-яё]+", re.IGNORECASE)
+CYRILLIC = re.compile(r"[а-яё]+")
+CYRILLIC_ENDINGS = "аеиоуыэюяйь"
+LATIN_ENDINGS = "aeiouy"
+CYRILLIC_INFLECTION = re.compile(r"[аеиоуыэюяйьмвх]{0,3}")
+LATIN_INFLECTION = re.compile(r"[aeiouyjmvhk]{0,4}")
+SHORTEST_STEM = 3
+MOST_VARIANTS = 64
 HIDDEN = "[скрыто]"
 TEXT_FIELDS = ("condition", "formula", "reference")
+
+
+@dataclass(frozen=True)
+class NameForms:
+    stems: frozenset[str]
+    exact: frozenset[str]
 
 
 def normalized(word: str) -> str:
     return word.lower().replace("ё", "е")
 
 
-def name_stems(name: str) -> list[str]:
-    stems = []
-    for word in WORD.findall(name):
-        word = normalized(word)
-        if len(word) < 3:
+def words_of(text: str) -> list[str]:
+    return [token for token in TOKEN.findall(text) if not token.startswith("\\")]
+
+
+def group_forms(words: set[str]) -> set[str]:
+    forms = set(words)
+    for group in NAME_GROUPS:
+        members = {normalized(item) for item in group}
+        if members & words:
+            forms |= members
+    return forms
+
+
+def latin_variants(word: str) -> set[str]:
+    variants = [""]
+    for letter in word:
+        options = TRANSLIT.get(letter, (letter,))
+        variants = [variant + option for variant in variants for option in options]
+        variants = variants[:MOST_VARIANTS]
+    return set(variants) | {variant.replace("ks", "x") for variant in variants}
+
+
+def stem_of(word: str, endings: str) -> str:
+    return word[:-1] if word[-1] in endings and len(word) > SHORTEST_STEM else word
+
+
+def name_forms(names: list[str]) -> NameForms:
+    words = {normalized(word) for name in names for word in words_of(name)}
+    stems = set()
+    exact = set()
+    for form in group_forms(words):
+        if len(form) < SHORTEST_STEM:
+            if CYRILLIC.fullmatch(form):
+                exact.add(form)
             continue
-        stems.append(word[:-1] if word[-1] in ENDINGS and len(word) > 3 else word)
-    return stems
+        if CYRILLIC.fullmatch(form):
+            stems.add(stem_of(form, CYRILLIC_ENDINGS))
+        for variant in latin_variants(form):
+            if len(variant) >= SHORTEST_STEM:
+                stems.add(stem_of(variant, LATIN_ENDINGS))
+    return NameForms(frozenset(stems), frozenset(exact))
 
 
-def is_name(word: str, stems: list[str]) -> bool:
+def inflection_of(stem: str) -> re.Pattern:
+    return CYRILLIC_INFLECTION if CYRILLIC.fullmatch(stem) else LATIN_INFLECTION
+
+
+def is_name(word: str, forms: NameForms) -> bool:
+    if word.lower() in STOP_WORDS:
+        return False
     word = normalized(word)
-    return any(word.startswith(stem) and INFLECTION.fullmatch(word[len(stem) :]) for stem in stems)
+    if word in forms.exact:
+        return True
+    return any(
+        word.startswith(stem) and inflection_of(stem).fullmatch(word[len(stem) :])
+        for stem in forms.stems
+    )
 
 
-def mentions(name: str, text: str) -> bool:
-    stems = name_stems(name)
-    return any(is_name(word, stems) for word in WORD.findall(text))
+def found_in(text: str, forms: NameForms) -> bool:
+    return any(is_name(word, forms) for word in words_of(text))
 
 
-def name_places(name: str, tasks: list[Task]) -> list[dict]:
+def mentions(names: list[str], text: str) -> bool:
+    return found_in(text, name_forms(names))
+
+
+def name_places(names: list[str], tasks: list[Task]) -> list[dict]:
+    forms = name_forms(names)
     places = []
     for task in tasks:
         for field in TEXT_FIELDS:
-            if mentions(name, getattr(task, field)):
+            if found_in(getattr(task, field), forms):
                 places.append({"taskId": task.id, "field": field})
         for step in task.steps:
-            if mentions(name, step.latex):
+            if found_in(step.latex, forms):
                 places.append({"taskId": task.id, "field": "step", "stepId": step.id})
     return places
 
 
-def hidden_text(text: str, stems: list[str]) -> str:
-    return WORD.sub(lambda match: HIDDEN if is_name(match.group(), stems) else match.group(), text)
+def hidden_word(token: str, forms: NameForms) -> str:
+    if token.startswith("\\") or not is_name(token, forms):
+        return token
+    return HIDDEN
 
 
-def hide_names(tasks: list[ReviewTask], name: str) -> list[ReviewTask]:
-    stems = name_stems(name)
+def hidden_text(text: str, forms: NameForms) -> str:
+    return TOKEN.sub(lambda match: hidden_word(match.group(), forms), text)
+
+
+def hide_names(tasks: list[ReviewTask], names: list[str]) -> list[ReviewTask]:
+    forms = name_forms(names)
     hidden = []
     for task in tasks:
         steps = [
-            step.model_copy(update={"latex": hidden_text(step.latex, stems)}) for step in task.steps
+            step.model_copy(update={"latex": hidden_text(step.latex, forms)}) for step in task.steps
         ]
-        texts = {field: hidden_text(getattr(task, field), stems) for field in TEXT_FIELDS}
+        texts = {field: hidden_text(getattr(task, field), forms) for field in TEXT_FIELDS}
         hidden.append(task.model_copy(update={**texts, "steps": steps}))
     return hidden
+
+
+def name_forms_payload() -> dict:
+    return {
+        "groups": [list(group) for group in NAME_GROUPS],
+        "stopWords": sorted(STOP_WORDS),
+        "translit": {letter: list(options) for letter, options in TRANSLIT.items()},
+    }
+
+
+def name_forms_json() -> str:
+    return json.dumps(name_forms_payload(), ensure_ascii=False, indent=2) + "\n"

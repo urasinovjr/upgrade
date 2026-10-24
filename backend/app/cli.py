@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access.accounts import find_user_by_email
 from app.analysis.corrections_report import corrections_report
+from app.analysis.names import name_forms_json
 from app.analysis.providers import ProviderNotConfigured, make_provider
 from app.analysis.report import Period, analysis_report
 from app.analysis.variants import UnknownVariant, get_variant
@@ -44,6 +45,7 @@ from app.timing.report import timing_report
 Command = Callable[[AsyncSession, argparse.Namespace], Awaitable[str]]
 FileCommand = Callable[[argparse.Namespace, Settings], Awaitable[str]]
 CATALOG_JSON = Path(__file__).resolve().parents[2] / "frontend/src/data/catalog.json"
+NAMES_JSON = Path(__file__).resolve().parents[2] / "frontend/src/data/nameForms.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -104,6 +106,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     catalog = commands.add_parser("catalog-json", help="write the topic catalog for the frontend")
     catalog.add_argument("--out", type=Path, default=CATALOG_JSON)
+
+    names = commands.add_parser("names-json", help="write student name forms for the frontend")
+    names.add_argument("--out", type=Path, default=NAMES_JSON)
 
     export = commands.add_parser("catalog-export", help="write the topic catalog for an expert")
     export.add_argument("--out", type=Path, required=True)
@@ -244,6 +249,11 @@ async def write_catalog(args: argparse.Namespace, settings: Settings) -> str:
     return f"справочник записан в {args.out}"
 
 
+async def write_names(args: argparse.Namespace, settings: Settings) -> str:
+    args.out.write_text(name_forms_json(), "utf-8")
+    return f"формы имён записаны в {args.out}"
+
+
 async def export_catalog(args: argparse.Namespace, settings: Settings) -> str:
     checked_catalog()
     write_catalog_xlsx(args.out)
@@ -322,6 +332,7 @@ FILE_COMMANDS: dict[str, FileCommand] = {
     "eval-score": score_control_set,
     "eval-compare": compare_runs,
     "catalog-json": write_catalog,
+    "names-json": write_names,
     "catalog-export": export_catalog,
     "catalog-diff": diff_catalog,
     "storage-export": export_storage,

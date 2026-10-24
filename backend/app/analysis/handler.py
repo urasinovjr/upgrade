@@ -66,7 +66,7 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         work.status = "processing"
         teacher_id = work.teacher_id
         student = await session.get(Student, work.student_id)
-        student_name = student.name if student else ""
+        student_names = [student.name] if student else []
         files = await files_of(session, [work.id])
         draft = read_draft(work)
         previous_layout = await last_layout(session, work.id)
@@ -88,7 +88,7 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         sanitize_ms=elapsed_ms(started),
         layout=layout_signature(files),
         last_layout=previous_layout,
-        student_name=student_name,
+        student_names=student_names,
     )
 
 

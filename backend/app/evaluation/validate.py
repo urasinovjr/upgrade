@@ -104,7 +104,7 @@ def condition_problems(where: str, work: WorkCard, task: TaskCard) -> list[str]:
 def task_problems(work: WorkCard, task: TaskCard, names: list[str]) -> list[str]:
     where = f"{work.work_id}/{task.task_id}"
     text = " ".join([task.condition, task.formula, task.explanation, *task.transcription])
-    problems = [f"{where}: имя ученика в тексте карточки" for name in names if mentions(name, text)]
+    problems = [f"{where}: имя ученика в тексте карточки"] if mentions(names, text) else []
     problems += condition_problems(where, work, task)
     if task.admission == "excluded":
         if not task.exclusion_reason.strip():

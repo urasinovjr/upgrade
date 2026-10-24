@@ -9,7 +9,7 @@ import {
   publishWork,
 } from "../domain/review";
 import { keptChecks, layoutChanged, redactionMessage, uncheckedPages } from "../domain/redaction";
-import { nameMessage, namePlaces } from "../domain/nameGuard";
+import { nameMessage, namePlaces, studentNames } from "../domain/nameGuard";
 import { fixtureUploads, seedState } from "./fixtures";
 import type { Gateway } from "./gateway";
 
@@ -234,7 +234,8 @@ export const localGateway: Gateway = {
           );
         if (uncheckedPages(work.attachments).length) throw new Error(redactionMessage);
         const student = state.students.find((item) => item.id === work.studentId);
-        if (namePlaces(student?.name ?? "", work.draft.tasks).length) throw new Error(nameMessage);
+        if (namePlaces(studentNames(student), work.draft.tasks).length)
+          throw new Error(nameMessage);
         const now = Date.now();
         return {
           ...work,

@@ -25,7 +25,7 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
         raise DomainError("redaction_unchecked", {"pages": unchecked})
     draft = read_draft(work)
     student = await session.get(Student, work.student_id)
-    places = name_places(student.name if student else "", draft.tasks)
+    places = name_places([student.name] if student else [], draft.tasks)
     if places:
         raise DomainError("name_in_text", {"places": places})
     job = await enqueue(

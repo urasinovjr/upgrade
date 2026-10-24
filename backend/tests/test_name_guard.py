@@ -1,9 +1,11 @@
 import json
+from pathlib import Path
 
 import pytest
 
 from app.analysis.contract import ReviewTask, StepInput
-from app.analysis.names import hide_names, mentions, name_places
+from app.analysis.name_forms import NAME_GROUPS
+from app.analysis.names import hide_names, mentions, name_forms_payload, name_places
 from app.works.review import initial_draft
 from app.works.schemas import Task
 from tests.fakes import FakeDraftProvider
@@ -18,25 +20,25 @@ def step(step_id: str, latex: str) -> dict:
     return {"id": step_id, "latex": latex, "verdict": "uncertain", "explanation": ""}
 
 
-CASES = [
-    ("Иван Петров", "Ответ Ивану: x=2", True),
-    ("Иван Петров", "Работа Иваном сдана", True),
-    ("Мария Иванова", "Проверила Ивановой", True),
-    ("Мария", "Задача Марии", True),
-    ("Мария", "марка и маринад", False),
-    ("Пётр", "петр решил", True),
-    ("Петя", "петля функции", False),
-    ("Аня", "Ани нет", False),
-    ("Ян", "Ян решил", False),
-    ("Иван", "\\text{Иван}: x^2=4", True),
-    ("Иван", "Ивановский округ", False),
-    ("", "Иван", False),
-]
+CASES_FILE = Path(__file__).resolve().parents[2] / "frontend/src/domain/nameGuardCases.json"
+CASES = json.loads(CASES_FILE.read_text("utf-8"))
+FRONTEND_FORMS = Path(__file__).resolve().parents[2] / "frontend/src/data/nameForms.json"
 
 
-@pytest.mark.parametrize(("name", "text", "expected"), CASES)
-def test_name_is_found_in_its_forms(name, text, expected):
-    assert mentions(name, text) is expected
+@pytest.mark.parametrize("case", CASES, ids=[case["text"] for case in CASES])
+def test_name_is_found_in_its_forms(case):
+    assert mentions(case["names"], case["text"]) is case["found"]
+
+
+def test_frontend_copy_of_the_name_forms_is_current():
+    assert json.loads(FRONTEND_FORMS.read_text("utf-8")) == name_forms_payload()
+
+
+def test_every_name_group_is_unique_and_long_enough():
+    names = [group[0] for group in NAME_GROUPS]
+    assert len(names) == len(set(names))
+    assert len(names) >= 120
+    assert all(len(group) >= 2 for group in NAME_GROUPS)
 
 
 def test_places_point_to_task_field_and_step():
@@ -61,7 +63,7 @@ def test_places_point_to_task_field_and_step():
         ]
     )
 
-    assert name_places("Иван Сидоров", draft.tasks) == [
+    assert name_places(["Иван Сидоров"], draft.tasks) == [
         {"taskId": "t1", "field": "condition"},
         {"taskId": "t2", "field": "step", "stepId": "b"},
     ]
@@ -77,7 +79,7 @@ def test_hidden_copy_keeps_ids_and_drops_the_name():
         steps=[StepInput(id="s1", latex="\\text{Ивану} x=2", legible=True)],
     )
 
-    [hidden] = hide_names([source], "Иван Петров")
+    [hidden] = hide_names([source], ["Иван Петров"])
 
     assert hidden.condition == "Решите, [скрыто]"
     assert hidden.steps[0].latex == "\\text{[скрыто]} x=2"

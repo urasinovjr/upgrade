@@ -4,3 +4,4 @@ playwright-report
 package-lock.json
 public/pdf
 src/data/catalog.json
+src/data/nameForms.json

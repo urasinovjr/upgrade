@@ -1,4 +1,5 @@
-import type { Task } from "./models";
+import forms from "../data/nameForms.json";
+import type { Student, Task } from "./models";
 
 export interface NamePlace {
   taskId: string;
@@ -6,44 +7,106 @@ export interface NamePlace {
   stepId?: string;
 }
 
-const word = /[a-zа-яё]+/giu;
-const endings = "аеиоуыэюяйь";
-const inflection = /^[аеиоуыэюяйьмвх]{0,3}$/u;
+interface NameForms {
+  stems: Set<string>;
+  exact: Set<string>;
+}
+
+const token = /\\[a-z]+|[a-zа-яё]+/giu;
+const cyrillic = /^[а-яё]+$/u;
+const cyrillicEndings = "аеиоуыэюяйь";
+const latinEndings = "aeiouy";
+const cyrillicInflection = /^[аеиоуыэюяйьмвх]{0,3}$/u;
+const latinInflection = /^[aeiouyjmvhk]{0,4}$/u;
+const shortestStem = 3;
+const mostVariants = 64;
 const textFields = ["condition", "formula", "reference"] as const;
+const stopWords = new Set(forms.stopWords);
+const translit: Record<string, string[]> = forms.translit;
+const groups = forms.groups.map((group) => group.map(normalized));
 
 function normalized(text: string): string {
   return text.toLowerCase().replaceAll("ё", "е");
 }
 
-export function nameStems(name: string): string[] {
-  const stems: string[] = [];
-  for (const found of name.match(word) ?? []) {
-    const item = normalized(found);
-    if (item.length < 3) continue;
-    const trimmed = endings.includes(item.at(-1)!) && item.length > 3;
-    stems.push(trimmed ? item.slice(0, -1) : item);
+function wordsOf(text: string): string[] {
+  return (text.match(token) ?? []).filter((found) => !found.startsWith("\\"));
+}
+
+function groupForms(words: Set<string>): Set<string> {
+  const result = new Set(words);
+  for (const group of groups) {
+    if (group.some((member) => words.has(member))) {
+      for (const member of group) result.add(member);
+    }
   }
-  return stems;
+  return result;
 }
 
-function isName(found: string, stems: string[]): boolean {
+function latinVariants(word: string): string[] {
+  let variants = [""];
+  for (const letter of word) {
+    const options = translit[letter] ?? [letter];
+    variants = variants
+      .flatMap((variant) => options.map((option) => variant + option))
+      .slice(0, mostVariants);
+  }
+  return [...variants, ...variants.map((variant) => variant.replaceAll("ks", "x"))];
+}
+
+function stemOf(word: string, endings: string): string {
+  return endings.includes(word.at(-1)!) && word.length > shortestStem ? word.slice(0, -1) : word;
+}
+
+function nameForms(names: string[]): NameForms {
+  const words = new Set(names.flatMap(wordsOf).map(normalized));
+  const stems = new Set<string>();
+  const exact = new Set<string>();
+  for (const form of groupForms(words)) {
+    if (form.length < shortestStem) {
+      if (cyrillic.test(form)) exact.add(form);
+      continue;
+    }
+    if (cyrillic.test(form)) stems.add(stemOf(form, cyrillicEndings));
+    for (const variant of latinVariants(form)) {
+      if (variant.length >= shortestStem) stems.add(stemOf(variant, latinEndings));
+    }
+  }
+  return { stems, exact };
+}
+
+function isName(found: string, nameForms: NameForms): boolean {
+  if (stopWords.has(found.toLowerCase())) return false;
   const item = normalized(found);
-  return stems.some((stem) => item.startsWith(stem) && inflection.test(item.slice(stem.length)));
+  if (nameForms.exact.has(item)) return true;
+  for (const stem of nameForms.stems) {
+    const inflection = cyrillic.test(stem) ? cyrillicInflection : latinInflection;
+    if (item.startsWith(stem) && inflection.test(item.slice(stem.length))) return true;
+  }
+  return false;
 }
 
-export function mentions(name: string, text: string): boolean {
-  const stems = nameStems(name);
-  return (text.match(word) ?? []).some((found) => isName(found, stems));
+function foundIn(text: string, nameForms: NameForms): boolean {
+  return wordsOf(text).some((found) => isName(found, nameForms));
 }
 
-export function namePlaces(name: string, tasks: Task[]): NamePlace[] {
+export function studentNames(student?: Student): string[] {
+  return student ? [student.name] : [];
+}
+
+export function mentions(names: string[], text: string): boolean {
+  return foundIn(text, nameForms(names));
+}
+
+export function namePlaces(names: string[], tasks: Task[]): NamePlace[] {
+  const found = nameForms(names);
   const places: NamePlace[] = [];
   for (const task of tasks) {
     for (const field of textFields) {
-      if (mentions(name, task[field])) places.push({ taskId: task.id, field });
+      if (foundIn(task[field], found)) places.push({ taskId: task.id, field });
     }
     for (const step of task.steps) {
-      if (mentions(name, step.latex))
+      if (foundIn(step.latex, found))
         places.push({ taskId: task.id, field: "step", stepId: step.id });
     }
   }

@@ -37,7 +37,7 @@ class AnalysisSource:
     sanitize_ms: int
     layout: list[dict]
     last_layout: list[dict] | None
-    student_name: str = ""
+    student_names: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -117,7 +117,7 @@ async def build_draft(
         record.recognition = reply.raw
         recognition = read_recognition(reply.raw, inputs)
     tasks, origins = review_tasks(source.draft, recognition, source.sanitized.pages, source.layout)
-    sent = hide_names(tasks, source.student_name)
+    sent = hide_names(tasks, source.student_names)
     conditions = condition_images(source.draft, source.sanitized.pages, source.layout)
     record.input["review"] = [task.model_dump() for task in sent]
     record.input["reviewConditions"] = condition_record(conditions)
