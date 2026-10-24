@@ -112,6 +112,7 @@ def test_condition_region_is_cut_from_the_clean_page():
     assert task_input(region_task(), {"f1": {}}).condition_region is not None
 
 
+@pytest.mark.prd(6)
 def test_changed_region_makes_the_draft_stale_and_counts_as_condition():
     stored = initial_draft([region_task()])
     moved = stored.model_copy(deep=True)

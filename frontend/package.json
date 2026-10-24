@@ -23,6 +23,8 @@
     "e2e": "playwright test",
     "e2e:server": "playwright test -c playwright.server.config.ts",
     "e2e:docker": "E2E_BASE_URL=http://127.0.0.1:8080 playwright test -c playwright.server.config.ts",
+    "e2e:prd": "playwright test --grep @prd",
+    "e2e:docker:prd": "E2E_BASE_URL=http://127.0.0.1:8080 playwright test -c playwright.server.config.ts --grep @prd",
     "e2e:visual": "playwright test -c playwright.visual.config.ts",
     "e2e:visual:update": "playwright test -c playwright.visual.config.ts --update-snapshots=changed",
     "e2e:visual:docker": "node scripts/visual-docker.mjs",

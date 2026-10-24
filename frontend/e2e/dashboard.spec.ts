@@ -1,83 +1,93 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 
-test("dashboard navigation, filters and confirmed gaps follow current data", async ({ page }) => {
-  await page.goto("/");
-  await expect(page).toHaveURL(/\/dashboard$/);
-  const home = page
-    .getByRole("navigation", { name: "Основная навигация" })
-    .getByRole("link", { name: "Обзор", exact: true });
-  await expect(home).toHaveAttribute("aria-current", "page");
-  const waiting = page.getByRole("link", { name: "К проверке: 1", exact: true });
-  await waiting.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByRole("combobox", { name: "Статус" })).toHaveValue("ready");
-  await expect(page.locator(".work-row")).toHaveCount(1);
-  await page.reload();
-  await expect(page.getByRole("combobox", { name: "Статус" })).toHaveValue("ready");
-  await page.getByRole("button", { name: "Сбросить фильтры" }).click();
-  await expect(page.locator(".work-row")).toHaveCount(5);
-  await home.click();
-  await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
-  await expect(
-    page
-      .getByRole("group", { name: "Фильтр работ" })
-      .getByRole("button", { name: /^Подтверждены/ }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator(".work-row")).toHaveCount(1);
-  await page.locator(".work-row").click();
-  await page.getByRole("button", { name: "Начать новую версию", exact: true }).click();
-  await home.click();
-  await expect(page.getByRole("link", { name: "К проверке: 2", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
-  await expect(page.locator(".work-row")).toHaveCount(1);
-  await home.click();
-  await page.locator(".dashboard-recommendation").click();
-  await expect(page).toHaveURL(/topic=domain$/);
-  await expect(
-    page.getByRole("button", { name: "Область допустимых значений · Пробел" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Закрыть пробел", exact: true }).click();
-  await page
-    .getByRole("textbox", { name: "Почему пробел закрыт" })
-    .fill("Повторная работа без ошибок.");
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Закрыть пробел", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await home.click();
-  await expect(page.getByRole("link", { name: "Открытые пробелы: 0", exact: true })).toBeVisible();
-  await expect(page.getByText("Открытых пробелов нет.", { exact: false })).toBeVisible();
-  await page.goto("/students/anna?topic=unknown");
-  await expect(
-    page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  const powers = page.getByRole("button", { name: "Степени · Нет данных" });
-  await powers.focus();
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/topic=powers$/);
-  await expect(powers).toHaveAttribute("aria-pressed", "true");
-  await page.goto("/students/anna");
-  await page.getByRole("button", { name: "Открыть карту", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/tab=map&topic=/);
-  await expect(
-    page.locator(".dp-map-node.selected, .dp-map-level-node.selected").filter({ visible: true }),
-  ).toBeFocused();
-  await page.goto("/students/anna?topic=domain");
-  await page.getByRole("button", { name: "Открыть пробел снова" }).click();
-  await home.click();
-  await expect(page.getByRole("link", { name: "Открытые пробелы: 1", exact: true })).toBeVisible();
-  await page.goto("/works/demo-confirmed");
-  await page.getByRole("button", { name: "Отозвать", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
-  await home.click();
-  await expect(page.getByRole("link", { name: "Подтверждены: 0", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Открытые пробелы: 0", exact: true })).toBeVisible();
-});
+test(
+  "dashboard navigation, filters and confirmed gaps follow current data",
+  { tag: ["@prd-10", "@prd-12"] },
+  async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/\/dashboard$/);
+    const home = page
+      .getByRole("navigation", { name: "Основная навигация" })
+      .getByRole("link", { name: "Обзор", exact: true });
+    await expect(home).toHaveAttribute("aria-current", "page");
+    const waiting = page.getByRole("link", { name: "К проверке: 1", exact: true });
+    await waiting.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("combobox", { name: "Статус" })).toHaveValue("ready");
+    await expect(page.locator(".work-row")).toHaveCount(1);
+    await page.reload();
+    await expect(page.getByRole("combobox", { name: "Статус" })).toHaveValue("ready");
+    await page.getByRole("button", { name: "Сбросить фильтры" }).click();
+    await expect(page.locator(".work-row")).toHaveCount(5);
+    await home.click();
+    await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
+    await expect(
+      page
+        .getByRole("group", { name: "Фильтр работ" })
+        .getByRole("button", { name: /^Подтверждены/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".work-row")).toHaveCount(1);
+    await page.locator(".work-row").click();
+    await page.getByRole("button", { name: "Начать новую версию", exact: true }).click();
+    await home.click();
+    await expect(page.getByRole("link", { name: "К проверке: 2", exact: true })).toBeVisible();
+    await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
+    await expect(page.locator(".work-row")).toHaveCount(1);
+    await home.click();
+    await page.locator(".dashboard-recommendation").click();
+    await expect(page).toHaveURL(/topic=domain$/);
+    await expect(
+      page.getByRole("button", { name: "Область допустимых значений · Пробел" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Закрыть пробел", exact: true }).click();
+    await page
+      .getByRole("textbox", { name: "Почему пробел закрыт" })
+      .fill("Повторная работа без ошибок.");
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Закрыть пробел", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await home.click();
+    await expect(
+      page.getByRole("link", { name: "Открытые пробелы: 0", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Открытых пробелов нет.", { exact: false })).toBeVisible();
+    await page.goto("/students/anna?topic=unknown");
+    await expect(
+      page.getByRole("button", { name: "Область допустимых значений · Пробел закрыт" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    const powers = page.getByRole("button", { name: "Степени · Нет данных" });
+    await powers.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/topic=powers$/);
+    await expect(powers).toHaveAttribute("aria-pressed", "true");
+    await page.goto("/students/anna");
+    await page.getByRole("button", { name: "Открыть карту", exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/tab=map&topic=/);
+    await expect(
+      page.locator(".dp-map-node.selected, .dp-map-level-node.selected").filter({ visible: true }),
+    ).toBeFocused();
+    await page.goto("/students/anna?topic=domain");
+    await page.getByRole("button", { name: "Открыть пробел снова" }).click();
+    await home.click();
+    await expect(
+      page.getByRole("link", { name: "Открытые пробелы: 1", exact: true }),
+    ).toBeVisible();
+    await page.goto("/works/demo-confirmed");
+    await page.getByRole("button", { name: "Отозвать", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
+    await home.click();
+    await expect(page.getByRole("link", { name: "Подтверждены: 0", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Открытые пробелы: 0", exact: true }),
+    ).toBeVisible();
+  },
+);
 
 test("an impossible day in the URL is ignored instead of breaking the queue", async ({ page }) => {
   for (const route of [

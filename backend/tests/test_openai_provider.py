@@ -128,6 +128,7 @@ async def make_provider():
         await provider.close()
 
 
+@pytest.mark.prd(1)
 async def test_recognize_sends_pages_in_order_with_strict_schema(make_provider):
     provider, recorder = make_provider(answer(RECOGNITION))
 

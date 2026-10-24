@@ -18,6 +18,16 @@ docker compose up -d --build --wait
 
 Остановить: `docker compose down`. Данные PostgreSQL и файлов сохраняются в томах `db_data` и `s3_data`; `docker compose down -v` удаляет и их. После изменения кода пересобрать: `docker compose up -d --build --wait`.
 
+## Приёмка PRD
+
+Тесты, которые закрывают функциональные проверки PRD, помечены номером сценария: `@pytest.mark.prd(n)` в backend и тегом `@prd-NN` в Playwright. Приёмочный набор запускается отдельно:
+
+```sh
+cd backend && uv run pytest -m prd
+cd frontend && npm run e2e:prd
+cd frontend && npm run e2e:docker:prd
+```
+
 ## CI
 
 GitHub Actions запускает три проверки при изменении соответствующих каталогов:

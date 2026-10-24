@@ -11,6 +11,8 @@ from tests.students import create_student
 from tests.test_analysis import run_next_job, stored_runs
 from tests.works import act, checked_work, task
 
+pytestmark = pytest.mark.prd(15)
+
 
 def step(step_id: str, latex: str) -> dict:
     return {"id": step_id, "latex": latex, "verdict": "uncertain", "explanation": ""}

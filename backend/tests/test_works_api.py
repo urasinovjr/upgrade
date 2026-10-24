@@ -2,6 +2,8 @@ import asyncio
 import json
 from uuid import uuid4
 
+import pytest
+
 from tests.accounts import sign_up
 from tests.conftest import FakeProvider, make_client
 from tests.samples import JPEG_BYTES, PNG_BYTES, pdf_bytes
@@ -124,6 +126,7 @@ async def test_meta_must_match_files(teacher):
     assert bad_meta.json() == {"detail": "work_meta_invalid"}
 
 
+@pytest.mark.prd(6)
 async def test_draft_save_tracks_input_changes(teacher):
     student_id = await create_student(teacher)
     work = await create_work(teacher, student_id)
@@ -166,6 +169,7 @@ async def test_confirm_lists_blockers(teacher):
     )
 
 
+@pytest.mark.prd(9, 10)
 async def test_confirm_edit_and_withdraw(teacher):
     student_id = await create_student(teacher)
     confirmed = await confirmed_work(teacher, student_id)
@@ -205,6 +209,7 @@ async def test_confirmed_work_is_closed_for_edits(teacher):
     assert manual.json() == {"detail": "editing_closed"}
 
 
+@pytest.mark.prd(1)
 async def test_attachments_are_reordered(teacher):
     student_id = await create_student(teacher)
     work = await create_work(

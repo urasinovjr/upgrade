@@ -48,6 +48,7 @@ def test_changed_layout_recognizes_every_task_again():
     assert len(tasks_to_recognize(draft, moved, LAYOUT)) == 1
 
 
+@pytest.mark.prd(1)
 def test_review_uses_recognized_steps_and_keeps_teacher_steps_for_the_rest():
     draft = draft_of(task("t1"), task("t2"), task("t3"))
     found = recognition(
@@ -63,6 +64,7 @@ def test_review_uses_recognized_steps_and_keeps_teacher_steps_for_the_rest():
     assert tasks[2].steps == []
 
 
+@pytest.mark.prd(11)
 def test_merge_replaces_ai_fields_and_keeps_teacher_inputs():
     draft = draft_of(task("t1", condition="Условие", reference="x=2", feedback="старое"))
     draft.feedback = "Общий комментарий"
@@ -89,6 +91,7 @@ def test_merge_replaces_ai_fields_and_keeps_teacher_inputs():
     assert merged.analysed_input_revision == draft.input_revision
 
 
+@pytest.mark.prd(5)
 def test_unsupported_task_is_omitted_with_reason():
     draft = draft_of(task("t1"))
     tasks, _ = review_tasks(draft, None)
@@ -109,6 +112,7 @@ def reviewed_as(task_type_id: str, **changes):
     return merge_review(draft, tasks, read_review({"tasks": [item]}, tasks)).tasks[0]
 
 
+@pytest.mark.prd(5)
 def test_task_out_of_scope_is_omitted_whatever_the_reply():
     merged = reviewed_as("derivative", gap={"topic_id": "domain", "reason": "ОДЗ"})
 
@@ -124,6 +128,7 @@ def test_task_type_in_scope_is_kept():
     assert (merged.omitted, merged.task_type_id) == (False, "quadratic_eq")
 
 
+@pytest.mark.prd(4)
 def test_illegible_step_stays_uncertain_whatever_the_verdict():
     draft = draft_of(task("t1"))
     found = recognition(
@@ -137,6 +142,7 @@ def test_illegible_step_stays_uncertain_whatever_the_verdict():
     assert merged.tasks[0].steps[0].verdict == "uncertain"
 
 
+@pytest.mark.prd(1)
 def test_recognition_must_cover_exactly_the_requested_tasks():
     draft = draft_of(task("t1"), task("t2"))
     inputs = [task_input(item) for item in draft.tasks]

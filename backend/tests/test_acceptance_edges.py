@@ -1,6 +1,7 @@
 import asyncio
 from uuid import UUID
 
+import pytest
 from sqlalchemy import func, select
 
 from app.analysis.contract import ReviewTask
@@ -69,6 +70,7 @@ async def edited_confirmed_work(teacher) -> tuple[dict, dict]:
     return confirmed, (await teacher.get(f"/api/works/{confirmed['id']}")).json()
 
 
+@pytest.mark.prd(8)
 async def test_repeated_and_parallel_confirmation_store_one_revision(teacher, sessions):
     work = await create_work(teacher, await create_student(teacher))
     await finish_review(teacher, work)
@@ -82,6 +84,7 @@ async def test_repeated_and_parallel_confirmation_store_one_revision(teacher, se
     assert [item["number"] for item in again.json()["published"]] == [1]
 
 
+@pytest.mark.prd(7)
 async def test_failed_analysis_keeps_edits_and_the_published_revision(
     teacher, sessions, test_settings, storage
 ):
@@ -102,6 +105,7 @@ async def test_failed_analysis_keeps_edits_and_the_published_revision(
     assert await stored_runs(sessions, confirmed["id"]) == []
 
 
+@pytest.mark.prd(7)
 async def test_retry_after_failure_queues_one_new_job(teacher, sessions, test_settings, storage):
     work = await checked_work(teacher, await create_student(teacher))
     await act(teacher, work["id"], "analyse")
@@ -120,6 +124,7 @@ async def test_retry_after_failure_queues_one_new_job(teacher, sessions, test_se
     assert (await read_work(teacher, work["id"]))["status"] == "ready"
 
 
+@pytest.mark.prd(9, 10, 13)
 async def test_report_follows_the_latest_revision_and_history_survives_withdrawal(teacher):
     confirmed, _ = await edited_confirmed_work(teacher)
     work_id = confirmed["id"]
@@ -138,6 +143,7 @@ async def test_report_follows_the_latest_revision_and_history_survives_withdrawa
     assert (await teacher.get(f"/api/works/{work_id}/report")).status_code == 404
 
 
+@pytest.mark.prd(4)
 async def test_confirmation_with_unclear_steps_is_blocked(teacher, sessions):
     work = await create_work(teacher, await create_student(teacher))
 
@@ -149,6 +155,7 @@ async def test_confirmation_with_unclear_steps_is_blocked(teacher, sessions):
     assert await revision_count(sessions, work["id"]) == 0
 
 
+@pytest.mark.prd(5)
 async def test_unsupported_task_is_marked_and_the_rest_is_confirmed(
     teacher, sessions, test_settings, storage
 ):

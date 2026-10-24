@@ -1,6 +1,10 @@
+import pytest
+
 from app.knowledge.catalog import CATALOG_VERSION
 from tests.students import create_student, student_data
 from tests.works import confirmed_work, create_work, upload_work
+
+pytestmark = pytest.mark.prd(14)
 
 
 async def test_other_teacher_cannot_touch_student(teacher, other_teacher):

@@ -1,3 +1,5 @@
+import pytest
+
 from app.works.review import (
     apply_draft,
     initial_draft,
@@ -27,6 +29,7 @@ def test_finished_task_has_no_blockers():
     assert blockers(draft_of(finished_task())) == []
 
 
+@pytest.mark.prd(6)
 def test_changed_step_needs_new_review_and_analysis():
     stored = draft_of(finished_task())
     proposed = draft_of(finished_task())
@@ -51,6 +54,7 @@ def test_feedback_edit_keeps_review_and_inputs():
     assert changed.tasks[0].reviewed is True
 
 
+@pytest.mark.prd(1)
 def test_only_changed_tasks_lose_review():
     stored = draft_of(finished_task("t1"), finished_task("t2"))
     proposed = draft_of(finished_task("t1"), finished_task("t2"))
@@ -71,6 +75,7 @@ def test_client_counters_are_ignored():
     assert (changed.revision, changed.analysed_input_revision) == (6, 0)
 
 
+@pytest.mark.prd(4)
 def test_uncertain_failed_and_unexplained_work_is_blocked():
     uncertain = draft_of(task(reviewed=True))
     explained = finished_task()
@@ -84,6 +89,7 @@ def test_uncertain_failed_and_unexplained_work_is_blocked():
     assert any("объясните ошибку" in item for item in blockers(draft_of(explained)))
 
 
+@pytest.mark.prd(4)
 def test_condition_can_be_a_file_of_this_work():
     without_text = finished_task()
     without_text.update(condition="", formula="", conditionAttachmentIds=["file-1"])
@@ -92,6 +98,7 @@ def test_condition_can_be_a_file_of_this_work():
     assert any("добавьте условие" in item for item in blockers(draft_of(without_text)))
 
 
+@pytest.mark.prd(5)
 def test_omitted_task_needs_reason_and_confirmed_gap_needs_advice():
     omitted = task(omitted=True)
     gap = finished_task()

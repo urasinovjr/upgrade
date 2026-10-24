@@ -23,6 +23,8 @@ from tests.students import create_student
 from tests.test_analysis import read_work, run_next_job
 from tests.works import act, check_all_pages, create_work, layout_of, put_layout
 
+pytestmark = pytest.mark.prd(15)
+
 LIMITS = (150, 2000, 40_000_000)
 NAME_MASK = {"x": 0, "y": 0, "width": 0.5, "height": 0.2}
 NAME_BYTES = STUDENT_NAME.encode()

@@ -135,6 +135,7 @@ async def test_analysed_work_can_be_confirmed(teacher, sessions, test_settings, 
     assert confirmed.json()["published"][0]["analysis"] == work["analysis"]
 
 
+@pytest.mark.prd(7)
 async def test_invalid_reply_is_stored_retried_then_failed(
     teacher, sessions, test_settings, storage
 ):
@@ -162,6 +163,7 @@ async def test_invalid_reply_is_stored_retried_then_failed(
     assert runs[0].draft is None
 
 
+@pytest.mark.prd(7)
 async def test_provider_failure_is_retried_then_failed(teacher, sessions, test_settings, storage):
     settings = test_settings.model_copy(update={"job_attempts": 2})
     student_id = await create_student(teacher)
@@ -262,6 +264,7 @@ async def test_work_is_locked_while_analysed(teacher):
     assert confirm.json()["blockers"] == ["ИИ ещё разбирает работу."]
 
 
+@pytest.mark.prd(6)
 async def test_changed_inputs_need_new_analysis(teacher, sessions, test_settings, storage):
     queued = await queued_work(teacher)
     async with sessions() as session:

@@ -70,6 +70,7 @@ async def test_simulator_reply_is_deterministic(provider):
     ]
 
 
+@pytest.mark.prd(4)
 async def test_task_without_condition_is_not_matched(provider):
     inputs = [task_input(Task.model_validate(task("t1", condition="", formula="")))]
 

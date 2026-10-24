@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+import pytest
+
 from tests.students import create_student, student_data
 
 
@@ -34,6 +36,7 @@ async def test_archived_student_stays_in_state(teacher):
     assert restored.json()["archivedAt"] is None
 
 
+@pytest.mark.prd(12)
 async def test_closing_gap_needs_reason(teacher):
     student_id = await create_student(teacher)
     url = f"/api/students/{student_id}/closures"

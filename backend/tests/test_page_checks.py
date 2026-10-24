@@ -1,3 +1,5 @@
+import pytest
+
 from app.works.models import WorkFile
 from app.works.page_checks import kept_checks, unchecked_pages
 from tests.samples import PNG_BYTES, pdf_bytes
@@ -45,6 +47,7 @@ async def test_marking_pages_does_not_change_the_draft(teacher):
     assert body["draft"]["inputRevision"] == work["draft"]["inputRevision"]
 
 
+@pytest.mark.prd(6)
 async def test_new_mask_resets_its_page_and_marks_inputs_changed(teacher):
     work = await pdf_work(teacher)
     checked = (await put_layout(teacher, work, layout_of(work, checkedPages=[1, 2]))).json()
