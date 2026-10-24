@@ -59,3 +59,43 @@ test(
     expect(images).toBeGreaterThan(0);
   },
 );
+
+test(
+  "after a second version the copied text and PDF follow it, formulas included",
+  { tag: ["@prd-13"] },
+  async ({ page, request, context }, testInfo) => {
+    test.setTimeout(150_000);
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+      origin: testInfo.project.use.baseURL,
+    });
+    await signUp(page, request, "report2");
+    const studentId = await addStudent(page, "Мария");
+    const workId = await addCheckedWork(page, studentId, "Отчёт второй версии", [
+      { condition: "Решите уравнение", formula: "x^2=4" },
+    ]);
+    await page.goto("/works/" + workId);
+    await startAnalysis(page);
+    await waitForAnalysis(page);
+    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
+    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+    await page.getByRole("button", { name: "Начать новую версию" }).click();
+    await page
+      .getByRole("textbox", { name: "Что дальше" })
+      .fill("Повторить разложение на множители");
+    await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
+    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+    await page.getByRole("link", { name: "Отчёт, версия 2" }).click();
+    await page.getByRole("button", { name: "Скопировать текст" }).click();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Скачать PDF" }).click();
+    const { text, images } = await pdfContent(await downloading);
+
+    expect(copied).toContain("Версия 2");
+    expect(copied).toContain("Повторить разложение на множители");
+    expect(compact(text)).toContain(compact("Повторить разложение на множители"));
+    expect(compact(text)).toContain(compact("Проверено репетитором · версия 2"));
+    expect(images).toBeGreaterThan(1);
+  },
+);

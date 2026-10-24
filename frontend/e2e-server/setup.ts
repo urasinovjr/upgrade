@@ -31,7 +31,7 @@ export async function signUp(page: Page, request: APIRequestContext, prefix: str
   return email;
 }
 
-async function csrfHeaders(page: Page) {
+export async function csrfHeaders(page: Page) {
   const session = await (await page.request.get("/api/auth/session")).json();
   return { "X-CSRF-Token": session.csrfToken as string };
 }
@@ -66,27 +66,22 @@ export async function addCheckedWork(
   studentId: string,
   title: string,
   tasks: TaskText[],
+  fileCount = 1,
 ) {
   const headers = await csrfHeaders(page);
   const id = crypto.randomUUID();
-  const fileId = crypto.randomUUID();
-  const meta = {
-    id,
-    studentId,
-    title,
-    attachments: [{ id: fileId, name: "solution.png" }],
-    tasks: tasks.map(draftTask),
-  };
+  const files = Array.from({ length: fileCount }, (_, index) => ({
+    id: crypto.randomUUID(),
+    name: fileCount > 1 ? `page-${index + 1}.png` : "solution.png",
+  }));
+  const meta = { id, studentId, title, attachments: files, tasks: tasks.map(draftTask) };
+  const buffer = readFileSync("e2e/fixtures/solution.png");
+  const parts = Object.fromEntries(
+    files.map((file) => [file.id, { name: file.name, mimeType: "image/png", buffer }]),
+  );
   const created = await page.request.post("/api/works", {
     headers,
-    multipart: {
-      meta: JSON.stringify(meta),
-      [fileId]: {
-        name: "solution.png",
-        mimeType: "image/png",
-        buffer: readFileSync("e2e/fixtures/solution.png"),
-      },
-    },
+    multipart: { meta: JSON.stringify(meta), ...parts },
   });
   expect(created.ok()).toBe(true);
   const work = await created.json();
