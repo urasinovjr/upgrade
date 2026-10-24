@@ -32,6 +32,9 @@ class MemoryStorage:
     async def chunks(self, data: bytes) -> AsyncIterator[bytes]:
         yield data
 
+    async def check(self) -> None:
+        self.check_failure()
+
     async def delete_prefix(self, prefix: str) -> int:
         self.check_failure()
         keys = [key for key in self.objects if key.startswith(prefix)]

@@ -62,6 +62,9 @@ class FolderStorage:
     async def delete_prefix(self, prefix: str) -> int:
         return 0
 
+    async def check(self) -> None:
+        pass
+
     async def close(self) -> None:
         pass
 

@@ -11,7 +11,11 @@ COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
 
+RUN useradd --system --uid 10001 --no-create-home upgrade
+
 ARG APP_COMMIT=unknown
 ENV PATH="/app/.venv/bin:$PATH" APP_COMMIT=$APP_COMMIT
+
+USER 10001
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

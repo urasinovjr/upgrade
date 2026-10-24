@@ -26,6 +26,8 @@ class Storage(Protocol):
 
     async def delete_prefix(self, prefix: str) -> int: ...
 
+    async def check(self) -> None: ...
+
     async def close(self) -> None: ...
 
 
@@ -63,6 +65,12 @@ class S3Storage:
             await self.client.head_bucket(Bucket=self.bucket)
         except ClientError:
             await self.client.create_bucket(Bucket=self.bucket)
+
+    async def check(self) -> None:
+        try:
+            await self.client.head_bucket(Bucket=self.bucket)
+        except (BotoCoreError, ClientError) as error:
+            raise StorageError("storage_unavailable") from error
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
         try:

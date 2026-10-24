@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI
+from fastapi.responses import JSONResponse
 
 from app.access.account_router import router as account_router
 from app.access.oauth_client import HttpOAuthClient, OAuthClient
@@ -11,6 +12,7 @@ from app.database import make_engine, make_session_factory
 from app.dependencies import verify_origin
 from app.errors import DomainError, domain_error_handler
 from app.files import S3Storage, Storage
+from app.health import unavailable_parts
 from app.knowledge.router import router as knowledge_router
 from app.mail import Mailer, SmtpMailer
 from app.models import configure_models
@@ -68,6 +70,13 @@ def create_app(
     @app.get("/health")
     async def health() -> dict:
         return {"status": "ok"}
+
+    @app.get("/health/ready")
+    async def ready() -> JSONResponse:
+        failed = await unavailable_parts(app.state.sessions, app.state.storage)
+        if failed:
+            return JSONResponse({"status": "unavailable", "failed": failed}, status_code=503)
+        return JSONResponse({"status": "ok"})
 
     return app
 

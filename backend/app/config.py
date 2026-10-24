@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     rate_limit_max_delay: float = 120.0
     rate_limit_deferrals: int = 20
     poll_seconds: float = 0.2
+    heartbeat_file: str = "/tmp/upgrade-worker-heartbeat"
+    heartbeat_seconds: float = 10.0
     stand_enabled: bool = True
     log_format: Literal["json", "text"] = "json"
     log_level: str = "info"

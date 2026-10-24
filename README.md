@@ -18,6 +18,8 @@ docker compose up -d --build --wait
 
 Остановить: `docker compose down`. Данные PostgreSQL и файлов сохраняются в томах `db_data` и `s3_data`; `docker compose down -v` удаляет и их. После изменения кода пересобрать: `docker compose up -d --build --wait`.
 
+`GET /health` отвечает, пока процесс жив; `GET /health/ready` проверяет PostgreSQL и хранилище и отвечает 503 со списком `failed`, если что-то недоступно. `worker` раз в `HEARTBEAT_SECONDS` (10 с) обновляет файл `HEARTBEAT_FILE`, его healthcheck — `python -m app.worker check`. Образы backend и frontend работают без root: backend под пользователем 10001, nginx — непривилегированный на порту 8080 внутри контейнера.
+
 ## Приёмка PRD
 
 Тесты, которые закрывают функциональные проверки PRD, помечены номером сценария: `@pytest.mark.prd(n)` в backend и тегом `@prd-NN` в Playwright. Тест `tests/test_acceptance_matrix.py` проверяет, что у каждого из 16 сценариев есть тест, а сценарии интерфейса проверяются и в браузере. Сценарии 2 и 3 (альтернативное решение, верный ответ после неверного шага) в тестах проверяют подсчёт метрик; качество модели по ним измеряет срез `scenario` на наборе. Приёмочный набор запускается отдельно:
