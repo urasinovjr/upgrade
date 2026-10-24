@@ -4,8 +4,8 @@ import re
 import httpx
 from pydantic import BaseModel
 
-from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
-from app.analysis.prompts import PROMPTS
+from app.analysis.contract import ConditionImage, ProviderReply, ReviewTask, TaskInput
+from app.analysis.prompts import PROMPTS, review_messages
 from app.analysis.variants import Variant
 from app.provider import ProviderError
 from app.redaction import PageImage
@@ -147,8 +147,10 @@ class OpenAiDraftProvider:
         answer, usage = await self.ask(messages, "recognition", self.prompt.RecognitionAnswer)
         return self.reply(add_regions(answer), usage)
 
-    async def review(self, tasks: list[ReviewTask]) -> ProviderReply:
-        messages = self.prompt.review_messages(tasks)
+    async def review(
+        self, tasks: list[ReviewTask], conditions: list[ConditionImage]
+    ) -> ProviderReply:
+        messages = review_messages(self.prompt, tasks, conditions)
         answer, usage = await self.ask(messages, "review", self.prompt.ReviewAnswer)
         return self.reply(answer, usage)
 

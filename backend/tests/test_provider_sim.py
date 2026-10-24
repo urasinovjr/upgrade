@@ -35,7 +35,7 @@ async def analyse(provider: SimDraftProvider, *tasks: dict):
     recognized = await provider.recognize(FILES, inputs)
     recognition = read_recognition(recognized.raw, inputs)
     sources, _ = review_tasks(draft, recognition)
-    reply = await provider.review(sources)
+    reply = await provider.review(sources, [])
     return recognized, read_review(reply.raw, sources)
 
 
@@ -84,7 +84,7 @@ async def test_adapter_keeps_a_body_that_is_not_json(provider):
         base_url="http://sim",
     )
 
-    reply = await provider.review([])
+    reply = await provider.review([], [])
 
     assert reply.raw == {"text": "oops"}
 
@@ -99,7 +99,7 @@ async def test_adapter_maps_provider_failures(provider, response, code):
     )
 
     with pytest.raises(ProviderError, match=code):
-        await provider.review([])
+        await provider.review([], [])
 
 
 async def test_stand_endpoints_keep_their_answers(provider):

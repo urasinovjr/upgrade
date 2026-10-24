@@ -1,6 +1,8 @@
+import hashlib
 from uuid import uuid4
 
 from app.analysis.contract import (
+    ConditionImage,
     Recognition,
     RecognizedStep,
     RecognizedTask,
@@ -117,6 +119,31 @@ def review_tasks(
         steps = [step for step, _ in pairs]
         result.append(ReviewTask(**task_input(task).model_dump(), steps=steps))
     return result, origins
+
+
+def condition_images(draft: Draft, pages: list[PageImage]) -> list[ConditionImage]:
+    images = []
+    for task in draft.tasks:
+        files = set(task.condition_attachment_ids or [])
+        images += [
+            ConditionImage(task_id=task.id, image=page) for page in pages if page.file_id in files
+        ]
+    return images
+
+
+def condition_record(conditions: list[ConditionImage]) -> list[dict]:
+    return [
+        {
+            "taskId": item.task_id,
+            "index": item.image.index,
+            "fileId": item.image.file_id,
+            "page": item.image.page,
+            "sha256": hashlib.sha256(item.image.data).hexdigest(),
+            "width": item.image.width,
+            "height": item.image.height,
+        }
+        for item in conditions
+    ]
 
 
 def merged_step(step: StepInput, reviewed: ReviewedStep | None, origin: StepOrigin | None) -> Step:

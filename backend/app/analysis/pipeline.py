@@ -11,7 +11,14 @@ from app.analysis.contract import (
     read_recognition,
     read_review,
 )
-from app.analysis.drafting import merge_review, review_tasks, task_input, tasks_to_recognize
+from app.analysis.drafting import (
+    condition_images,
+    condition_record,
+    merge_review,
+    review_tasks,
+    task_input,
+    tasks_to_recognize,
+)
 from app.analysis.names import hide_names
 from app.analysis.variants import Variant
 from app.config import Settings
@@ -109,9 +116,11 @@ async def build_draft(
         recognition = read_recognition(reply.raw, inputs)
     tasks, origins = review_tasks(source.draft, recognition, source.sanitized.pages, source.layout)
     sent = hide_names(tasks, source.student_name)
+    conditions = condition_images(source.draft, source.sanitized.pages)
     record.input["review"] = [task.model_dump() for task in sent]
+    record.input["reviewConditions"] = condition_record(conditions)
     started = time.monotonic()
-    reply = await provider.review(sent)
+    reply = await provider.review(sent, conditions)
     record.review_ms = elapsed_ms(started)
     record.note(reply)
     record.review = reply.raw

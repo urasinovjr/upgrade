@@ -34,6 +34,11 @@ class ReviewTask(TaskInput):
     steps: list[StepInput]
 
 
+class ConditionImage(BaseModel):
+    task_id: str
+    image: PageImage
+
+
 class ProviderReply(BaseModel):
     raw: dict
     provider: str
@@ -96,7 +101,9 @@ class Review(BaseModel):
 class DraftProvider(Protocol):
     async def recognize(self, pages: list[PageImage], tasks: list[TaskInput]) -> ProviderReply: ...
 
-    async def review(self, tasks: list[ReviewTask]) -> ProviderReply: ...
+    async def review(
+        self, tasks: list[ReviewTask], conditions: list[ConditionImage]
+    ) -> ProviderReply: ...
 
     async def close(self) -> None: ...
 

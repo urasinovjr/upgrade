@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from email.message import EmailMessage
 
 from app.access.oauth_client import OAuthError, OAuthProfile
-from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
+from app.analysis.contract import ConditionImage, ProviderReply, ReviewTask, TaskInput
 from app.files import StorageError
 from app.mail import MailError
 from app.provider import ProviderError
@@ -100,6 +100,7 @@ class FakeDraftProvider:
         self.latex = latex
         self.recognized: list[tuple[list[PageImage], list[TaskInput]]] = []
         self.reviewed: list[list[ReviewTask]] = []
+        self.conditions: list[list[ConditionImage]] = []
 
     def reply(self, raw: dict) -> ProviderReply:
         return ProviderReply(
@@ -122,8 +123,11 @@ class FakeDraftProvider:
             {"tasks": [{"task_id": task.id, "matched": True, "steps": steps} for task in tasks]}
         )
 
-    async def review(self, tasks: list[ReviewTask]) -> ProviderReply:
+    async def review(
+        self, tasks: list[ReviewTask], conditions: list[ConditionImage] | None = None
+    ) -> ProviderReply:
         self.reviewed.append(tasks)
+        self.conditions.append(conditions or [])
         if self.invalid > 0:
             self.invalid -= 1
             return self.reply({"tasks": "broken"})

@@ -24,8 +24,8 @@ from tests.works import (
 
 
 class OneOutOfScope(FakeDraftProvider):
-    async def review(self, tasks: list[ReviewTask]):
-        reply = await super().review(tasks)
+    async def review(self, tasks: list[ReviewTask], conditions=None):
+        reply = await super().review(tasks, conditions)
         reply.raw["tasks"][1] = {
             "task_id": tasks[1].id,
             "supported": False,

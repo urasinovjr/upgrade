@@ -179,7 +179,7 @@ def test_bad_boxes_are_dropped(bbox):
 async def test_review_is_text_only_and_passes_the_contract(make_provider):
     provider, recorder = make_provider(answer(REVIEW))
 
-    reply = await provider.review(REVIEW_TASKS)
+    reply = await provider.review(REVIEW_TASKS, [])
     review = read_review(reply.raw, REVIEW_TASKS)
     text = json.dumps(recorder.body(), ensure_ascii=False)
 
@@ -193,7 +193,7 @@ async def test_thinking_and_code_fences_are_removed(make_provider):
     content = "<think>сначала подумаю</think>\n```json\n" + json.dumps(REVIEW) + "\n```"
     provider, _ = make_provider(httpx.Response(200, json=completion(content)))
 
-    reply = await provider.review(REVIEW_TASKS)
+    reply = await provider.review(REVIEW_TASKS, [])
 
     assert read_review(reply.raw, REVIEW_TASKS).tasks[0].task_id == "t1"
 
@@ -210,7 +210,7 @@ async def test_thinking_and_code_fences_are_removed(make_provider):
 async def test_unusable_answers_are_kept_as_text(make_provider, response):
     provider, _ = make_provider(response)
 
-    reply = await provider.review(REVIEW_TASKS)
+    reply = await provider.review(REVIEW_TASKS, [])
 
     assert "text" in reply.raw
     with pytest.raises(InvalidReply):
@@ -233,6 +233,6 @@ async def test_failures_map_to_provider_errors(make_provider, response, code):
     provider, _ = make_provider(response)
 
     with pytest.raises(ProviderError) as caught:
-        await provider.review(REVIEW_TASKS)
+        await provider.review(REVIEW_TASKS, [])
 
     assert caught.value.code == code

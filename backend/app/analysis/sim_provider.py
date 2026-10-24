@@ -2,7 +2,7 @@ import base64
 
 import httpx
 
-from app.analysis.contract import ProviderReply, ReviewTask, TaskInput
+from app.analysis.contract import ConditionImage, ProviderReply, ReviewTask, TaskInput
 from app.knowledge.task_types import TASK_TYPES
 from app.knowledge.topics import TOPICS
 from app.provider import ProviderError
@@ -59,7 +59,9 @@ class SimDraftProvider:
         }
         return await self.post("/draft/recognize", payload)
 
-    async def review(self, tasks: list[ReviewTask]) -> ProviderReply:
+    async def review(
+        self, tasks: list[ReviewTask], conditions: list[ConditionImage]
+    ) -> ProviderReply:
         payload = {
             "tasks": [task.model_dump() for task in tasks],
             "topics": topic_payload(),
