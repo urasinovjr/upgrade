@@ -32,6 +32,7 @@ import { decodeUpload } from "../../shared/uploads";
 import { clearStagedUploads, readStagedUploads } from "../../shared/uploadHandoff";
 import "./new-work.css";
 import { useWriteAccess } from "../../shared/session";
+import { FirstVisitHint } from "../onboarding/FirstVisitHint";
 
 export default function NewWork() {
   const [id] = useState(() => crypto.randomUUID());
@@ -197,6 +198,7 @@ export default function NewWork() {
         closeBlocked={dirty}
         onClose={() => navigate("/works")}
       >
+        <FirstVisitHint id="new-work" />
         {token && !incoming && !uploads.length && (
           <Callout
             tone="info"

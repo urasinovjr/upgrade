@@ -51,6 +51,7 @@ import { StepEditor, StepItem } from "./StepItem";
 import { ConditionEditor, GapEditor } from "./TaskEditors";
 import { useMediaQuery } from "../../shared/useMediaQuery";
 import "./review.css";
+import { FirstVisitHint } from "../onboarding/FirstVisitHint";
 
 const narrowQuery = "(max-width: 1199px)";
 
@@ -866,6 +867,7 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         closeBlocked={review.dirty}
         onClose={() => navigate("/works")}
       >
+        <FirstVisitHint id="review" />
         <div className="dp-review-shell">
           {Boolean(error) && (
             <Callout

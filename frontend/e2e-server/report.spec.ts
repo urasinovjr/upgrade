@@ -1,4 +1,5 @@
-import { expect, test, type Download } from "@playwright/test";
+import { type Download } from "@playwright/test";
+import { expect, test } from "./test";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { addCheckedWork, addStudent, signUp, startAnalysis, waitForAnalysis } from "./setup";
 

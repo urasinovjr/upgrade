@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { countFor, enrollInPilot, resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
 
@@ -13,6 +13,7 @@ test("pilot teacher's active time and manual check reach the server", async ({ p
   await page.getByRole("checkbox", { name: /обработку персональных данных/ }).check();
   await page.getByRole("button", { name: "Создать аккаунт" }).click();
   await page.goto(await mailedLink(request, email));
+  await expect(page).toHaveURL(/\/dashboard$/);
   enrollInPilot(email);
 
   await page.goto("/settings");

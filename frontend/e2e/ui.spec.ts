@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./onboarding";
 import { readFile } from "node:fs/promises";
 
 test("navigation opens at the top, keeps filters still and restores the previous scroll", async ({

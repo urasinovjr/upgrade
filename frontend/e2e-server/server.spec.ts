@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { mailedLink, uniqueEmail } from "./mailbox";
 import { password, register, waitForAnalysis } from "./setup";
 

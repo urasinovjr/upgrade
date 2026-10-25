@@ -129,6 +129,15 @@ export default function AccountSettings() {
           <Link to="/timing">Замер ручной проверки</Link>
         </section>
       )}
+      <section className="dp-account-section" aria-labelledby="tour-title">
+        <h2 id="tour-title">Знакомство с кабинетом</h2>
+        <div className="dp-account-row">
+          <span>Короткий тур по обзору: новая работа, очередь, ученики и настройка блоков.</span>
+          <Link to="/dashboard" state={{ tour: "restart" }}>
+            Пройти заново
+          </Link>
+        </div>
+      </section>
       <section className="dp-account-section dp-account-danger" aria-labelledby="delete-title">
         <h2 id="delete-title">Удаление аккаунта</h2>
         <DeleteAccount hasPassword={hasPassword} />

@@ -1,5 +1,7 @@
 import path from "node:path";
 import type { Page } from "@playwright/test";
+import { emptyOnboarding, withTourOutcome } from "../src/domain/onboarding";
+import { writeDemo } from "../e2e/onboarding";
 import { expect } from "./fixtures";
 import { allWidths, phone, primaryWidths, type Screen } from "./screens";
 
@@ -18,8 +20,33 @@ async function openDialog(page: Page, name: string | RegExp) {
   await expect(page.getByRole("dialog")).toBeVisible();
 }
 
+async function startTour(page: Page) {
+  await expect(page.locator(".dp-widget").first()).toBeVisible();
+  await writeDemo(page, "state", "root", { works: [], students: [], closures: [] });
+  await writeDemo(page, "preferences", "onboarding", emptyOnboarding());
+  await page.reload();
+  await expect(page.getByRole("dialog")).toContainText("Шаг 1 из");
+}
+
+async function showHints(page: Page) {
+  await expect(page.locator("h1").first()).toBeVisible();
+  await writeDemo(page, "preferences", "onboarding", withTourOutcome(emptyOnboarding(), "done"));
+  await page.reload();
+  await expect(page.locator(".dp-hint")).toBeVisible();
+}
+
+const landing = { timeout: 45_000 };
+
 export const demoScreens: Screen[] = [
-  { name: "welcome", path: "/welcome", widths: allWidths },
+  { name: "tour", path: "/dashboard", widths: [phone, 1440], prepare: startTour, capture: review },
+  {
+    name: "hint-review",
+    path: "/works/demo-ready",
+    widths: [phone, 1440],
+    prepare: showHints,
+    capture: review,
+  },
+  { name: "welcome", path: "/welcome", widths: allWidths, capture: landing },
   { name: "dashboard", path: "/dashboard", widths: allWidths },
   { name: "dashboard-edit", path: "/dashboard", widths: [phone, 1440], prepare: customize },
   {

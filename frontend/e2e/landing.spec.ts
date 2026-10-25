@@ -71,6 +71,7 @@ test.describe("with motion", () => {
   test("circling the error with a mouse confirms the gap", async ({ page, isMobile }) => {
     test.skip(isMobile, "drawing needs a mouse drag");
     await page.goto("/welcome");
+    await expect(page.locator("html")).toHaveClass(/lenis/);
     const demo = page.locator(".dp-landing-window");
     const gap = page.locator(".dp-landing-gap");
     await demo.scrollIntoViewIfNeeded();
@@ -84,7 +85,17 @@ test.describe("with motion", () => {
     await expect(wrongStep).toHaveCSS("opacity", "1");
     await expect(wrongStep).toHaveCSS("translate", "none");
 
-    const box = await page.locator(".dp-landing-wrong-formula").boundingBox();
+    const formula = page.locator(".dp-landing-wrong-formula");
+    let last = -1;
+    await expect
+      .poll(async () => {
+        const top = (await formula.boundingBox())?.y ?? -1;
+        const still = top === last;
+        last = top;
+        return still;
+      })
+      .toBe(true);
+    const box = await formula.boundingBox();
     if (!box) throw new Error("formula is not on screen");
     const centerX = box.x + box.width / 2;
     const centerY = box.y + box.height / 2;
@@ -145,7 +156,10 @@ test.describe("with motion", () => {
     const progress = page.locator(".dp-landing-progress");
     const scale = () =>
       progress.evaluate((element) => new DOMMatrix(getComputedStyle(element).transform).a);
-    await page.locator(".dp-landing-final").scrollIntoViewIfNeeded();
+    await page.locator(".dp-landing-final").waitFor();
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+    );
     await expect.poll(scale).toBeGreaterThan(0.9);
     if (isMobile) {
       await expect(page.locator("html")).not.toHaveClass(/lenis/);

@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test } from "./test";
 import { endSubscription, resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
 

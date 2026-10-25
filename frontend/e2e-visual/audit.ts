@@ -8,6 +8,7 @@ export interface CaptureOptions {
   headings?: number;
   loading?: boolean;
   mask?: string[];
+  timeout?: number;
 }
 
 const fullPageStyle = path.join(import.meta.dirname, "full-page.css");
@@ -170,5 +171,6 @@ export async function capture(page: Page, name: string, options: CaptureOptions 
     fullPage,
     mask: (options.mask ?? []).map((selector) => page.locator(selector)),
     stylePath: fullPage ? fullPageStyle : undefined,
+    timeout: options.timeout,
   });
 }

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useNavigate } from "react-router";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
   LoaderCircle,
@@ -20,7 +20,8 @@ import {
   type WidgetId,
 } from "../../domain/dashboardLayout";
 import { topics } from "../../data/catalog";
-import { useDashboardLayout, useStore } from "../../shared/query";
+import { shouldAutoStartTour, withTourOutcome, type TourOutcome } from "../../domain/onboarding";
+import { useDashboardLayout, useOnboarding, useSaveOnboarding, useStore } from "../../shared/query";
 import { Modal, PageBar, PageLoading, PageState } from "../../shared/ui";
 import { errorText } from "../../shared/text";
 import { useMediaQuery } from "../../shared/useMediaQuery";
@@ -38,6 +39,8 @@ import { widgets, type WidgetContext } from "./widgets";
 import "./dashboard.css";
 import "./widgets.css";
 
+const DashboardTour = lazy(() => import("../onboarding/DashboardTour"));
+
 const editHints: Record<Breakpoint, string> = {
   wide: "Перетащите блок за ручку. Размер меняется за край или угол рамки.",
   narrow: "Меняйте порядок кнопками со стрелками.",
@@ -47,6 +50,7 @@ const editHints: Record<Breakpoint, string> = {
 function UploadButton({ upload }: { upload: QuickUpload }) {
   return (
     <label
+      data-tour="new-work"
       className={
         "dp-primary dp-upload-button" +
         (upload.busy ? " is-busy" : "") +
@@ -104,6 +108,9 @@ export default function Dashboard() {
   const { filters, update } = useQueueFilters();
   const upload = useQuickUpload();
   const navigate = useNavigate();
+  const location = useLocation();
+  const onboarding = useOnboarding();
+  const saveOnboarding = useSaveOnboarding();
   const queueRef = useRef<HTMLElement>(null);
   const customizeRef = useRef<HTMLButtonElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -159,7 +166,12 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            <button ref={customizeRef} className="dp-compact-action" onClick={start}>
+            <button
+              ref={customizeRef}
+              className="dp-compact-action"
+              onClick={start}
+              data-tour="overview"
+            >
               <SlidersHorizontal size={16} aria-hidden="true" />
               <span>Настроить</span>
             </button>
@@ -204,6 +216,17 @@ export default function Dashboard() {
         void navigate(worksLink(chartFilterPatch(value)));
       }
     },
+  };
+  const restartTour = (location.state as { tour?: string } | null)?.tour === "restart";
+  const hasConfirmedWorks = state.works.some((work) => work.published.length > 0);
+  const known = onboarding.data;
+  const showTour =
+    known !== undefined &&
+    !editor.editing &&
+    (restartTour || shouldAutoStartTour(known, hasConfirmedWorks));
+  const finishTour = (outcome: TourOutcome) => {
+    if (known) saveOnboarding.mutate(withTourOutcome(known, outcome));
+    if (restartTour) void navigate(location.pathname + location.search, { replace: true });
   };
   const available = availableWidgets(layout);
   const stayOnPage = () => {
@@ -286,6 +309,11 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+      {showTour && (
+        <Suspense fallback={null}>
+          <DashboardTour key={location.key} onFinish={finishTour} />
+        </Suspense>
+      )}
       <WidgetCatalog
         open={catalogOpen}
         onOpenChange={setCatalogOpen}

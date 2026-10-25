@@ -1,4 +1,5 @@
 import { test as base, expect } from "@playwright/test";
+import { markOnboarded } from "../e2e/onboarding";
 import { defaultScenario, mockApi, type Scenario } from "./api";
 
 export const demoUrl = "http://127.0.0.1:5180";
@@ -29,6 +30,7 @@ export const test = base.extend<{ scenario: Scenario; problems: string[] }>({
       });
       await page.clock.setFixedTime(fixedNow);
       await page.addInitScript(stableIds);
+      if (baseURL === demoUrl) await markOnboarded(page);
       const unhandled =
         baseURL === serverUrl ? await mockApi(page, scenario, fixedNow.getTime()) : [];
       await use(problems);

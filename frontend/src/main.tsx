@@ -15,6 +15,7 @@ import {
 } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import {
+  CircleHelp,
   Files,
   LogOut,
   LayoutDashboard,
@@ -99,12 +100,14 @@ function NavItem({
   exact = false,
   count = 0,
   childActive = false,
+  tour,
 }: {
   section: Section;
   current?: Section;
   exact?: boolean;
   count?: number;
   childActive?: boolean;
+  tour?: string;
 }) {
   const { title, path, Icon } = sections[section];
   const active = section === current;
@@ -119,6 +122,7 @@ function NavItem({
       aria-label={title}
       aria-describedby={descriptionId}
       title={title}
+      data-tour={tour}
     >
       <Icon size={16} aria-hidden="true" />
       <span className="dp-nav-text">{title}</span>
@@ -215,6 +219,7 @@ function Shell() {
             onClick={() => navigate("/works/new")}
             aria-label="Новая работа"
             title="Новая работа"
+            data-tour="new-work"
           >
             <SquarePen size={16} />
           </button>
@@ -244,6 +249,7 @@ function Shell() {
             current={section}
             exact={exact}
             childActive={students.some((student) => path === "/students/" + student.id)}
+            tour="students"
           />
         </nav>
         {students.length > 0 && (
@@ -277,6 +283,16 @@ function Shell() {
             })}
           </div>
         )}
+        <button
+          className="dp-sidebar-help"
+          onClick={() => navigate("/dashboard", { state: { tour: "restart" } })}
+          aria-label="Знакомство с кабинетом"
+          title="Знакомство с кабинетом"
+          data-tour="restart"
+        >
+          <CircleHelp size={16} aria-hidden="true" />
+          <span className="dp-nav-text">Знакомство с кабинетом</span>
+        </button>
         <div className="dp-sidebar-bottom">
           <span className="dp-sidebar-avatar" aria-hidden="true">
             {displayName[0]}

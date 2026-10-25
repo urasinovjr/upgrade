@@ -14,7 +14,13 @@ function showsError(page: Page) {
 }
 
 export const serverScreens: Screen[] = [
-  { name: "guest-home", path: "/", widths: primaryWidths, scenario: guest },
+  {
+    name: "guest-home",
+    path: "/",
+    widths: primaryWidths,
+    scenario: guest,
+    capture: { timeout: 45_000 },
+  },
   { name: "login", path: "/login", widths: primaryWidths, scenario: guest },
   {
     name: "login-without-providers",

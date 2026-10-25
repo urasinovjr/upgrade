@@ -40,6 +40,7 @@ import { buildMap, closureTitle, dateTime, reducedMotion, statusOf, topicName } 
 import { studentTabs, useStudentView, type StudentTab } from "./useStudentView";
 import "./knowledge.css";
 import { StudentActions } from "../students/StudentActions";
+import { FirstVisitHint } from "../onboarding/FirstVisitHint";
 
 const recentLimit = 6;
 
@@ -355,6 +356,7 @@ function StudentPage({ state, student }: { state: StoreState; student: Student }
           </span>
         </p>
       </header>
+      <FirstVisitHint id="knowledge-map" />
       <TabSet
         label="Разделы карточки"
         value={tab}
