@@ -526,9 +526,16 @@
   fill: var(--ug-surface);
   stroke: var(--ug-line-strong);
   stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
   transition:
     stroke var(--ug-dur-fast),
-    fill var(--ug-dur-fast);
+    stroke-width var(--ug-dur-fast),
+    fill 400ms var(--ug-ease-in-out),
+    scale 160ms var(--ug-ease-out);
+}
+.dp-map-node:active .dp-map-box {
+  scale: 0.97;
 }
 .dp-map-node.is-gap-open .dp-map-box {
   fill: var(--ug-danger-soft);
@@ -733,6 +740,9 @@
   .dp-map-edge {
     animation: dp-draw var(--ug-dur-panel) ease;
   }
+  .dp-map-edge.is-path {
+    animation: dp-map-ink 600ms var(--ug-ease-in-out);
+  }
   .dp-map-node {
     animation: dp-arrive var(--ug-dur-panel) ease;
   }
@@ -816,5 +826,10 @@
   }
   .dp-topic-detail {
     padding: var(--ug-space-4);
+  }
+}
+@keyframes dp-map-ink {
+  from {
+    stroke-dashoffset: 1;
   }
 }

@@ -453,6 +453,28 @@
 .dp-gap-proposal[data-decision="rejected"] {
   background: transparent;
 }
+@media (prefers-reduced-motion: no-preference) {
+  .dp-gap-proposal {
+    position: relative;
+  }
+  .dp-gap-proposal::after {
+    content: "";
+    position: absolute;
+    inset: -1.5px;
+    border: 1.5px solid var(--ug-action);
+    border-radius: inherit;
+    clip-path: inset(0 100% 0 0);
+    pointer-events: none;
+    transition: clip-path 700ms var(--ug-ease-in-out);
+  }
+  .dp-gap-proposal[data-decision="confirmed"] {
+    border-style: dashed;
+    border-color: var(--ug-pencil-line);
+  }
+  .dp-gap-proposal[data-decision="confirmed"]::after {
+    clip-path: inset(0);
+  }
+}
 .dp-app .dp-gap-proposal .dp-gap-confirm:not([aria-pressed="true"]) {
   border-color: var(--ug-action);
   background: var(--ug-action);

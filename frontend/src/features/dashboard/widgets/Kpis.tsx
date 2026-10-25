@@ -2,7 +2,13 @@ import { Link } from "react-router";
 import { ArrowUpRight, Target, Users } from "lucide-react";
 import type { DashboardSummary } from "../../../domain/dashboard";
 import { statusMeta, type Tone } from "../../../shared/status";
+import { useCountUp } from "../../../shared/ui/useCountUp";
 import { topicMapLink } from "../../knowledge/links";
+
+function KpiValue({ label, value }: { label: string; value: number }) {
+  const shown = useCountUp("kpi:" + label, value);
+  return <strong>{shown}</strong>;
+}
 
 export function Kpis({ summary }: { summary: DashboardSummary }) {
   const firstGap = summary.recommendations[0];
@@ -59,7 +65,7 @@ export function Kpis({ summary }: { summary: DashboardSummary }) {
             </span>
             <span className="dp-kpi-label">{label}</span>
           </span>
-          <strong>{value}</strong>
+          <KpiValue label={label} value={value} />
           <ArrowUpRight className="dp-kpi-arrow" size={14} aria-hidden="true" />
         </Link>
       ))}

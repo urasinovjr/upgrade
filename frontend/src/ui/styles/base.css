@@ -223,6 +223,22 @@ body {
   border-color: transparent;
 }
 
+:where(.dp-app, .dp-dialog)
+  :is(button.dp-primary, :is(a, label).dp-primary, a.dp-button, .dp-icon, .dp-compact-action):not(
+    .dp-widget-handle
+  ) {
+  transition-property: background, border-color, color, scale;
+  transition-timing-function: ease, ease, ease, var(--ug-ease-out);
+}
+:where(.dp-app, .dp-dialog)
+  :is(button.dp-primary, :is(a, label).dp-primary, a.dp-button, .dp-icon, .dp-compact-action):not(
+    .dp-widget-handle,
+    :disabled,
+    .is-disabled
+  ):active {
+  scale: 0.97;
+}
+
 :where(.dp-segment) {
   display: inline-flex;
   width: fit-content;

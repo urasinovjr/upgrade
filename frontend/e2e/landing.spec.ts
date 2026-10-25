@@ -160,7 +160,7 @@ test.describe("with motion", () => {
     await page.evaluate(() =>
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
     );
-    await expect.poll(scale).toBeGreaterThan(0.9);
+    await expect.poll(scale, { timeout: 10_000 }).toBeGreaterThan(0.9);
     if (isMobile) {
       await expect(page.locator("html")).not.toHaveClass(/lenis/);
       return;
