@@ -126,7 +126,12 @@ export default function Landing() {
           <Hero links={links} />
           <TopicMarquee />
 
-          <section className="dp-landing-section dp-journey" id="how" aria-labelledby="how-title">
+          <section
+            className="dp-landing-section dp-journey"
+            id="how"
+            aria-labelledby="how-title"
+            tabIndex={-1}
+          >
             <WorkJourney
               head={
                 <>
@@ -145,6 +150,7 @@ export default function Landing() {
           <section
             className="dp-landing-section dp-landing-split"
             id="pencil"
+            tabIndex={-1}
             aria-labelledby="pencil-title"
           >
             <div className="dp-landing-section-head is-stacked">
@@ -167,7 +173,12 @@ export default function Landing() {
             </Reveal>
           </section>
 
-          <section className="dp-landing-section" id="map" aria-labelledby="map-title">
+          <section
+            className="dp-landing-section"
+            id="map"
+            aria-labelledby="map-title"
+            tabIndex={-1}
+          >
             <div className="dp-landing-section-head">
               <Heading id="map-title" text="Карта знаний ученика" />
               <Reveal index={2}>
@@ -191,6 +202,7 @@ export default function Landing() {
           <section
             className="dp-landing-section dp-landing-price"
             id="price"
+            tabIndex={-1}
             aria-labelledby="price-title"
           >
             <div>

@@ -13,6 +13,7 @@ import * as m from "motion/react-m";
 import { topics } from "../../data/catalog";
 import { useMotionAllowed } from "../../shared/ui/motionPreference";
 import { useInView } from "../../shared/ui/useInView";
+import { isJumping } from "./anchorScroll";
 
 const names = topics.map((topic) => topic.name);
 const percentPerSecond = 0.35;
@@ -41,12 +42,12 @@ export function TopicMarquee() {
   const offset = useMotionValue(0);
   const { scrollY } = useScroll();
   const velocity = useSpring(useVelocity(scrollY), { damping: 50, stiffness: 400 });
-  const boost = useTransform(velocity, [-1000, 0, 1000], [-5, 0, 5], { clamp: false });
+  const boost = useTransform(velocity, [-1200, 0, 1200], [-6, 0, 6]);
   const transform = useMotionTemplate`translateX(${offset}%)`;
 
   useAnimationFrame((_, delta) => {
     if (!motionAllowed || !inView || paused || held) return;
-    const extra = boost.get();
+    const extra = isJumping() ? 0 : boost.get();
     if (extra < -0.05) direction.current = -1;
     if (extra > 0.05) direction.current = 1;
     const step = percentPerSecond * (1 + Math.abs(extra)) * (delta / 1000);

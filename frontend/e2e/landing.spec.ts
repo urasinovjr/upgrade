@@ -165,6 +165,60 @@ test.describe("with motion", () => {
     await expect.poll(shift).toBeLessThan(0.5);
   });
 
+  test("the page menu glides past the pinned scene and stops right at each section", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "the page menu is hidden on a narrow screen");
+    await page.goto("/welcome");
+    await expect(page.locator("html")).toHaveClass(/lenis/);
+    const menu = page.getByRole("navigation", { name: "Разделы страницы" });
+    for (const [name, id] of [
+      ["Карта знаний", "map"],
+      ["Как работает", "how"],
+      ["Тариф", "price"],
+    ]) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      await page.evaluate(() => {
+        const track = document.querySelector<HTMLElement>("[data-pinned]");
+        const pinStart = track ? track.getBoundingClientRect().top + window.scrollY : 0;
+        const pinEnd = track ? pinStart + track.offsetHeight - window.innerHeight : 0;
+        const speeds: number[] = [];
+        const steps = new Set<string | undefined>();
+        let last = { y: window.scrollY, at: performance.now() };
+        const tick = (now: number) => {
+          const low = Math.min(last.y, window.scrollY);
+          const high = Math.max(last.y, window.scrollY);
+          const skipped = Math.max(0, Math.min(high, pinEnd) - Math.max(low, pinStart));
+          speeds.push((high - low - skipped) / Math.max(now - last.at, 1));
+          steps.add(track?.dataset.step);
+          last = { y: window.scrollY, at: now };
+          if (speeds.length < 150) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        Object.assign(window, { scrollSpeeds: speeds, sceneSteps: steps });
+      });
+      await menu.getByRole("link", { name }).click();
+      const section = page.locator("#" + id);
+      await expect(section).toBeFocused({ timeout: 5000 });
+      await expect(page).toHaveURL(new RegExp("#" + id + "$"));
+      const top = await section.evaluate((element) => element.getBoundingClientRect().top);
+      const bottom = await page.evaluate(
+        () => document.documentElement.scrollHeight - window.innerHeight - window.scrollY,
+      );
+      expect(Math.abs(top - 24) < 2 || bottom < 2).toBe(true);
+      const speeds = await page.evaluate(
+        () => (window as unknown as { scrollSpeeds: number[] }).scrollSpeeds,
+      );
+      expect(Math.max(...speeds)).toBeLessThan(20);
+      const sceneSteps = await page.evaluate(
+        () => (window as unknown as { sceneSteps: Set<string> }).sceneSteps.size,
+      );
+      expect(sceneSteps).toBeLessThanOrEqual(2);
+    }
+  });
+
   test("the lamp follows a mouse and stays off on a touch screen", async ({ page, isMobile }) => {
     await page.goto("/welcome");
     const hero = page.locator(".dp-landing-hero");

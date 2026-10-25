@@ -31,3 +31,6 @@
   opacity: 0;
   translate: 0 24px;
 }
+html[data-jumping="true"] :is(.dp-reveal, .dp-reveal-item, .dp-reveal-word > span) {
+  transition: none;
+}

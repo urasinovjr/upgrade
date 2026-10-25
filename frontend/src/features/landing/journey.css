@@ -2,6 +2,12 @@
   position: relative;
   height: 400vh;
 }
+.dp-journey-track[data-instant="true"] *,
+.dp-journey-track[data-instant="true"] *::before,
+.dp-journey-track[data-instant="true"] *::after {
+  transition: none !important;
+  animation: none !important;
+}
 .dp-journey-sticky {
   position: sticky;
   top: 0;

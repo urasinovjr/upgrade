@@ -7,8 +7,17 @@
   line-height: var(--ug-lh-body);
   overflow-x: clip;
 }
-.dp-landing main:focus {
+.dp-landing main:focus,
+.dp-landing-section:focus {
   outline: none;
+}
+.dp-landing-section {
+  scroll-margin-top: 24px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.dp-landing):not(.lenis) {
+    scroll-behavior: smooth;
+  }
 }
 
 .dp-landing-header {

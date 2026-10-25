@@ -10,6 +10,7 @@ export function HonestSection({ children }: { children: ReactNode }) {
       ref={sectionRef}
       className="dp-landing-section dp-landing-honest"
       id="honest"
+      tabIndex={-1}
       aria-labelledby="honest-title"
     >
       <div ref={lightRef} className="dp-landing-honest-light" aria-hidden="true" />
