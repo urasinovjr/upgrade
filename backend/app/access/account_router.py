@@ -13,7 +13,7 @@ from app.dependencies import CurrentAccountDep, OAuthDep, SessionDep, SettingsDe
 
 router = APIRouter(prefix="/account", tags=["account"])
 
-PreferenceKey = Literal["dashboard-layout"]
+PreferenceKey = Literal["dashboard-layout", "onboarding"]
 
 
 @router.get("")

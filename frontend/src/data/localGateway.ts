@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { Attachment, StoreState, Upload, Work } from "../domain/models";
 import { defaultLayout, normalizeLayout } from "../domain/dashboardLayout";
+import { emptyOnboarding, normalizeOnboarding } from "../domain/onboarding";
 import {
   applyDraft,
   beginRevision,
@@ -19,6 +20,7 @@ interface DemoDatabase extends DBSchema {
   preferences: { key: string; value: unknown };
 }
 const layoutKey = "dashboard-layout";
+const onboardingKey = "onboarding";
 let opening: Promise<IDBPDatabase<DemoDatabase>> | undefined;
 function openDatabase() {
   opening ??= new Promise<IDBPDatabase<DemoDatabase>>((resolve, reject) => {
@@ -324,6 +326,19 @@ export const localGateway: Gateway = {
   async saveLayout(layout) {
     try {
       await (await openDatabase()).put("preferences", normalizeLayout(layout), layoutKey);
+    } catch (cause) {
+      throw storageError(cause);
+    }
+  },
+  async onboarding() {
+    const stored = await (await openDatabase()).get("preferences", onboardingKey);
+    return stored === undefined ? emptyOnboarding() : normalizeOnboarding(stored);
+  },
+  async saveOnboarding(onboarding) {
+    try {
+      await (
+        await openDatabase()
+      ).put("preferences", normalizeOnboarding(onboarding), onboardingKey);
     } catch (cause) {
       throw storageError(cause);
     }

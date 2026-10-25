@@ -97,3 +97,23 @@ async def test_dashboard_layout_is_saved_per_account(teacher, other_teacher):
     assert foreign.json() is None
     assert unknown.status_code == 422
     assert huge.status_code == 413
+
+
+async def test_onboarding_is_saved_per_account_apart_from_the_layout(teacher, other_teacher):
+    onboarding = {"version": 1, "tour": "skipped", "hints": ["review"]}
+    layout = {"version": 1, "widgets": [{"id": "queue", "span": 8}]}
+
+    empty = await teacher.get("/api/account/preferences/onboarding")
+    await teacher.put("/api/account/preferences/dashboard-layout", json=layout)
+    saved = await teacher.put("/api/account/preferences/onboarding", json=onboarding)
+    loaded = await teacher.get("/api/account/preferences/onboarding")
+    kept_layout = await teacher.get("/api/account/preferences/dashboard-layout")
+    foreign = await other_teacher.get("/api/account/preferences/onboarding")
+    huge = await teacher.put("/api/account/preferences/onboarding", json={"blob": "x" * 20000})
+
+    assert empty.json() is None
+    assert saved.status_code == 204
+    assert loaded.json() == onboarding
+    assert kept_layout.json() == layout
+    assert foreign.json() is None
+    assert huge.status_code == 413

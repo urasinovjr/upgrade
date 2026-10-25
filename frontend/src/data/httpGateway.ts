@@ -10,10 +10,12 @@ import type {
 } from "../domain/models";
 import { layoutChanged } from "../domain/redaction";
 import { defaultLayout, normalizeLayout, type DashboardLayout } from "../domain/dashboardLayout";
+import { emptyOnboarding, normalizeOnboarding, type Onboarding } from "../domain/onboarding";
 import { request, requestBlob } from "./api";
 import type { Gateway } from "./gateway";
 
 const layoutPath = "/account/preferences/dashboard-layout";
+const onboardingPath = "/account/preferences/onboarding";
 const serverRevisions = new Map<string, number>();
 
 function remember(work: Work) {
@@ -115,5 +117,12 @@ export const httpGateway: Gateway = {
   },
   async saveLayout(layout: DashboardLayout) {
     await request(layoutPath, { method: "PUT", json: normalizeLayout(layout) });
+  },
+  async onboarding() {
+    const stored = await request<unknown>(onboardingPath);
+    return stored === null ? emptyOnboarding() : normalizeOnboarding(stored);
+  },
+  async saveOnboarding(onboarding: Onboarding) {
+    await request(onboardingPath, { method: "PUT", json: normalizeOnboarding(onboarding) });
   },
 };

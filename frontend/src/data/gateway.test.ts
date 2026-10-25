@@ -5,6 +5,7 @@ import { gateway } from "./gateway";
 import type { Work } from "../domain/models";
 import { blankTask, reportText } from "../domain/review";
 import { addWidget, defaultLayout, removeWidget } from "../domain/dashboardLayout";
+import { emptyOnboarding, withHintSeen, withTourOutcome } from "../domain/onboarding";
 
 function customWork(): Work {
   const task = blankTask(1);
@@ -193,6 +194,21 @@ describe("demo persistence", () => {
     expect(await gateway.layout()).toEqual({ version: 1, items: [{ id: "queue", span: 6 }] });
     await db.put("preferences", { version: 7 }, "dashboard-layout");
     expect(await gateway.layout()).toEqual(defaultLayout());
+    db.close();
+  });
+  it("keeps the onboarding apart from the layout", async () => {
+    expect(await gateway.onboarding()).toEqual(emptyOnboarding());
+    const onboarding = withHintSeen(withTourOutcome(emptyOnboarding(), "skipped"), "review");
+    await gateway.saveOnboarding(onboarding);
+    expect(await gateway.onboarding()).toEqual(onboarding);
+    expect(await gateway.layout()).not.toHaveProperty("tour");
+    const db = await openDB("upgrade-demo");
+    await db.put(
+      "preferences",
+      { version: 1, tour: "later", hints: ["review", "x"] },
+      "onboarding",
+    );
+    expect(await gateway.onboarding()).toEqual({ version: 1, tour: null, hints: ["review"] });
     db.close();
   });
   it("reports a full storage when the layout cannot be saved", async () => {

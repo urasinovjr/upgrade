@@ -2,6 +2,7 @@ import type { Page, Route } from "@playwright/test";
 import type { AccountDetails, AuthConfig, SessionInfo, Subscription } from "../src/data/account";
 import { fixtureUploads, seedState } from "../src/data/fixtures";
 import type { StoreState } from "../src/domain/models";
+import { completedOnboarding } from "../src/domain/onboarding";
 import { currentRevision } from "../src/domain/review";
 
 export type Plan = "trial" | "active" | "expired";
@@ -156,6 +157,7 @@ export async function mockApi(page: Page, scenario: Scenario, now: number) {
       if (path === "/account") return json(route, accountDetails(now));
       if (path === "/subscription") return json(route, subscription(plan, now));
       if (path === "/account/preferences/dashboard-layout") return json(route, null);
+      if (path === "/account/preferences/onboarding") return json(route, completedOnboarding());
       if (path === "/timing") return json(route, { enabled: Boolean(scenario.pilot) });
       if (path === "/timing/manual" && scenario.pilot) return json(route, manualSessions(now));
       unhandled.push(method + " " + path);

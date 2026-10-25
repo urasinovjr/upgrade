@@ -1,5 +1,6 @@
 import type { Closure, Draft, Report, StoreState, Student, Upload, Work } from "../domain/models";
 import type { DashboardLayout } from "../domain/dashboardLayout";
+import type { Onboarding } from "../domain/onboarding";
 import { httpGateway } from "./httpGateway";
 import { localGateway } from "./localGateway";
 
@@ -22,6 +23,8 @@ export interface Gateway {
   removeWork(id: string): Promise<void>;
   layout(): Promise<DashboardLayout>;
   saveLayout(layout: DashboardLayout): Promise<void>;
+  onboarding(): Promise<Onboarding>;
+  saveOnboarding(onboarding: Onboarding): Promise<void>;
 }
 
 export const serverMode = Boolean(import.meta.env.VITE_API_URL);
