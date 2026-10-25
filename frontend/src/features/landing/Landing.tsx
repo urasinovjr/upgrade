@@ -13,28 +13,10 @@ import { MapPreview } from "./MapPreview";
 import { PencilDemo } from "./PencilDemo";
 import { ScrollProgress } from "./ScrollProgress";
 import { TopicMarquee } from "./TopicMarquee";
+import { WorkJourney } from "./WorkJourney";
 import { landingLinks } from "./links";
 import { useSmoothScroll } from "./useSmoothScroll";
 import "./landing.css";
-
-const steps = [
-  {
-    title: "Загрузите работу",
-    text: "Фото или PDF. Закрасьте имя ученика: ИИ увидит страницы уже без него.",
-  },
-  {
-    title: "Проверьте шаги",
-    text: "ИИ делит решение на шаги и ставит у каждого пометку. Каждый шаг можно найти на фото одним нажатием.",
-  },
-  {
-    title: "Подтвердите пробел",
-    text: "ИИ предполагает, какую тему ученик не понял. В карту знаний она попадёт, только если вы согласны.",
-  },
-  {
-    title: "Отправьте отчёт",
-    text: "Скопируйте текст в мессенджер или скачайте PDF для ученика и родителей.",
-  },
-];
 
 const limits = [
   {
@@ -95,22 +77,6 @@ function Heading({
   );
 }
 
-function Steps() {
-  const ref = useRef<HTMLOListElement>(null);
-  const revealed = useReveal(ref, 0.2);
-  return (
-    <ol ref={ref} className="dp-landing-steps" data-revealed={revealed}>
-      {steps.map(({ title, text }, index) => (
-        <li key={title} className="dp-reveal-item" style={itemStyle(index + 1)}>
-          <span className="dp-landing-step-index">{index + 1}</span>
-          <h3>{title}</h3>
-          <p>{text}</p>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 function HonestLimits() {
   const ref = useRef<HTMLUListElement>(null);
   const revealed = useReveal(ref, 0.3);
@@ -159,17 +125,20 @@ export default function Landing() {
           <Hero links={links} />
           <TopicMarquee />
 
-          <section className="dp-landing-section" id="how" aria-labelledby="how-title">
-            <div className="dp-landing-section-head">
-              <Heading id="how-title" text="От фото тетради до отчёта родителям" />
-              <Reveal index={2}>
-                <p>
-                  ИИ делает черновик карандашом. Вы сверяете его с фото и обводите чернилами то, с
-                  чем согласны.
-                </p>
-              </Reveal>
-            </div>
-            <Steps />
+          <section className="dp-landing-section dp-journey" id="how" aria-labelledby="how-title">
+            <WorkJourney
+              head={
+                <>
+                  <Heading id="how-title" text="От фото тетради до отчёта родителям" />
+                  <Reveal index={2}>
+                    <p>
+                      ИИ делает черновик карандашом. Вы сверяете его с фото и обводите чернилами то,
+                      с чем согласны.
+                    </p>
+                  </Reveal>
+                </>
+              }
+            />
           </section>
 
           <section

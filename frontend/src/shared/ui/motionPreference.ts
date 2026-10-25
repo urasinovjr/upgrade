@@ -11,6 +11,6 @@ export function useFinePointer() {
 export function useRichScene() {
   const motionAllowed = useMotionAllowed();
   const finePointer = useFinePointer();
-  const wide = useMediaQuery("(min-width: 900px)");
+  const wide = useMediaQuery("(min-width: 900px) and (min-height: 760px)");
   return motionAllowed && finePointer && wide;
 }
