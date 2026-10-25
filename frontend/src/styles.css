@@ -4,6 +4,8 @@
 @import "./ui/styles/panel.css";
 @import "./ui/styles/math.css";
 @import "./ui/styles/shell.css";
+@import "./ui/styles/ink.css";
+@import "./ui/styles/reveal.css";
 
 :root {
   font-family: var(--ug-font);

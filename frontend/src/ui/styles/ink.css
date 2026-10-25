@@ -1,0 +1,37 @@
+.dp-ink-stroke,
+.dp-ink-dashed {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+.dp-ink-stroke {
+  --ink-duration: 900ms;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset var(--ink-duration) var(--ug-ease) var(--ink-delay, 0ms),
+    opacity 0ms linear var(--ink-duration);
+}
+.dp-ink-stroke[data-drawn="true"] {
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition-delay: var(--ink-delay, 0ms), var(--ink-delay, 0ms);
+}
+.dp-ink-mask {
+  stroke: #fff;
+  stroke-width: 8;
+}
+.dp-ink-dashed {
+  stroke-dasharray: 6 6;
+}
+:is(.dp-ink-stroke, .dp-ink-dashed)[data-tone="pen"] {
+  stroke: var(--ug-danger);
+}
+:is(.dp-ink-stroke, .dp-ink-dashed)[data-tone="ink"] {
+  stroke: var(--ug-action);
+}
+:is(.dp-ink-stroke, .dp-ink-dashed)[data-tone="pencil"] {
+  stroke: var(--ug-pencil-line);
+}

@@ -1,22 +1,52 @@
+import { type CSSProperties, type ReactNode, useRef } from "react";
 import { AlertCircle } from "lucide-react";
+import * as m from "motion/react-m";
 import { Link } from "react-router";
+import { useMotionAllowed } from "../../shared/ui/motionPreference";
+import { usePointerLight } from "../../shared/ui/usePointerLight";
 import type { LandingLinks } from "./links";
+import { MagnetLink } from "./MagnetLink";
+import { useHeroDepth } from "./useHeroDepth";
+
+function Rise({ index, children }: { index: number; children: ReactNode }) {
+  return (
+    <span className="dp-landing-rise" style={{ "--rise-index": index } as CSSProperties}>
+      <span>{children}</span>
+    </span>
+  );
+}
 
 export function Hero({ links }: { links: LandingLinks }) {
+  const heroRef = useRef<HTMLElement>(null);
+  const lampRef = useRef<HTMLDivElement>(null);
+  const motionAllowed = useMotionAllowed();
+  const interactive = usePointerLight(heroRef, lampRef);
+  const depth = useHeroDepth(heroRef, { pointer: interactive, scroll: motionAllowed });
   return (
-    <section className="dp-landing-hero" aria-labelledby="landing-title">
+    <section
+      ref={heroRef}
+      className="dp-landing-hero"
+      aria-labelledby="landing-title"
+      onPointerMove={depth.onPointerMove}
+      onPointerLeave={depth.onPointerLeave}
+    >
+      <div ref={lampRef} className="dp-landing-lamp" aria-hidden="true" />
       <div className="dp-landing-hero-text">
         <h1 id="landing-title">
-          ИИ пишет <span className="dp-landing-keep">карандашом,</span> вы — <mark>ручкой</mark>
+          <Rise index={0}>ИИ</Rise> <Rise index={1}>пишет</Rise> <Rise index={2}>карандашом,</Rise>{" "}
+          <Rise index={3}>вы</Rise> <Rise index={4}>—</Rise>{" "}
+          <Rise index={5}>
+            <mark>ручкой</mark>
+          </Rise>
         </h1>
         <p className="dp-landing-lead">
           Загрузите фото тетради. UpGrade разложит решение по шагам, отметит ошибку и предложит,
           какую тему повторить. В отчёт попадёт только то, что вы подтвердили.
         </p>
         <div className="dp-landing-actions">
-          <Link className="dp-landing-button is-marker" to={links.start}>
+          <MagnetLink className="dp-landing-button is-marker" to={links.start}>
             {links.startLabel}
-          </Link>
+          </MagnetLink>
           {links.secondary && (
             <Link className="dp-landing-button" to={links.secondary}>
               {links.secondaryLabel}
@@ -27,7 +57,7 @@ export function Hero({ links }: { links: LandingLinks }) {
           Алгебра 9–11 класса. Имя ученика закрашивается до разбора.
         </p>
       </div>
-      <figure className="dp-landing-sheet">
+      <m.figure className="dp-landing-sheet" style={depth.sheet}>
         <div className="dp-notebook" role="img" aria-label="Фото решения ученика с пометкой ошибки">
           <span className="dp-notebook-line is-task">Упростите: (x² − 9) / (x − 3)</span>
           <span className="dp-notebook-line">= (x − 3)(x + 3) / (x − 3)</span>
@@ -43,18 +73,23 @@ export function Hero({ links }: { links: LandingLinks }) {
             <span className="dp-notebook-note">а x = 3?</span>
           </span>
         </div>
-        <svg className="dp-hand-arrow" viewBox="0 0 120 90" aria-hidden="true">
+        <m.svg
+          className="dp-hand-arrow"
+          viewBox="0 0 120 90"
+          aria-hidden="true"
+          style={depth.arrow}
+        >
           <path d="M6 4c-2 30 22 58 92 62m-15-13 15 13-19 8" />
-        </svg>
-        <figcaption className="dp-landing-verdict">
+        </m.svg>
+        <m.figcaption className="dp-landing-verdict" style={depth.verdict}>
           <strong>
             <AlertCircle size={16} aria-hidden="true" />
             Ошибка в шаге 3
           </strong>
           <span>При x&nbsp;=&nbsp;3 знаменатель равен нулю. Добавьте условие x&nbsp;≠&nbsp;3.</span>
           <em>Что повторить: область допустимых значений</em>
-        </figcaption>
-      </figure>
+        </m.figcaption>
+      </m.figure>
     </section>
   );
 }
