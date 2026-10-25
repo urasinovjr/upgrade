@@ -111,3 +111,18 @@ async def test_upload_routes_store_pages_before_processing(sessions, test_settin
         "stand/teacher-1/up-2/1",
         "stand/teacher-1/up-2/2",
     ]
+
+
+async def test_upload_routes_report_unavailable_storage(sessions, test_settings):
+    meta = work_data().model_dump_json()
+    files = [("pages", ("1.bin", b"page-1"))]
+    async for http in make_client(test_settings, FakeProvider(), storage=MemoryStorage(failures=2)):
+        queued = await http.post(
+            "/works/upload", data={"meta": meta}, files=files, headers={"Idempotency-Key": "up-1"}
+        )
+        done = await http.post(
+            "/sync/works/upload", data={"meta": meta}, files=files, headers={"X-Upload-Id": "up-2"}
+        )
+
+    assert (queued.status_code, done.status_code) == (503, 503)
+    assert queued.json()["detail"] == done.json()["detail"] == "storage_unavailable"

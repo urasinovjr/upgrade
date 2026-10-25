@@ -13,6 +13,7 @@ from app.files import S3Storage
 from loadgen.scenario import CRASH_AT_SECONDS, CRASH_DOWN_SECONDS
 
 COMPOSE_FILE = Path(__file__).resolve().parents[2] / "compose.yaml"
+S3_VOLUME = f"{COMPOSE_FILE.parent.name}_s3_data"
 SETTLE_LIMIT_SECONDS = 600.0
 RESET_ATTEMPTS = 5
 SETTLE_QUIET_CHECKS = 3
@@ -33,12 +34,9 @@ OUTCOMES = text(
 )
 
 
-async def compose(*args: str, env: dict[str, str] | None = None) -> None:
+async def docker(*args: str, env: dict[str, str] | None = None) -> None:
     process = await asyncio.create_subprocess_exec(
         "docker",
-        "compose",
-        "-f",
-        str(COMPOSE_FILE),
         *args,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
@@ -47,16 +45,20 @@ async def compose(*args: str, env: dict[str, str] | None = None) -> None:
     await process.wait()
 
 
+async def compose(*args: str, env: dict[str, str] | None = None) -> None:
+    await docker("compose", "-f", str(COMPOSE_FILE), *args, env=env)
+
+
 async def ensure_running(workers: int = 1, env: dict[str, str] | None = None) -> None:
     await compose("up", "-d", "--wait", "--scale", f"worker={workers}", env=env)
 
 
-async def clear_pages() -> None:
+async def reset_storage() -> None:
+    await compose("rm", "-sf", "s3")
+    await docker("volume", "rm", "-f", S3_VOLUME)
+    await compose("up", "-d", "--wait", "s3")
     storage = await S3Storage.connect(Settings())
-    try:
-        await storage.delete_prefix("stand/")
-    finally:
-        await storage.close()
+    await storage.close()
 
 
 async def reset_database(engine: AsyncEngine) -> None:

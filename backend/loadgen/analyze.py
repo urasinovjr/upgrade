@@ -153,9 +153,21 @@ def run_key(meta: dict) -> tuple:
     )
 
 
+def invalid_runs(protocol: int) -> list[str]:
+    folder = PROTOCOL_DIRS[protocol] / "runs"
+    return [
+        path.stem
+        for path in sorted(folder.glob("*.json"))
+        if not json.loads(path.read_text()).get("valid", True)
+    ]
+
+
 def summarize(protocol: int) -> list[dict]:
+    skipped = set(invalid_runs(protocol))
     groups: dict[tuple, list[tuple[dict, dict]]] = defaultdict(list)
     for csv_path in sorted((PROTOCOL_DIRS[protocol] / "runs").glob("*.csv")):
+        if csv_path.stem in skipped:
+            continue
         meta, rows = read_run(csv_path)
         groups[run_key(meta)].append((meta, run_metrics(rows, protocol)))
     return [condition_summary(key, runs) for key, runs in sorted(groups.items())]
@@ -165,6 +177,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--protocol", type=int, choices=list(PROTOCOL_DIRS), default=PROTOCOL)
     protocol = parser.parse_args().protocol
+    for name in invalid_runs(protocol):
+        print(f"skipped invalid run {name}")
     summaries = summarize(protocol)
     with (PROTOCOL_DIRS[protocol] / "summary.csv").open("w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=list(summaries[0]))

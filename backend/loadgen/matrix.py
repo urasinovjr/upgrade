@@ -5,7 +5,7 @@ import time
 
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from loadgen.run import DATABASE_URL, MODES, RESULTS_DIR, run_name, run_once
+from loadgen.run import DATABASE_URL, MODES, run_done, run_name, run_once
 from loadgen.scenario import CONDITIONS
 
 PROFILES = ["normal", "degraded"]
@@ -41,7 +41,7 @@ async def main() -> None:
     try:
         for number, run in enumerate(plan, start=1):
             name = run_name(*run)
-            if args.skip_done and (RESULTS_DIR / f"{name}.json").exists():
+            if args.skip_done and run_done(name):
                 continue
             started = time.time()
             mode, profile, level, seed, workers, condition = run

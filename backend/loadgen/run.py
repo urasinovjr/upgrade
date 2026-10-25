@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from loadgen.client import send_upload
 from loadgen.scenario import CONDITIONS, PAGE_BYTES, POLL_INTERVAL, TIME_SCALE, build_uploads
 from loadgen.stand import (
-    clear_pages,
     clock_offset,
     collect_outcomes,
     configure_provider,
@@ -20,6 +19,7 @@ from loadgen.stand import (
     ensure_running,
     provider_stats,
     reset_database,
+    reset_storage,
     wait_until_settled,
 )
 
@@ -45,6 +45,11 @@ def run_name(
     if condition != "base":
         name += f"-c{condition}"
     return name
+
+
+def run_done(name: str) -> bool:
+    meta_path = RESULTS_DIR / f"{name}.json"
+    return meta_path.exists() and json.loads(meta_path.read_text()).get("valid", True)
 
 
 def merge_row(client_row: dict, outcome: dict | None, offset: float) -> dict:
@@ -76,7 +81,7 @@ async def run_once(
     await ensure_running(workers, setup.env)
     await reset_database(engine)
     if setup.upload:
-        await clear_pages()
+        await reset_storage()
     page = os.urandom(PAGE_BYTES) if setup.upload else None
     await configure_provider(SIM_URL, profile, seed, TIME_SCALE)
     offset = await clock_offset(engine)
@@ -118,6 +123,7 @@ async def run_once(
         "poll_interval": POLL_INTERVAL,
         "time_scale": TIME_SCALE,
         "uploads": len(uploads),
+        "valid": any(row["accepted"] for row in client_rows),
         "clock_offset": offset,
         "provider": await provider_stats(SIM_URL),
     }

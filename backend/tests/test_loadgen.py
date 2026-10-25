@@ -8,7 +8,7 @@ import pytest
 from app.provider import Provider, ProviderError
 from app.queue import Job
 from app.worker import handle_job
-from loadgen import analyze
+from loadgen import analyze, run
 from loadgen.matrix import build_plan, parse
 from loadgen.run import run_name
 from tests.conftest import FakeProvider, worker_context
@@ -43,31 +43,33 @@ def write_run(folder, name: str, meta: dict, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+POLLED_ROW = {
+    "accepted": "True",
+    "accept_s": "0.01",
+    "ready_s": "2.0",
+    "polled_ready_s": "2.4",
+    "poll_count": "12",
+    "results": "1",
+    "works": "1",
+    "failed": "False",
+}
+ASYNC_META = {
+    "mode": "async",
+    "profile": "normal",
+    "level": 1,
+    "workers": 1,
+    "condition": "t110-cap4",
+    "protocol": 2,
+    "time_scale": 0.1,
+    "provider": {"analyze_calls": 1},
+}
+
+
 def test_protocol_two_measures_readiness_by_polling(tmp_path, monkeypatch):
     runs = tmp_path / "runs"
     runs.mkdir()
     monkeypatch.setitem(analyze.PROTOCOL_DIRS, 2, tmp_path)
-    row = {
-        "accepted": "True",
-        "accept_s": "0.01",
-        "ready_s": "2.0",
-        "polled_ready_s": "2.4",
-        "poll_count": "12",
-        "results": "1",
-        "works": "1",
-        "failed": "False",
-    }
-    meta = {
-        "mode": "async",
-        "profile": "normal",
-        "level": 1,
-        "workers": 1,
-        "condition": "t110-cap4",
-        "protocol": 2,
-        "time_scale": 0.1,
-        "provider": {"analyze_calls": 1},
-    }
-    write_run(runs, "one", meta, [row])
+    write_run(runs, "one", ASYNC_META, [POLLED_ROW])
 
     [summary] = analyze.summarize(2)
 
@@ -76,6 +78,23 @@ def test_protocol_two_measures_readiness_by_polling(tmp_path, monkeypatch):
     assert summary["stored_ready_p95_real_s"] == pytest.approx(20.0)
     assert summary["polls_per_upload"] == 12
     assert summary["meets_h1"] is True
+
+
+def test_runs_without_accepted_uploads_are_left_out(tmp_path, monkeypatch):
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    monkeypatch.setitem(analyze.PROTOCOL_DIRS, 2, tmp_path)
+    monkeypatch.setattr(run, "RESULTS_DIR", runs)
+    write_run(runs, "good", {**ASYNC_META, "valid": True}, [POLLED_ROW])
+    write_run(runs, "broken", {**ASYNC_META, "valid": False}, [POLLED_ROW])
+
+    [summary] = analyze.summarize(2)
+
+    assert summary["runs"] == 1
+    assert analyze.invalid_runs(2) == ["broken"]
+    assert run.run_done("good") is True
+    assert run.run_done("broken") is False
+    assert run.run_done("missing") is False
 
 
 async def test_provider_cap_limits_parallel_calls():

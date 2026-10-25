@@ -5,7 +5,7 @@ from fastapi import APIRouter, Form, Header, UploadFile, status
 
 from app.dependencies import ProviderDep, SessionDep, SettingsDep, StorageDep
 from app.errors import DomainError
-from app.files import Storage
+from app.files import Storage, StorageError
 from app.provider import ProviderError
 from app.queue import Job
 from app.stand.intake import STAND_JOB, accept_work, process_idempotent, process_now
@@ -53,7 +53,10 @@ async def create_work_sync(
 async def store_pages(storage: Storage, data: WorkCreate, key: str, pages: list[UploadFile]):
     for number, page in enumerate(pages, start=1):
         content = await page.read()
-        await storage.put(f"stand/{data.teacher_id}/{key}/{number}", content, PAGE_TYPE)
+        try:
+            await storage.put(f"stand/{data.teacher_id}/{key}/{number}", content, PAGE_TYPE)
+        except StorageError as error:
+            raise DomainError(error.code) from error
 
 
 @router.post("/works/upload", status_code=status.HTTP_202_ACCEPTED)
