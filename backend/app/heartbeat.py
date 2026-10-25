@@ -20,7 +20,7 @@ def heartbeat_is_fresh(path: Path, max_age: float) -> bool:
 
 def main() -> None:
     path = Path(os.environ.get("HEARTBEAT_FILE", DEFAULT_FILE))
-    seconds = float(os.environ.get("HEARTBEAT_SECONDS", DEFAULT_SECONDS))
+    seconds = float(os.environ.get("HEARTBEAT_FILE_SECONDS", DEFAULT_SECONDS))
     sys.exit(0 if heartbeat_is_fresh(path, 3 * seconds) else 1)
 
 

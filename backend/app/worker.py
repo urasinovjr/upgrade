@@ -166,7 +166,9 @@ async def main() -> None:
             "code_commit": context.code_commit,
         },
     )
-    heartbeat = asyncio.create_task(beat(Path(settings.heartbeat_file), settings.heartbeat_seconds))
+    heartbeat = asyncio.create_task(
+        beat(Path(settings.heartbeat_file), settings.heartbeat_file_seconds)
+    )
     try:
         await run_worker(context)
     finally:

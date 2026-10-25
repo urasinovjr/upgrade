@@ -1,6 +1,10 @@
+import ast
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
+from app import config
 from app.config import Settings
 
 SAFE = {
@@ -53,3 +57,22 @@ def test_unsafe_production_settings_are_rejected(field, value):
 
 def test_development_defaults_are_allowed():
     assert Settings().app_env == "development"
+
+
+def test_lease_must_outlive_heartbeat():
+    with pytest.raises(ValidationError):
+        Settings(lease_seconds=5.0, heartbeat_seconds=10.0)
+
+
+def test_settings_fields_are_declared_once():
+    tree = ast.parse(Path(config.__file__).read_text())
+    settings = next(
+        node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "Settings"
+    )
+    names = [
+        item.target.id
+        for item in settings.body
+        if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name)
+    ]
+
+    assert len(names) == len(set(names))

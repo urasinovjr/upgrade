@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     rate_limit_deferrals: int = 20
     poll_seconds: float = 0.2
     heartbeat_file: str = "/tmp/upgrade-worker-heartbeat"
-    heartbeat_seconds: float = 10.0
+    heartbeat_file_seconds: float = 10.0
     stand_enabled: bool = True
     log_format: Literal["json", "text"] = "json"
     log_level: str = "info"
@@ -120,6 +120,12 @@ class Settings(BaseSettings):
         if self.s3_access_key == "upgrade":
             problems.append("S3_ACCESS_KEY must be set")
         return problems
+
+    @model_validator(mode="after")
+    def check_lease(self) -> Self:
+        if self.heartbeat_seconds >= self.lease_seconds:
+            raise ValueError("HEARTBEAT_SECONDS must be shorter than LEASE_SECONDS")
+        return self
 
     @model_validator(mode="after")
     def check_production(self) -> Self:
