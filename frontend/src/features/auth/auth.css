@@ -1,17 +1,72 @@
 .dp-auth {
+  position: relative;
   display: grid;
   place-items: center;
+  overflow: hidden;
   padding: var(--ug-space-6) var(--ug-space-4);
 }
+.dp-auth-lamp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 206 120 / 26%) 0%,
+    rgb(255 214 140 / 12%) 36%,
+    transparent 68%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms var(--ug-ease);
+  will-change: transform;
+}
+.dp-auth-lamp[data-on="true"] {
+  opacity: 1;
+}
 .dp-auth-card {
+  position: relative;
   width: min(100%, 420px);
   display: grid;
   gap: var(--ug-space-5);
-  padding: var(--ug-space-7) var(--ug-space-6);
-  background: var(--ug-surface);
+  padding: var(--ug-space-7) var(--ug-space-6) var(--ug-space-7) 56px;
+  background-color: var(--ug-surface);
+  background-image:
+    linear-gradient(90deg, transparent 31px, var(--ug-margin-line) 31px 33px, transparent 33px),
+    linear-gradient(var(--ug-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ug-grid) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    22px 22px,
+    22px 22px;
   border: 1px solid var(--ug-line);
   border-radius: var(--ug-radius-lg);
   box-shadow: var(--ug-shadow-md);
+}
+.dp-auth.has-aside .dp-auth-card {
+  animation: dp-auth-settle 700ms var(--ug-ease-out) backwards;
+}
+@keyframes dp-auth-settle {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+    rotate: -1.5deg;
+  }
+}
+.dp-auth-tick {
+  position: absolute;
+  right: var(--ug-space-5);
+  top: var(--ug-space-5);
+  width: 46px;
+  height: 36px;
+  overflow: visible;
+  pointer-events: none;
+}
+.dp-auth-tick .dp-ink-stroke {
+  --ink-duration: 600ms;
+  stroke-width: 3.2;
 }
 .dp-auth-brand {
   display: inline-flex;
@@ -24,6 +79,19 @@
 .dp-auth-card form {
   display: grid;
   gap: var(--ug-space-4);
+}
+.dp-auth-card input:not([type="checkbox"]) {
+  background-image: linear-gradient(var(--ug-action), var(--ug-action));
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  background-size: 0% 2px;
+  transition:
+    border-color var(--ug-dur-fast),
+    box-shadow var(--ug-dur-fast),
+    background-size 600ms var(--ug-ease-in-out);
+}
+.dp-auth-card input:not([type="checkbox"]):required:valid {
+  background-size: 100% 2px;
 }
 .dp-auth-card .dp-primary {
   width: 100%;
@@ -54,8 +122,99 @@
   color: var(--ug-muted);
   font-size: var(--ug-fs-caption);
 }
+
+.dp-auth-aside {
+  display: none;
+}
+@media (min-width: 900px) {
+  .dp-auth.has-aside {
+    grid-template-columns: minmax(0, 420px) minmax(0, 380px);
+    justify-content: center;
+    gap: 72px;
+  }
+  .dp-auth-aside {
+    display: grid;
+    gap: var(--ug-space-4);
+    animation: dp-auth-arrive 700ms var(--ug-ease-out) 200ms backwards;
+  }
+}
+@keyframes dp-auth-arrive {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+.dp-auth-notebook {
+  display: grid;
+  justify-self: start;
+  padding: 22px 26px 26px 50px;
+  border-radius: 6px;
+  background-color: var(--ug-surface);
+  background-image:
+    linear-gradient(90deg, transparent 33px, var(--ug-margin-line) 33px 35px, transparent 35px),
+    linear-gradient(var(--ug-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ug-grid) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    22px 22px,
+    22px 22px;
+  box-shadow: var(--ug-shadow-lift);
+  rotate: 2deg;
+  color: var(--ug-action);
+  font:
+    600 24px / 44px "Caveat",
+    cursive;
+}
+.dp-auth-notebook > span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.dp-auth-notebook > span > svg {
+  width: 18px;
+  height: 16px;
+  overflow: visible;
+}
+.dp-auth-notebook .is-task {
+  color: var(--ug-text);
+  font-size: 20px;
+}
+.dp-auth-notebook .is-wrong {
+  justify-self: start;
+}
+.dp-auth-notebook .is-wrong > svg {
+  position: absolute;
+  left: -14px;
+  top: 2px;
+  width: calc(100% + 28px);
+  height: calc(100% - 4px);
+}
+.dp-app .dp-auth-quote {
+  color: var(--ug-ink);
+  font: 700 26px / 1.2 var(--ug-font-display);
+  letter-spacing: var(--ug-tracking-display);
+}
+.dp-auth-quote mark {
+  padding: 0 0.1em;
+  border-radius: 4px 10px 6px 12px;
+  background: var(--ug-marker);
+  color: var(--ug-on-marker);
+}
+.dp-app .dp-auth-caption {
+  max-width: 36ch;
+  color: var(--ug-text);
+}
+
 @media (max-width: 480px) {
   .dp-auth-card {
     padding: var(--ug-space-6) var(--ug-space-4);
+    background-image:
+      linear-gradient(var(--ug-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ug-grid) 1px, transparent 1px);
+    background-size:
+      22px 22px,
+      22px 22px;
   }
 }

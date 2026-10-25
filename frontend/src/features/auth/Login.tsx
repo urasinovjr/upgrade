@@ -5,9 +5,11 @@ import { account } from "../../data/account";
 import { ApiError } from "../../data/api";
 import { useSession, useSetSession } from "../../shared/session";
 import { ErrorMessage } from "../../shared/ui";
+import { AuthAside } from "./AuthAside";
 import { AuthLayout } from "./AuthLayout";
 import { safeNext } from "./next";
 import { ProviderButtons } from "./ProviderButtons";
+import { useInkTick } from "./useInkTick";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,11 +19,13 @@ export default function Login() {
   const session = useSession();
   const setSession = useSetSession();
   const next = safeNext(params.get("next"));
+  const tick = useInkTick();
   const login = useMutation({
     mutationFn: () => account.login(email, password),
-    onSuccess: (started) => {
+    onSuccess: async (started) => {
+      await tick.finish();
       setSession(started);
-      navigate(next, { replace: true });
+      navigate(next, { replace: true, viewTransition: true });
     },
   });
   const resend = useMutation({ mutationFn: () => account.resendConfirmation(email) });
@@ -31,6 +35,10 @@ export default function Login() {
   return (
     <AuthLayout
       title="Вход"
+      ticked={tick.ticked}
+      aside={
+        <AuthAside caption="Черновики разборов ждут вас в кабинете. В отчёт попадает только то, что вы подтвердили." />
+      }
       footer={
         <>
           Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>

@@ -4,8 +4,10 @@ import { Link } from "react-router";
 import { account, type Consents } from "../../data/account";
 import { useAuthConfig } from "../../shared/session";
 import { ErrorMessage } from "../../shared/ui";
+import { AuthAside } from "./AuthAside";
 import { AuthLayout } from "./AuthLayout";
 import { ProviderButtons } from "./ProviderButtons";
+import { useInkTick } from "./useInkTick";
 
 export default function Register() {
   const config = useAuthConfig();
@@ -20,8 +22,10 @@ export default function Register() {
     termsVersion: config.data.termsVersion,
     personalDataVersion: config.data.personalDataVersion,
   };
+  const tick = useInkTick();
   const register = useMutation({
     mutationFn: () => account.register({ displayName, email, password, ...consents! }),
+    onSuccess: () => tick.finish(),
   });
   const resend = useMutation({ mutationFn: () => account.resendConfirmation(email) });
   const footer = (
@@ -29,12 +33,17 @@ export default function Register() {
       Уже есть аккаунт? <Link to="/login">Войти</Link>
     </>
   );
+  const aside = (
+    <AuthAside caption="Загрузите фото тетради: ИИ разложит решение по шагам и отметит ошибку, а вы проверите и подтвердите." />
+  );
   if (register.isSuccess)
     return (
       <AuthLayout
         title="Проверьте почту"
         lead={`Мы отправили ссылку для подтверждения на ${email}. После подтверждения начнётся пробный период на 14 дней.`}
         footer={footer}
+        aside={aside}
+        ticked={tick.ticked}
       >
         <button disabled={resend.isPending || resend.isSuccess} onClick={() => resend.mutate()}>
           {resend.isSuccess ? "Письмо отправлено ещё раз" : "Отправить письмо ещё раз"}
@@ -44,7 +53,13 @@ export default function Register() {
     );
   const agreed = acceptTerms && acceptPersonalData;
   return (
-    <AuthLayout title="Регистрация" lead="14 дней бесплатно, без привязки карты." footer={footer}>
+    <AuthLayout
+      title="Регистрация"
+      lead="14 дней бесплатно, без привязки карты."
+      footer={footer}
+      aside={aside}
+      ticked={tick.ticked}
+    >
       <form
         onSubmit={(event) => {
           event.preventDefault();
