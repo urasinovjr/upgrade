@@ -90,14 +90,15 @@ async def run_once(
     limits = httpx.Limits(max_connections=2000, max_keepalive_connections=200)
     async with httpx.AsyncClient(base_url=API_URL, limits=limits, trust_env=False) as http:
         started = time.time() + 1.0
+        service = PROCESSING_SERVICE[mode]
+        replicas = workers if service == "worker" else 1
         crash = None
         if crashes:
-            crash = asyncio.create_task(crash_processing(PROCESSING_SERVICE[mode], started))
+            crash = asyncio.create_task(crash_processing(service, started, replicas, offset))
         client_rows = await asyncio.gather(
             *(send_upload(http, mode, upload, started, page) for upload in uploads)
         )
-        if crash:
-            await crash
+        restarts = await crash if crash else []
     await ensure_running(workers, setup.env)
     await wait_until_settled(engine)
 
@@ -125,6 +126,7 @@ async def run_once(
         "uploads": len(uploads),
         "valid": any(row["accepted"] for row in client_rows),
         "clock_offset": offset,
+        "restarts": restarts,
         "provider": await provider_stats(SIM_URL),
     }
     (RESULTS_DIR / f"{name}.json").write_text(json.dumps(meta, indent=2))

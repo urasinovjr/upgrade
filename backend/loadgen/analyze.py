@@ -60,11 +60,49 @@ def read_run(csv_path: Path) -> tuple[dict, list[dict]]:
     return meta, rows
 
 
-def run_metrics(rows: list[dict], protocol: int = 1) -> dict:
+def ready_value(row: dict, protocol: int) -> float | None:
+    key = "polled_ready_s" if protocol >= 2 else "ready_s"
+    return float(row[key]) if row.get(key) else None
+
+
+def touched_by_crash(row: dict, ready: float | None, restarts: list[dict]) -> bool:
+    start = float(row["first_send"])
+    end = start + ready if ready is not None else float("inf")
+    for restart in restarts:
+        back_at = restart["ready_at"] if restart["ready_at"] is not None else float("inf")
+        if start <= back_at and end >= restart["killed_at"]:
+            return True
+    return False
+
+
+def restart_seconds(restarts: list[dict]) -> list[float]:
+    return [
+        restart["ready_at"] - restart["killed_at"]
+        for restart in restarts
+        if restart["ready_at"] is not None
+    ]
+
+
+def run_metrics(rows: list[dict], protocol: int = 1, restarts: list[dict] | None = None) -> dict:
+    restarts = restarts or []
     accepted = [float(row["accept_s"]) for row in rows if row["accepted"] == "True"]
     stored = [float(row["ready_s"]) for row in rows if row["ready_s"]]
-    polled = [float(row["polled_ready_s"]) for row in rows if row.get("polled_ready_s")]
-    ready = polled if protocol >= 2 else stored
+    ready = []
+    calm = []
+    crash = []
+    touched = 0
+    for row in rows:
+        value = ready_value(row, protocol)
+        hit = touched_by_crash(row, value, restarts)
+        if hit:
+            touched += 1
+        if value is None:
+            continue
+        ready.append(value)
+        if hit:
+            crash.append(value)
+        else:
+            calm.append(value)
     delivered = [row for row in rows if int(row["results"]) > 0]
     undelivered = [row for row in rows if not int(row["results"])]
     saved_failures = [row for row in undelivered if row["failed"] == "True"]
@@ -74,6 +112,10 @@ def run_metrics(rows: list[dict], protocol: int = 1) -> dict:
         "accepted_values": accepted,
         "ready_values": ready,
         "stored_ready_values": stored,
+        "calm_ready_values": calm,
+        "crash_ready_values": crash,
+        "touched": touched,
+        "restart_seconds": restart_seconds(restarts),
         "polls": sum(int(row.get("poll_count") or 0) for row in rows),
         "delivered": len(delivered),
         "duplicated": sum(1 for row in rows if int(row["results"]) > 1),
@@ -98,6 +140,9 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
     ready_min, ready_max = run_range([run["ready_p95"] for run in metrics])
     accept_scale = time_scale if mode in SYNC_MODES else 1.0
     stored_p95 = pooled_p95([run["stored_ready_values"] for run in metrics])
+    calm_p95 = pooled_p95([run["calm_ready_values"] for run in metrics])
+    crash_p95 = pooled_p95([run["crash_ready_values"] for run in metrics])
+    restarts = [seconds for run in metrics for seconds in run["restart_seconds"]]
     delivered = sum(run["delivered"] for run in metrics)
     analyze_calls = sum(meta["provider"].get("analyze_calls", 0) for meta, _ in runs)
     uploads = sum(run["uploads"] for run in metrics)
@@ -128,6 +173,10 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
         "ready_p95_run_min_real_s": scaled(ready_min, time_scale),
         "ready_p95_run_max_real_s": scaled(ready_max, time_scale),
         "stored_ready_p95_real_s": scaled(stored_p95, time_scale),
+        "restart_mean_s": sum(restarts) / len(restarts) if restarts else None,
+        "crash_share": sum(run["touched"] for run in metrics) / uploads,
+        "ready_p95_calm_real_s": scaled(calm_p95, time_scale),
+        "ready_p95_crash_real_s": scaled(crash_p95, time_scale),
         "polls_per_upload": sum(run["polls"] for run in metrics) / uploads,
         "analyze_calls_per_delivered": analyze_calls / delivered if delivered else None,
     }
@@ -169,7 +218,8 @@ def summarize(protocol: int) -> list[dict]:
         if csv_path.stem in skipped:
             continue
         meta, rows = read_run(csv_path)
-        groups[run_key(meta)].append((meta, run_metrics(rows, protocol)))
+        metrics = run_metrics(rows, protocol, meta.get("restarts"))
+        groups[run_key(meta)].append((meta, metrics))
     return [condition_summary(key, runs) for key, runs in sorted(groups.items())]
 
 

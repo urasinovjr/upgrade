@@ -1,6 +1,8 @@
 import asyncio
+import json
 import os
 import time
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -17,6 +19,8 @@ S3_VOLUME = f"{COMPOSE_FILE.parent.name}_s3_data"
 SETTLE_LIMIT_SECONDS = 600.0
 RESET_ATTEMPTS = 5
 SETTLE_QUIET_CHECKS = 3
+RESTART_LIMIT_SECONDS = 30.0
+READY_EVENTS = {"worker": "worker_started", "api": "Application startup complete."}
 
 OUTCOMES = text(
     """
@@ -47,6 +51,43 @@ async def docker(*args: str, env: dict[str, str] | None = None) -> None:
 
 async def compose(*args: str, env: dict[str, str] | None = None) -> None:
     await docker("compose", "-f", str(COMPOSE_FILE), *args, env=env)
+
+
+async def compose_output(*args: str) -> str:
+    process = await asyncio.create_subprocess_exec(
+        "docker",
+        "compose",
+        "-f",
+        str(COMPOSE_FILE),
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    output, _ = await process.communicate()
+    return output.decode()
+
+
+def ready_times(logs: str, event: str) -> list[float]:
+    times = []
+    for line in logs.splitlines():
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if record.get("event") == event:
+            times.append(datetime.fromisoformat(record["ts"]).timestamp())
+    return sorted(times)
+
+
+async def wait_until_restarted(service: str, since: float, replicas: int) -> float | None:
+    deadline = time.time() + RESTART_LIMIT_SECONDS
+    while time.time() < deadline:
+        logs = await compose_output("logs", "--no-log-prefix", "--since", f"{since:.3f}", service)
+        times = ready_times(logs, READY_EVENTS[service])
+        if len(times) >= replicas:
+            return times[replicas - 1]
+        await asyncio.sleep(0.2)
+    return None
 
 
 async def ensure_running(workers: int = 1, env: dict[str, str] | None = None) -> None:
@@ -97,12 +138,26 @@ async def clock_offset(engine: AsyncEngine) -> float:
     return float(server_now) - (before + after) / 2
 
 
-async def crash_processing(service: str, started: float) -> None:
+async def crash_processing(
+    service: str, started: float, replicas: int, offset: float
+) -> list[dict]:
+    restarts = []
     for crash_at in CRASH_AT_SECONDS:
         await asyncio.sleep(max(0.0, started + crash_at - time.time()))
+        killed_at = time.time()
         await compose("kill", "-s", "SIGKILL", service)
         await asyncio.sleep(CRASH_DOWN_SECONDS)
+        started_at = time.time()
         await compose("start", service)
+        ready_at = await wait_until_restarted(service, killed_at + offset, replicas)
+        restarts.append(
+            {
+                "killed_at": killed_at,
+                "started_at": started_at,
+                "ready_at": ready_at - offset if ready_at is not None else None,
+            }
+        )
+    return restarts
 
 
 async def wait_until_settled(engine: AsyncEngine) -> None:

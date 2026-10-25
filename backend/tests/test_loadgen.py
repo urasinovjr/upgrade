@@ -11,6 +11,7 @@ from app.worker import handle_job
 from loadgen import analyze, run
 from loadgen.matrix import build_plan, parse
 from loadgen.run import run_name
+from loadgen.stand import ready_times
 from tests.conftest import FakeProvider, worker_context
 from tests.test_worker import claimed_job
 
@@ -44,6 +45,7 @@ def write_run(folder, name: str, meta: dict, rows: list[dict]) -> None:
 
 
 POLLED_ROW = {
+    "first_send": "100.0",
     "accepted": "True",
     "accept_s": "0.01",
     "ready_s": "2.0",
@@ -95,6 +97,56 @@ def test_runs_without_accepted_uploads_are_left_out(tmp_path, monkeypatch):
     assert run.run_done("good") is True
     assert run.run_done("broken") is False
     assert run.run_done("missing") is False
+
+
+RESTART = {"killed_at": 100.0, "started_at": 103.0, "ready_at": 106.0}
+
+
+@pytest.mark.parametrize(
+    ("first_send", "ready", "touched"),
+    [
+        (90.0, 5.0, False),
+        (98.0, 3.0, True),
+        (105.0, 1.0, True),
+        (107.0, 1.0, False),
+        (95.0, None, True),
+    ],
+)
+def test_uploads_in_flight_during_a_restart_are_touched(first_send, ready, touched):
+    row = {"first_send": str(first_send)}
+
+    assert analyze.touched_by_crash(row, ready, [RESTART]) is touched
+
+
+def test_crash_slice_explains_readiness_without_changing_h1(tmp_path, monkeypatch):
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    monkeypatch.setitem(analyze.PROTOCOL_DIRS, 2, tmp_path)
+    calm = {**POLLED_ROW, "first_send": "90.0", "polled_ready_s": "2.0"}
+    hit = {**POLLED_ROW, "first_send": "99.0", "polled_ready_s": "15.0"}
+    write_run(runs, "one", {**ASYNC_META, "restarts": [RESTART]}, [calm, hit])
+
+    [summary] = analyze.summarize(2)
+
+    assert summary["crash_share"] == 0.5
+    assert summary["restart_mean_s"] == pytest.approx(6.0)
+    assert summary["ready_p95_calm_real_s"] == pytest.approx(20.0)
+    assert summary["ready_p95_crash_real_s"] == pytest.approx(150.0)
+    assert summary["ready_p95_real_s"] > 120
+    assert summary["meets_h1"] is False
+
+
+def test_restart_is_read_from_the_start_event():
+    logs = "\n".join(
+        [
+            '{"ts": "2026-10-25T20:47:35.5+00:00", "event": "worker_started"}',
+            "Traceback (most recent call last):",
+            '{"ts": "2026-10-25T20:47:34+00:00", "event": "job_done"}',
+            '{"ts": "2026-10-25T20:47:35+00:00", "event": "worker_started"}',
+        ]
+    )
+
+    assert ready_times(logs, "worker_started") == [1792961255.0, 1792961255.5]
 
 
 async def test_provider_cap_limits_parallel_calls():
