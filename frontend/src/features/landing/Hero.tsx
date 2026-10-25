@@ -4,6 +4,7 @@ import * as m from "motion/react-m";
 import { Link } from "react-router";
 import { useMotionAllowed } from "../../shared/ui/motionPreference";
 import { usePointerLight } from "../../shared/ui/usePointerLight";
+import { InkWater } from "./InkWater";
 import type { LandingLinks } from "./links";
 import { MagnetLink } from "./MagnetLink";
 import { useHeroDepth } from "./useHeroDepth";
@@ -19,6 +20,7 @@ function Rise({ index, children }: { index: number; children: ReactNode }) {
 export function Hero({ links }: { links: LandingLinks }) {
   const heroRef = useRef<HTMLElement>(null);
   const lampRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const motionAllowed = useMotionAllowed();
   const interactive = usePointerLight(heroRef, lampRef);
   const depth = useHeroDepth(heroRef, { pointer: interactive, scroll: motionAllowed });
@@ -30,8 +32,9 @@ export function Hero({ links }: { links: LandingLinks }) {
       onPointerMove={depth.onPointerMove}
       onPointerLeave={depth.onPointerLeave}
     >
+      <InkWater area={heroRef} text={textRef} />
       <div ref={lampRef} className="dp-landing-lamp" aria-hidden="true" />
-      <div className="dp-landing-hero-text">
+      <div ref={textRef} className="dp-landing-hero-text">
         <h1 id="landing-title">
           <Rise index={0}>ИИ</Rise> <Rise index={1}>пишет</Rise> <Rise index={2}>карандашом,</Rise>{" "}
           <Rise index={3}>вы</Rise> <Rise index={4}>—</Rise>{" "}

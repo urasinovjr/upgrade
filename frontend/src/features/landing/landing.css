@@ -101,6 +101,18 @@
     22px 22px;
   box-shadow: var(--ug-shadow-md);
 }
+.dp-landing-ink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1400ms var(--ug-ease-out);
+}
+.dp-landing-ink:is([data-ink="running"], [data-ink="paused"]) {
+  opacity: 1;
+}
 .dp-landing-lamp {
   position: absolute;
   left: 0;
@@ -936,6 +948,67 @@ h3.dp-landing-swap > span {
   padding: 56px;
   border-radius: var(--ug-radius-xl);
   background: var(--ug-action);
+}
+.dp-landing-honest-light {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dp-landing-honest {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .dp-landing-honest > :not(.dp-landing-honest-light) {
+    position: relative;
+    z-index: 1;
+  }
+  .dp-landing-honest-light {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 0;
+    display: block;
+    width: 560px;
+    height: 560px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgb(120 140 255 / 18%) 0%,
+      rgb(120 140 255 / 8%) 38%,
+      transparent 68%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 500ms var(--ug-ease);
+    will-change: transform;
+  }
+  .dp-landing-honest-light[data-on="true"] {
+    opacity: 1;
+  }
+  .dp-landing-honest::before {
+    content: "";
+    position: absolute;
+    left: -10%;
+    top: -30%;
+    z-index: 0;
+    width: 70%;
+    height: 160%;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      rgb(120 140 255 / 10%) 0%,
+      rgb(120 140 255 / 5%) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    animation: dp-landing-drift 22s var(--ug-ease-in-out) infinite alternate;
+  }
+}
+@keyframes dp-landing-drift {
+  to {
+    translate: 70% 12%;
+    scale: 1.15;
+  }
 }
 .dp-app .dp-landing-honest h2 {
   color: var(--ug-on-action);

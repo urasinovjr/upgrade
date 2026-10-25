@@ -7,6 +7,7 @@ import { MotionScope } from "../../shared/ui/MotionScope";
 import { Reveal, RevealWords } from "../../shared/ui/Reveal";
 import { useReveal } from "../../shared/ui/useInView";
 import { Hero } from "./Hero";
+import { HonestSection } from "./HonestSection";
 import { InkUnderline } from "./InkUnderline";
 import { MagnetLink } from "./MagnetLink";
 import { MapPreview } from "./MapPreview";
@@ -182,14 +183,10 @@ export default function Landing() {
             </Reveal>
           </section>
 
-          <section
-            className="dp-landing-section dp-landing-honest"
-            id="honest"
-            aria-labelledby="honest-title"
-          >
+          <HonestSection>
             <Heading id="honest-title" text="Что важно знать заранее" underline={false} />
             <HonestLimits />
-          </section>
+          </HonestSection>
 
           <section
             className="dp-landing-section dp-landing-price"
