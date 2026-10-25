@@ -75,6 +75,15 @@ test("the question mark runs the tour again and skips a removed block", async ({
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
+test("the tour started from another page finds every target", async ({ page, isMobile }) => {
+  test.skip(isMobile, "the question mark lives in the sidebar");
+  await page.goto("/works");
+  await expect(page.locator(".dp-work-row").first()).toBeVisible();
+  await page.getByRole("button", { name: "Знакомство с кабинетом" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("dialog")).toContainText("Шаг 1 из 5");
+});
+
 test("each first-visit hint shows once", async ({ page }) => {
   for (const [path, title] of [
     ["/works/new", "Как добавить работу"],

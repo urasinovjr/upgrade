@@ -1,5 +1,11 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+  useViewTransitionState,
+} from "react-router";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
   AlertCircle,
@@ -299,6 +305,7 @@ export default function Review() {
 }
 
 function ReviewEditor({ work, student, works }: { work: Work; student: Student; works: Work[] }) {
+  const moving = useViewTransitionState("/works/" + work.id);
   const review = useReviewDraft(work);
   const { draft, change, canEdit, busy, needsRecheck, blockers, action } = review;
   useActiveTime("review", work.id);
@@ -847,7 +854,12 @@ function ReviewEditor({ work, student, works }: { work: Work; student: Student; 
         headerClassName="review-header"
         heading={
           <>
-            <h1 title={work.title}>{work.title}</h1>
+            <h1
+              title={work.title}
+              style={moving ? { viewTransitionName: "dp-work-title" } : undefined}
+            >
+              {work.title}
+            </h1>
             <span className="dp-window-sub">
               {work.editing && (
                 <span className="dp-window-meta dp-review-step">Шаг 2 из 3 · Проверка</span>

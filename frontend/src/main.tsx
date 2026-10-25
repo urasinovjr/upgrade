@@ -52,12 +52,20 @@ import { CatalogBanner } from "./features/knowledge/CatalogBanner";
 import { TimingTracker } from "./features/timing/TimingTracker";
 import { GuestHome } from "./features/landing/GuestHome";
 
-const Works = lazy(() => import("./features/works/Works"));
-const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
-const NewWork = lazy(() => import("./features/works/NewWork"));
+const pages = {
+  dashboard: () => import("./features/dashboard/Dashboard"),
+  works: () => import("./features/works/Works"),
+  newWork: () => import("./features/works/NewWork"),
+  students: () => import("./features/students/Students"),
+  student: () => import("./features/knowledge/StudentDetail"),
+};
+
+const Works = lazy(pages.works);
+const Dashboard = lazy(pages.dashboard);
+const NewWork = lazy(pages.newWork);
 const Review = lazy(() => import("./features/review/Review"));
-const Students = lazy(() => import("./features/students/Students"));
-const StudentDetail = lazy(() => import("./features/knowledge/StudentDetail"));
+const Students = lazy(pages.students);
+const StudentDetail = lazy(pages.student);
 const Report = lazy(() => import("./features/reports/Report"));
 const States = lazy(() => import("./features/States"));
 const Login = lazy(() => import("./features/auth/Login"));
@@ -117,6 +125,9 @@ function NavItem({
   return (
     <Link
       to={path}
+      viewTransition
+      onPointerEnter={() => void pages[section]()}
+      onFocus={() => void pages[section]()}
       className={active ? activeClass : undefined}
       aria-current={active ? currentValue : undefined}
       aria-label={title}
@@ -216,7 +227,8 @@ function Shell() {
           <button
             className="dp-icon dp-sidebar-tool"
             disabled={!writeAccess.allowed}
-            onClick={() => navigate("/works/new")}
+            onClick={() => navigate("/works/new", { viewTransition: true })}
+            onPointerEnter={() => void pages.newWork()}
             aria-label="Новая работа"
             title="Новая работа"
             data-tour="new-work"
@@ -268,6 +280,8 @@ function Shell() {
                 <Link
                   key={student.id}
                   to={"/students/" + student.id}
+                  viewTransition
+                  onPointerEnter={() => void pages.student()}
                   className={current ? "active" : undefined}
                   aria-current={current ? "page" : undefined}
                 >

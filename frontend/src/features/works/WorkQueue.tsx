@@ -1,7 +1,7 @@
 import { useState, type DragEvent, type Ref } from "react";
-import { Link } from "react-router";
+import { Link, useViewTransitionState } from "react-router";
 import { AlertCircle, ArrowRight, ChevronRight, LoaderCircle, Search, Upload } from "lucide-react";
-import type { StoreState, Work, WorkStatus } from "../../domain/models";
+import type { StoreState, Student, Work, WorkStatus } from "../../domain/models";
 import { inQueueView, matchesActivity, sortQueue, type QueueView } from "../../domain/analytics";
 import { currentRevision } from "../../domain/review";
 import { statusMeta } from "../../shared/status";
@@ -23,6 +23,62 @@ const views: [QueueView, string][] = [
 ];
 const previewLimit = 8;
 const hasFiles = (event: DragEvent) => event.dataTransfer.types.includes("Files");
+
+const preloadReview = () => void import("../review/Review");
+
+function WorkRow({ work, owner }: { work: Work; owner?: Student }) {
+  const path = "/works/" + work.id;
+  const moving = useViewTransitionState(path);
+  const { label, tone, Icon } = statusMeta[work.status];
+  const hint = hints[work.status];
+  return (
+    <Link
+      to={path}
+      viewTransition
+      onPointerEnter={preloadReview}
+      onFocus={preloadReview}
+      className="dp-work-row work-row"
+    >
+      <span className={"dp-work-status dp-tone-" + tone} title={label}>
+        <Icon size={16} aria-hidden="true" />
+        {!hint && <span className="dp-visually-hidden">{label}:</span>}
+      </span>
+      <span className="dp-work-main work-name">
+        <strong
+          className="dp-work-title"
+          style={moving ? { viewTransitionName: "dp-work-title" } : undefined}
+        >
+          {work.title}
+        </strong>
+        {owner && (
+          <span className="dp-work-student">
+            {owner.name} · {owner.grade} кл.
+          </span>
+        )}
+      </span>
+      <span className="dp-work-meta">
+        {hint ? (
+          <span className="dp-work-flag" title={hint}>
+            <span className="dp-work-hint">{hint}</span>
+            <Badge status={work.status} />
+          </span>
+        ) : (
+          work.editing &&
+          currentRevision(work) && (
+            <span
+              className="dp-work-revision"
+              title="Идёт работа над новой версией, подтверждённая версия остаётся в силе"
+            >
+              Черновик
+            </span>
+          )
+        )}
+        <time dateTime={work.createdAt}>{date(work.createdAt)}</time>
+      </span>
+      <ChevronRight className="dp-work-chevron" size={16} aria-hidden="true" />
+    </Link>
+  );
+}
 
 export function WorkQueue({
   state,
@@ -198,45 +254,7 @@ export function WorkQueue({
       )}
       <div className="dp-work-list">
         {shown.map((work) => {
-          const { label, tone, Icon } = statusMeta[work.status];
-          const owner = students.get(work.studentId);
-          const hint = hints[work.status];
-          return (
-            <Link key={work.id} to={"/works/" + work.id} className="dp-work-row work-row">
-              <span className={"dp-work-status dp-tone-" + tone} title={label}>
-                <Icon size={16} aria-hidden="true" />
-                {!hint && <span className="dp-visually-hidden">{label}:</span>}
-              </span>
-              <span className="dp-work-main work-name">
-                <strong className="dp-work-title">{work.title}</strong>
-                {owner && (
-                  <span className="dp-work-student">
-                    {owner.name} · {owner.grade} кл.
-                  </span>
-                )}
-              </span>
-              <span className="dp-work-meta">
-                {hint ? (
-                  <span className="dp-work-flag" title={hint}>
-                    <span className="dp-work-hint">{hint}</span>
-                    <Badge status={work.status} />
-                  </span>
-                ) : (
-                  work.editing &&
-                  currentRevision(work) && (
-                    <span
-                      className="dp-work-revision"
-                      title="Идёт работа над новой версией, подтверждённая версия остаётся в силе"
-                    >
-                      Черновик
-                    </span>
-                  )
-                )}
-                <time dateTime={work.createdAt}>{date(work.createdAt)}</time>
-              </span>
-              <ChevronRight className="dp-work-chevron" size={16} aria-hidden="true" />
-            </Link>
-          );
+          return <WorkRow key={work.id} work={work} owner={students.get(work.studentId)} />;
         })}
         {!full && matches.length > shown.length && (
           <Link className="dp-queue-rest" to={fullLink}>

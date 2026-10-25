@@ -2,7 +2,14 @@ import { type KeyboardEvent, useCallback, useEffect, useId, useState } from "rea
 import * as Dialog from "@radix-ui/react-dialog";
 import * as m from "motion/react-m";
 import type { TourOutcome } from "../../domain/onboarding";
-import { isLastStep, moveStep, resolveSteps, stepLabel, type TourMove } from "../../domain/tour";
+import {
+  isLastStep,
+  moveStep,
+  resolveSteps,
+  stepLabel,
+  type TourMove,
+  type TourStep,
+} from "../../domain/tour";
 import { InkStroke } from "../../shared/ui/InkStroke";
 import { MotionScope } from "../../shared/ui/MotionScope";
 import { useMotionAllowed } from "../../shared/ui/motionPreference";
@@ -42,9 +49,16 @@ function Underline() {
 function TourCard({ onFinish }: { onFinish: (outcome: TourOutcome) => void }) {
   const motionAllowed = useMotionAllowed();
   const maskId = useId();
-  const [steps] = useState(() => resolveSteps(tourSteps, (target) => findTarget(target) !== null));
+  const [steps, setSteps] = useState<TourStep[]>([]);
   const [index, setIndex] = useState(0);
   const step = steps[index];
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() =>
+      setSteps(resolveSteps(tourSteps, (target) => findTarget(target) !== null)),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const box = useTourTarget(step?.target, motionAllowed);
   const viewport = useViewport();
   const [card, setCard] = useState<Size>({ width: 340, height: 220 });

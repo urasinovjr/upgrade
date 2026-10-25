@@ -6,6 +6,7 @@
 @import "./ui/styles/shell.css";
 @import "./ui/styles/ink.css";
 @import "./ui/styles/reveal.css";
+@import "./ui/styles/transitions.css";
 
 :root {
   font-family: var(--ug-font);
