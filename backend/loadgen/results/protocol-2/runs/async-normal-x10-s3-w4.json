@@ -1,0 +1,43 @@
+{
+  "mode": "async",
+  "profile": "normal",
+  "level": 10,
+  "seed": 3,
+  "crashes": true,
+  "workers": 4,
+  "condition": "base",
+  "condition_env": {
+    "RATE_LIMIT_DELAY": "0.5",
+    "RATE_LIMIT_MAX_DELAY": "12.0"
+  },
+  "protocol": 2,
+  "poll_interval": 0.2,
+  "time_scale": 0.1,
+  "uploads": 800,
+  "valid": true,
+  "clock_offset": -9.1552734375e-05,
+  "restarts": [
+    {
+      "killed_at": 1792995109.835309,
+      "started_at": 1792995113.3915021,
+      "ready_at": 1792995118.1110597
+    },
+    {
+      "killed_at": 1792995129.841665,
+      "started_at": 1792995133.411985,
+      "ready_at": 1792995137.9723005
+    }
+  ],
+  "provider": {
+    "ocr_calls": 1038,
+    "ocr_ok": 967,
+    "analyze_calls": 942,
+    "ocr_errors": 34,
+    "analyze_ok": 872,
+    "analyze_rate_limited": 22,
+    "ocr_rate_limited": 22,
+    "analyze_hangs": 24,
+    "ocr_hangs": 15,
+    "analyze_errors": 24
+  }
+}
