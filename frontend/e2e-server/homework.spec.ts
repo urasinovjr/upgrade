@@ -92,8 +92,30 @@ for (const mobile of [false, true]) {
           .getByRole("textbox", { name: "Комментарий для ученика", exact: true })
           .fill("Поясните переход ко второй строке.");
         await expect(page.getByText("Сохранено", { exact: true })).toBeVisible({ timeout: 15_000 });
+        const draftUrl = "**/api/works/" + work.id + "/draft";
+        let resumeSave = () => {};
+        const pausedSave = new Promise<void>((resolve) => {
+          resumeSave = resolve;
+        });
+        let pauseNextSave = true;
+        await page.route(draftUrl, async (route) => {
+          if (pauseNextSave) {
+            pauseNextSave = false;
+            await pausedSave;
+          }
+          await route.continue();
+        });
+        const saving = page.waitForRequest((request) => request.url().endsWith(work.id + "/draft"));
         await page.getByRole("button", { name: "Отметить проверенной" }).click();
-        await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+        await saving;
+        const publish = page.getByRole("button", { name: "Опубликовать результат", exact: true });
+        try {
+          await expect(page.getByText("Сохраняем…", { exact: true })).toBeVisible();
+          await expect(publish).toBeEnabled();
+          await publish.click();
+        } finally {
+          resumeSave();
+        }
         await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
         await learner.reload();
         await expect(learner.getByRole("button", { name: "Сдать ещё раз" })).toBeVisible();

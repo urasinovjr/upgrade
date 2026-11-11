@@ -5,7 +5,6 @@ import type { ReviewController } from "./useReviewController";
 export function ReviewActions({ context }: { context: ReviewController }) {
   const {
     work,
-    review,
     busy,
     blockers,
     action,
@@ -44,7 +43,7 @@ export function ReviewActions({ context }: { context: ReviewController }) {
             <button
               className="dp-primary"
               data-audit="confirm-work"
-              disabled={blockers.length > 0 || busy || review.saving}
+              disabled={blockers.length > 0 || busy}
               aria-describedby={ids.reason}
               onClick={() => void action("confirm")}
             >
