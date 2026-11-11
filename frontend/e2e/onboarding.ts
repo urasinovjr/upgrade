@@ -2,6 +2,19 @@ import { test as base, type Page } from "@playwright/test";
 import { completedOnboarding } from "../src/domain/onboarding";
 import type { StoreState } from "../src/domain/models";
 
+async function waitForTransition(page: Page) {
+  await page.waitForFunction(
+    () =>
+      !CSS.supports("selector(:active-view-transition)") ||
+      !document.documentElement.matches(":active-view-transition"),
+  );
+}
+
+export async function waitForPage(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  await waitForTransition(page);
+}
+
 export async function markOnboarded(page: Page) {
   await page.addInitScript((value) => {
     const request = indexedDB.open("upgrade-demo", 2);
@@ -70,6 +83,21 @@ export const test = base.extend<{ onboarded: boolean }>({
   onboarded: [true, { option: true }],
   page: async ({ page, onboarded }, use) => {
     if (onboarded) await markOnboarded(page);
+    const navigate = page.goto.bind(page);
+    const reload = page.reload.bind(page);
+    page.goto = async (...args: Parameters<Page["goto"]>) => {
+      const response = await navigate(...args);
+      await waitForPage(page);
+      return response;
+    };
+    page.reload = async (...args: Parameters<Page["reload"]>) => {
+      const response = await reload(...args);
+      await waitForPage(page);
+      return response;
+    };
+    await page.addLocatorHandler(page.locator("body"), () => waitForTransition(page), {
+      noWaitAfter: true,
+    });
     await use(page);
   },
 });
