@@ -96,10 +96,10 @@ export function WidgetGrid({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const position = (id: unknown) => placeLabel(layout.items, id);
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Блок «${title(active.id)}» взят, ${position(active.id)}.`,
+    onDragStart: ({ active }) => `Блок «${title(active.id)}» взят, ${position(active.id)}`,
     onDragOver: ({ active }) => `«${title(active.id)}»: ${position(active.id)}.`,
-    onDragEnd: ({ active }) => `«${title(active.id)}» поставлен на ${position(active.id)}.`,
-    onDragCancel: ({ active }) => `Перенос «${title(active.id)}» отменён.`,
+    onDragEnd: ({ active }) => `«${title(active.id)}» поставлен на ${position(active.id)}`,
+    onDragCancel: ({ active }) => `Перенос «${title(active.id)}» отменён`,
   };
 
   useLayoutEffect(() => {
@@ -126,7 +126,7 @@ export function WidgetGrid({
     const neighbour = layout.items[index + 1] ?? layout.items[index - 1];
     if (neighbour) pendingFocus.current = { id: neighbour.id, action: "first" };
     editor.apply((current) => removeWidget(current, id));
-    announce(`«${title(id)}» убран с обзора. Вернуть его можно через «Добавить блок».`);
+    announce(`«${title(id)}» убран с обзора. Вернуть его можно через «Добавить блок»`);
     if (!neighbour) document.querySelector<HTMLElement>(".dp-layout-add")?.focus();
   };
   const resize = (id: WidgetId, columns: number) =>
@@ -167,7 +167,7 @@ export function WidgetGrid({
       accessibility={{
         announcements,
         screenReaderInstructions: {
-          draggable: "Перетащите блок мышью или переставьте стрелками.",
+          draggable: "Перетащите блок мышью или переставьте стрелками",
         },
       }}
       onDragStart={onDragStart}
@@ -378,8 +378,8 @@ function Widget({
 
 const gripTitles: Record<Axis, string> = {
   x: "Потяните, чтобы изменить ширину",
-  y: "Потяните, чтобы изменить высоту. Двойной щелчок вернёт высоту по содержимому.",
-  xy: "Потяните, чтобы изменить ширину и высоту. Двойной щелчок вернёт высоту по содержимому.",
+  y: "Потяните, чтобы изменить высоту. Двойной щелчок вернёт высоту по содержимому",
+  xy: "Потяните, чтобы изменить ширину и высоту. Двойной щелчок вернёт высоту по содержимому",
 };
 
 function ResizeGrip({

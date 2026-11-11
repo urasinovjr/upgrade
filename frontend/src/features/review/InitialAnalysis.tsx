@@ -12,7 +12,7 @@ function analysisSource(analysis: AnalysisInfo) {
 }
 
 export function InitialAnalysis({ task, analysis }: { task?: Task; analysis?: AnalysisInfo }) {
-  if (!task) return <p>Эту работу вы проверяете вручную, без ИИ.</p>;
+  if (!task) return <p>Эту работу вы проверяете вручную, без ИИ</p>;
   return (
     <>
       {analysis && (

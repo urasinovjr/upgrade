@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
-import { MathfieldElement, convertLatexToMarkup } from "mathlive";
+import { MathfieldElement } from "mathlive";
+import { mixedMarkup } from "./mathMarkup";
+import { observeFormulaKeyboard } from "./formulaKeyboard";
 import "mathlive/fonts.css";
 import "mathlive/static.css";
 
@@ -17,6 +19,7 @@ MathfieldElement.soundsDirectory = null;
 MathfieldElement.fontsDirectory = null;
 MathfieldElement.locale = "ru";
 let keyboardUsers = 0;
+let resetKeyboard: (() => void) | undefined;
 const updateKeyboardInset = () => {
   const height = window.mathVirtualKeyboard.visible
     ? window.mathVirtualKeyboard.boundingRect.height
@@ -28,25 +31,31 @@ const updateKeyboardInset = () => {
 };
 function observeKeyboard() {
   if (keyboardUsers++ === 0) {
+    resetKeyboard = observeFormulaKeyboard(updateKeyboardInset);
     window.mathVirtualKeyboard.addEventListener("geometrychange", updateKeyboardInset);
     updateKeyboardInset();
   }
   return () => {
     if (--keyboardUsers === 0) {
+      resetKeyboard?.();
+      resetKeyboard = undefined;
       window.mathVirtualKeyboard.removeEventListener("geometrychange", updateKeyboardInset);
       document.documentElement.style.removeProperty("--keyboard-height");
       document.documentElement.style.removeProperty("--dialog-keyboard-height");
     }
   };
 }
-export function Formula({ value }: { value: string }) {
+export function MixedText({ value, bareMath = false }: { value: string; bareMath?: boolean }) {
   return (
     <span
-      className="formula"
+      className={bareMath ? "formula mixed-text" : "mixed-text"}
       data-latex={value}
-      dangerouslySetInnerHTML={{ __html: convertLatexToMarkup(value || "\\text{—}") }}
+      dangerouslySetInnerHTML={{ __html: mixedMarkup(value || (bareMath ? "—" : ""), bareMath) }}
     />
   );
+}
+export function Formula({ value }: { value: string }) {
+  return <MixedText value={value} bareMath />;
 }
 export function FormulaInput({
   value,
@@ -64,11 +73,34 @@ export function FormulaInput({
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
+    const useNativeTab = (event: KeyboardEvent) => {
+      if (event.key === "Tab") event.stopImmediatePropagation();
+    };
+    element.addEventListener("keydown", useNativeTab, true);
+    return () => element.removeEventListener("keydown", useNativeTab, true);
+  }, []);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
     element.mathVirtualKeyboardPolicy = "manual";
     element.smartFence = true;
+    element.disabled = disabled;
     element.readOnly = disabled;
-    if (element.value !== value) element.setValue(value, { silenceNotifications: true });
-  }, [value, disabled]);
+    element.setAttribute("role", "group");
+    element.removeAttribute("contenteditable");
+    element.removeAttribute("tabindex");
+    const input = element.shadowRoot?.querySelector<HTMLElement>('[part="keyboard-sink"]');
+    if (input) {
+      input.setAttribute("aria-label", label);
+      input.setAttribute("aria-disabled", String(disabled));
+      input.contentEditable = String(!disabled);
+      input.tabIndex = disabled ? -1 : 0;
+    }
+  }, [disabled, label]);
+  useEffect(() => {
+    const element = ref.current;
+    if (element && element.value !== value) element.setValue(value, { silenceNotifications: true });
+  }, [value]);
   return (
     <math-field
       ref={ref}

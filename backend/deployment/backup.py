@@ -19,18 +19,19 @@ DUMP = 'pg_dump --format=custom -U "$POSTGRES_USER" "$POSTGRES_DB"'
 EXPORT = ["python", "-m", "app.cli", "storage-export", "--out", "-"]
 
 
-def backup(project: str, destination: Path, run=subprocess.run) -> dict:
+def backup(project: str, destination: Path, run=subprocess.run, resume: bool = True) -> dict:
     os.umask(0o077)
     destination.mkdir(mode=0o700, parents=True, exist_ok=False)
     command = compose(project)
-    run([*command, "stop", "worker"], check=True, cwd=ROOT)
+    run([*command, "stop", "api", "worker"], check=True, cwd=ROOT)
     database = [*command, "exec", "-T", "db", "sh", "-c", DUMP]
     files = [*command, "run", "--rm", "--no-deps", "-T", "api", *EXPORT]
     try:
         run_to_file(run, database, destination / DATABASE_DUMP)
         run_to_file(run, files, destination / FILES_ARCHIVE)
     finally:
-        run([*command, "start", "worker"], check=True, cwd=ROOT)
+        if resume:
+            run([*command, "start", "api", "worker"], check=True, cwd=ROOT)
     manifest = {
         "project": project,
         "release": os.environ.get("UPGRADE_RELEASE", ""),

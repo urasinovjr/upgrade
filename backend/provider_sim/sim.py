@@ -123,7 +123,7 @@ def written_lines(task: DraftTask) -> list[str]:
     lines = [line.strip() for line in task.reference.splitlines() if line.strip()]
     if lines:
         return lines
-    return [line for line in (task.formula, "x=\\dots") if line]
+    return [line for line in (task.formula, "x=\\ldots") if line]
 
 
 def step_region(index: int) -> dict:
@@ -184,11 +184,13 @@ def reviewed_task(
     if kind == "error" and steps:
         wrong = len(steps) // 2
         steps[wrong]["verdict"] = "error"
-        steps[wrong]["explanation"] = f"Шаг не сходится с правилом темы «{topic.name}»."
+        steps[wrong]["explanation"] = (
+            f"В шаге {wrong + 1} проверьте правило из темы «{topic.name}»."
+        )
         gap_topic = topic_named((topic.prerequisites or [topic.id])[0], topics)
         reason = f"Ошибка в шаге {wrong + 1} связана с темой «{gap_topic.name}»."
         result["gap"] = {"topic_id": gap_topic.id, "reason": reason}
-        feedback = f"Ошибка в шаге {wrong + 1}."
+        feedback = f"Ошибка в шаге {wrong + 1}. Сверьте преобразование с исходной записью."
     if any(step["verdict"] == "uncertain" for step in steps):
         feedback = "Часть записи не удалось прочитать. Пишите шаги разборчивее."
     return {**result, "supported": True, "steps": steps, "feedback": feedback}

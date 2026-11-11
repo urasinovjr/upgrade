@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack
 from typing import Protocol
@@ -34,10 +35,13 @@ class Storage(Protocol):
 
 
 class S3Storage:
-    def __init__(self, client, bucket: str, exit_stack: AsyncExitStack):
+    def __init__(
+        self, client, bucket: str, exit_stack: AsyncExitStack, write_timeout: float = 60.0
+    ):
         self.client = client
         self.bucket = bucket
         self.exit_stack = exit_stack
+        self.write_timeout = write_timeout
 
     @classmethod
     async def connect(cls, settings: Settings) -> "S3Storage":
@@ -50,6 +54,7 @@ class S3Storage:
                 aws_access_key_id=settings.s3_access_key,
                 aws_secret_access_key=settings.s3_secret_key.get_secret_value(),
                 config=AioConfig(
+                    proxies={},
                     s3={"addressing_style": "path"},
                     connect_timeout=settings.s3_connect_timeout,
                     read_timeout=settings.s3_read_timeout,
@@ -57,7 +62,7 @@ class S3Storage:
                 ),
             )
         )
-        storage = cls(client, settings.s3_bucket, exit_stack)
+        storage = cls(client, settings.s3_bucket, exit_stack, settings.s3_write_timeout)
         if settings.s3_create_bucket:
             await storage.ensure_bucket()
         return storage
@@ -76,10 +81,11 @@ class S3Storage:
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
         try:
-            await self.client.put_object(
-                Bucket=self.bucket, Key=key, Body=data, ContentType=content_type
-            )
-        except (BotoCoreError, ClientError) as error:
+            async with asyncio.timeout(self.write_timeout):
+                await self.client.put_object(
+                    Bucket=self.bucket, Key=key, Body=data, ContentType=content_type
+                )
+        except (BotoCoreError, ClientError, TimeoutError) as error:
             raise StorageError("storage_unavailable") from error
 
     async def open(self, key: str) -> AsyncIterator[bytes]:

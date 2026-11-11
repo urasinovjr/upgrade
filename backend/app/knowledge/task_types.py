@@ -156,11 +156,36 @@ TASK_TYPES = (
         ("trig_root_selection",),
     ),
     TaskType("trig_ineq", "trigonometry", "Тригонометрическое неравенство", ("trig_inequalities",)),
-    TaskType("derivative", None, "Производная и исследование функции", (), False),
-    TaskType("word_problem", None, "Текстовая задача", (), False),
-    TaskType("probability", None, "Вероятность и комбинаторика", (), False),
-    TaskType("geometry", None, "Геометрическая задача", (), False),
-    TaskType("graph_reading", None, "Задача по графику функции", (), False),
+    TaskType(
+        "derivative",
+        "functions",
+        "Производная и исследование функции",
+        ("derivatives", "function_extrema"),
+    ),
+    TaskType("integral", "functions", "Первообразная и интеграл", ("integrals",)),
+    TaskType("word_problem", "applications", "Текстовая задача", ("word_models",)),
+    TaskType(
+        "probability",
+        "probability",
+        "Вероятность и комбинаторика",
+        ("probability", "combinatorics"),
+    ),
+    TaskType(
+        "statistics", "probability", "Статистика и распределения", ("statistics", "distributions")
+    ),
+    TaskType("geometry", "geometry", "Геометрическая задача", ("triangles", "circles", "areas")),
+    TaskType("geometry_proof", "geometry", "Геометрическое доказательство", ("geometry_proof",)),
+    TaskType(
+        "solid_geometry",
+        "geometry",
+        "Стереометрия",
+        ("solid_geometry", "polyhedra", "solid_volumes"),
+    ),
+    TaskType("graph_reading", "functions", "Задача по графику функции", ("functions",)),
+    TaskType("parameters", "equations", "Задача с параметрами", ("parameters",)),
+    TaskType("sequences", "applications", "Последовательности", ("sequences",)),
+    TaskType("financial", "applications", "Финансовая задача", ("financial_models",)),
+    TaskType("integer_reasoning", "applications", "Числа и рассуждения", ("integer_reasoning",)),
 )
 TASK_TYPE_IDS = frozenset(item.id for item in TASK_TYPES)
 OUT_OF_SCOPE_TYPES = frozenset(item.id for item in TASK_TYPES if not item.in_scope)

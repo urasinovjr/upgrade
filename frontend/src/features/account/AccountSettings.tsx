@@ -19,7 +19,7 @@ function Providers({ linked }: { linked: Provider[] }) {
     onSuccess: () => client.invalidateQueries({ queryKey: ["account"] }),
   });
   const providers = config.data?.providers ?? [];
-  if (!providers.length) return <p className="dp-caption">Вход через сервисы пока не настроен.</p>;
+  if (!providers.length) return <p className="dp-caption">Вход через сервисы пока не настроен</p>;
   return (
     <>
       {providers.map((provider) => {
@@ -61,7 +61,7 @@ function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
         remove.mutate();
       }}
     >
-      <p>Удалятся ученики, работы, файлы, отчёты и сам аккаунт. Восстановить их будет нельзя.</p>
+      <p>Удалятся ученики, работы, файлы, отчёты и сам аккаунт. Восстановить их будет нельзя</p>
       {hasPassword && (
         <label>
           Пароль
@@ -96,7 +96,12 @@ export default function AccountSettings() {
   if (details.isPending) return <PageLoading variant="list" />;
   if (details.isError)
     return (
-      <PageState title="Настройки" error={details.error} retry={() => void details.refetch()} />
+      <PageState
+        title="Настройки"
+        errorTitle="Не удалось загрузить настройки"
+        error={details.error}
+        retry={() => void details.refetch()}
+      />
     );
   const { displayName, email, hasPassword, identities } = details.data;
   return (
@@ -124,7 +129,7 @@ export default function AccountSettings() {
           <p>
             Вы участвуете в пилоте. UpGrade считает, сколько времени вы активно работаете с каждой
             работой: подготовка, закраска, проверка, отчёт. Ожидание ИИ и паузы дольше двух минут не
-            считаются. Цифры видит только исследователь пилота.
+            считаются. Цифры видит только исследователь пилота
           </p>
           <Link to="/timing">Замер ручной проверки</Link>
         </section>
@@ -132,7 +137,7 @@ export default function AccountSettings() {
       <section className="dp-account-section" aria-labelledby="tour-title">
         <h2 id="tour-title">Знакомство с кабинетом</h2>
         <div className="dp-account-row">
-          <span>Короткий тур по обзору: новая работа, очередь, ученики и настройка блоков.</span>
+          <span>Короткий тур по обзору: новая работа, очередь, ученики и настройка блоков</span>
           <Link to="/dashboard" state={{ tour: "restart" }}>
             Пройти заново
           </Link>

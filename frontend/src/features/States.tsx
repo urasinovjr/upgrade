@@ -35,7 +35,7 @@ const tabs = [
 ];
 
 function Crash(): never {
-  throw new Error("Тестовая ошибка экрана.");
+  throw new Error("Тестовая ошибка экрана");
 }
 
 export default function States() {
@@ -50,7 +50,7 @@ export default function States() {
       <header className="dp-states-head">
         <span className="dp-caption">Только в режиме разработки</span>
         <h1>Состояния интерфейса</h1>
-        <p>Общие примитивы, уведомления и состояния страниц для проверки вида и адаптивности.</p>
+        <p>Общие примитивы, уведомления и состояния страниц для проверки вида и адаптивности</p>
       </header>
       <div className="dp-states-grid">
         <section className="dp-states-card" aria-labelledby="states-badges">
@@ -74,12 +74,12 @@ export default function States() {
         </section>
         <section className="dp-states-card" aria-labelledby="states-dialog">
           <h2 id="states-dialog">Диалог и раскрытие</h2>
-          <p>Фокус переходит в диалог и возвращается на кнопку после закрытия.</p>
+          <p>Фокус переходит в диалог и возвращается на кнопку после закрытия</p>
           <div className="dp-inline-actions">
             <button onClick={() => setDialog(true)}>Открыть диалог</button>
           </div>
           <Disclosure title="Как работает раскрытие">
-            <p>Содержимое остаётся в разметке, но недоступно, пока блок свёрнут.</p>
+            <p>Содержимое остаётся в разметке, но недоступно, пока блок свёрнут</p>
           </Disclosure>
         </section>
         <section className="dp-states-card" aria-labelledby="states-tabs">
@@ -87,55 +87,55 @@ export default function States() {
           <TabSet label="Разделы примера" items={tabs} value={tab} onChange={setTab}>
             <p>
               {tab === "overview"
-                ? "Короткая сводка по ученику."
+                ? "Короткая сводка по ученику"
                 : tab === "map"
-                  ? "Темы и связи между ними."
-                  : "Работы и закрытые пробелы по датам."}
+                  ? "Темы и связи между ними"
+                  : "Работы и закрытые пробелы по датам"}
             </p>
           </TabSet>
         </section>
         <section className="dp-states-card" aria-labelledby="states-notices">
           <h2 id="states-notices">Уведомления</h2>
-          <p>Полосой под заголовком окна и отдельным блоком в форме или диалоге.</p>
+          <p>Полосой под заголовком окна и отдельным блоком в форме или диалоге</p>
           <div className="dp-states-strips">
             <Callout
               tone="neutral"
               icon={<LoaderCircle className="dp-spin" size={16} aria-hidden="true" />}
-              title="ИИ разбирает работу. Можно уйти со страницы и вернуться позже."
+              title="ИИ разбирает работу. Можно уйти со страницы и вернуться позже"
             />
             <Callout
               tone="warning"
               icon={<CircleHelp size={16} aria-hidden="true" />}
-              title="Сверьте распознанное с оригиналом."
-              more="Работа изменилась после разбора."
+              title="Сверьте распознанное с оригиналом"
+              more="Работа изменилась после разбора"
             >
               <button>Всё сверено</button>
             </Callout>
             <Callout
               tone="info"
               icon={<ShieldCheck size={16} aria-hidden="true" />}
-              title="Черновик новой версии."
-              more="Пока вы его не подтвердите, действует версия 1."
+              title="Черновик новой версии"
+              more="Пока вы его не опубликуете, действует версия 1"
             />
           </div>
           <Callout
             tone="info"
             boxed
             icon={<Info size={16} aria-hidden="true" />}
-            title="Файлы ещё не были сохранены в работе."
-            more="После перезагрузки выберите их заново."
+            title="Файлы ещё не были сохранены в работе"
+            more="После перезагрузки выберите их заново"
           />
           <Callout
             tone="warning"
             boxed
             icon={<AlertCircle size={16} aria-hidden="true" />}
-            title="Это старая версия отчёта. В карте знаний учтена более новая."
+            title="Это старая версия отчёта. В карте знаний учтена более новая"
           />
-          <ErrorMessage error={new Error("Не удалось сохранить черновик. Попробуйте ещё раз.")} />
+          <ErrorMessage error={new Error("Не удалось сохранить черновик. Попробуйте ещё раз")} />
         </section>
         <section className="dp-states-card" aria-labelledby="states-processing">
           <h2 id="states-processing">Разбор учебного примера</h2>
-          <p>Эти кнопки изменяют только пример demo-ready.</p>
+          <p>Эти кнопки изменяют только пример demo-ready</p>
           <div className="dp-inline-actions">
             {(["ready", "failed", "needs_input"] as const).map((outcome) => (
               <button
@@ -159,7 +159,7 @@ export default function States() {
         </section>
         <section className="dp-states-card" aria-labelledby="states-errors">
           <h2 id="states-errors">Ошибки экрана</h2>
-          <p>Ошибка при отрисовке заменяет содержимое страницы, навигация остаётся.</p>
+          <p>Ошибка при отрисовке заменяет содержимое страницы, навигация остаётся</p>
           <div className="dp-inline-actions">
             <button onClick={() => setCrash(true)}>Сломать этот экран</button>
             <Link className="dp-button" to="/dev/missing">
@@ -180,9 +180,7 @@ export default function States() {
           onClose={() => setPanel(false)}
         >
           <div className="dp-states-panel">
-            <p>
-              Содержимое панели не пересоздаётся при смене режима: прокрутка и ввод сохраняются.
-            </p>
+            <p>Содержимое панели не пересоздаётся при смене режима: прокрутка и ввод сохраняются</p>
             <label>
               Заметка
               <input defaultValue="Текст остаётся после сворачивания" />
@@ -199,7 +197,8 @@ export default function States() {
           <PageState
             level={2}
             title="Пример страницы"
-            error={new Error("Тестовая ошибка чтения.")}
+            errorTitle="Не удалось загрузить страницу"
+            error={new Error("Тестовая ошибка чтения")}
             retry={() => {}}
           />
         </section>
@@ -211,7 +210,7 @@ export default function States() {
         open={dialog}
         onOpenChange={setDialog}
         title="Пример диалога"
-        description="Так выглядят окна подтверждения и формы."
+        description="Так выглядят окна подтверждения и формы"
       >
         <label>
           Комментарий

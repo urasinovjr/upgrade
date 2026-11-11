@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PRODUCTION = ROOT / "compose.production.yaml"
 ENVIRONMENT = {
     "UPGRADE_RELEASE": "test",
+    "UPGRADE_BACKEND_IMAGE": "upgrade-backend:test",
+    "UPGRADE_FRONTEND_IMAGE": "upgrade-frontend:test",
     "UPGRADE_TLS_DIR": "/tmp",
     "UPGRADE_ACME_DIR": "/tmp",
     "UPGRADE_ENV_FILE": "deployment/production.env.example",

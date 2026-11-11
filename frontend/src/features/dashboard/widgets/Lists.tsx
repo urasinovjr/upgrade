@@ -53,7 +53,7 @@ export function Inactive({ state }: { state: StoreState }) {
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Все ученики сдавали работы за последние {inactiveDays} дней.</WidgetEmpty>
+        <WidgetEmpty>Все ученики сдавали работы за последние {inactiveDays} дней</WidgetEmpty>
       )}
     </WidgetSection>
   );
@@ -87,7 +87,7 @@ export function CommonGaps({ state, topics }: { state: StoreState; topics: Topic
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Общих пробелов у учеников нет.</WidgetEmpty>
+        <WidgetEmpty>Общих пробелов у учеников нет</WidgetEmpty>
       )}
     </WidgetSection>
   );
@@ -122,7 +122,7 @@ export function Hypotheses({ state, topics }: { state: StoreState; topics: Topic
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Новых гипотез нет. Они появятся после разбора работ.</WidgetEmpty>
+        <WidgetEmpty>Новых гипотез нет. Они появятся после разбора работ</WidgetEmpty>
       )}
       {pending.length > shown.length && (
         <p className="dp-insight-more">

@@ -1,5 +1,13 @@
 import { expect, test } from "./test";
-import { addCheckedWork, addStudent, signUp, startAnalysis, waitForAnalysis } from "./setup";
+import { prepareSubmission } from "./homeworkSetup";
+import {
+  addCheckedWork,
+  addStudent,
+  signUp,
+  startAnalysis,
+  waitForAnalysis,
+  waitForReport,
+} from "./setup";
 
 test(
   "teacher uploads, checks the original, edits and confirms on a phone @mobile",
@@ -9,16 +17,10 @@ test(
     await signUp(page, request, "phone");
     const studentId = await addStudent(page, "Мария");
 
-    await page.goto("/works/new");
-    await page.getByLabel("Ученик", { exact: true }).selectOption(studentId);
-    await page.getByRole("textbox", { name: "Название работы" }).fill("Работа с телефона");
-    await page.getByLabel("Загрузить решение").setInputFiles("e2e/fixtures/solution.png");
-    await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
+    await prepareSubmission(page, studentId, "Работа с телефона");
     await page.getByRole("button", { name: "Закрасить данные" }).click();
     await page.getByRole("button", { name: "Отметить: данные скрыты" }).click();
     await expect(page.getByText("Данные скрыты: 1 из 1 стр.")).toBeVisible();
-    await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
-    await expect(page).toHaveURL(/\/works\/[0-9a-f-]{36}$/);
 
     await page.getByRole("tab", { name: "Разбор", exact: true }).click();
     await startAnalysis(page);
@@ -28,9 +30,9 @@ test(
     await page.getByRole("tab", { name: "Разбор", exact: true }).click();
     await page.getByRole("textbox", { name: "Что дальше" }).fill("Проверено с телефона");
     await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
   },
 );
 
@@ -69,18 +71,27 @@ test(
     await save.scrollIntoViewIfNeeded();
     await save.click();
     await expect(dialog).toHaveCount(0);
-
+    await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+    const previous = await (await page.request.get("/api/works/" + workId)).json();
     await startAnalysis(page);
+    const analysing = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/actions/analyse") && response.request().method() === "POST",
+    );
     await page
       .getByRole("dialog", { name: "Запустить разбор заново?" })
       .getByRole("button", { name: "Запустить разбор" })
       .click();
+    expect((await analysing).ok()).toBe(true);
     await expect
       .poll(
         async () => {
           const work = await (await page.request.get("/api/works/" + workId)).json();
           return (
-            work.status === "ready" && work.draft.analysedInputRevision === work.draft.inputRevision
+            work.status === "ready" &&
+            work.draft.analysedInputRevision === work.draft.inputRevision &&
+            work.analysis?.runId &&
+            work.analysis.runId !== previous.analysis.runId
           );
         },
         { timeout: 60_000 },
@@ -99,13 +110,14 @@ test(
     await save.click();
     await expect(dialog).toHaveCount(0);
     await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
 
     const confirmed = await (await page.request.get("/api/works/" + workId)).json();
     expect(confirmed.published[0].draft.tasks[0].steps[0].latex).toBe("x=3");
     await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
+    await waitForReport(page, 1);
     await expect(page.getByRole("heading", { name: "Формула с телефона" })).toBeVisible();
   },
 );

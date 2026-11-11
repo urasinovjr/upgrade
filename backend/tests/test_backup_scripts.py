@@ -29,7 +29,7 @@ def test_backup_stops_the_worker_dumps_both_stores_and_writes_a_manifest(tmp_pat
 
     manifest = backup("upgrade-production", target, run)
 
-    assert run.steps() == ["stop worker", "exec -T", "run --rm", "start worker"]
+    assert run.steps() == ["stop api", "exec -T", "run --rm", "start api"]
     assert set(manifest["files"]) == {"database.dump", "files.tar"}
     assert json.loads((target / "manifest.json").read_text())["files"] == manifest["files"]
     assert (target / "database.dump").stat().st_mode & 0o077 == 0

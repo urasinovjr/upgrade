@@ -42,10 +42,10 @@ export function useWriteAccess() {
   const status = session.data?.subscription.status;
   const allowed = status === "trial" || status === "active";
   const renew = status !== "none";
-  const lead = renew ? "Подписка закончилась." : "Подписка не оформлена.";
+  const lead = renew ? "Подписка закончилась" : "Подписка не оформлена";
   return {
     allowed,
-    reason: allowed ? "" : lead + " Работы и отчёты можно только смотреть.",
+    reason: allowed ? "" : lead + " Работы и отчёты можно только смотреть",
     renew,
   };
 }

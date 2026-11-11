@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext } from "@playwright/test";
 
-const mailpit = "http://127.0.0.1:8025/api/v1";
+const mailpit = (process.env.E2E_MAILPIT_URL ?? "http://127.0.0.1:8025") + "/api/v1";
 
 export async function mailedLink(request: APIRequestContext, email: string): Promise<string> {
   let link = "";

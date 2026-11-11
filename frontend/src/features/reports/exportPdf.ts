@@ -1,12 +1,14 @@
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import { toPng } from "html-to-image";
-import { convertLatexToMarkup } from "mathlive";
+import { mixedMarkup } from "../../shared/mathMarkup";
+import { mixedTextParts } from "../../shared/mixedText";
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import type { Report } from "../../domain/models";
 import { gateway } from "../../data/gateway";
 import { topicById } from "../../data/catalog";
 import { verdictMeta, type Tone } from "../../shared/status";
+import { validateReportFormulas } from "./formulaValidation";
 pdfMake.addVirtualFileSystem(pdfFonts);
 
 function palette() {
@@ -48,7 +50,7 @@ function readDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Не удалось прочитать изображение условия."));
+    reader.onerror = () => reject(new Error("Не удалось прочитать изображение условия"));
     reader.readAsDataURL(blob);
   });
 }
@@ -60,12 +62,15 @@ async function attachmentImages(id: string): Promise<string[]> {
   return pdfImages(blob);
 }
 
-async function formulaImage(latex: string, colors: Palette): Promise<Content> {
+async function formulaImage(latex: string, colors: Palette, bareMath = true): Promise<Content> {
   const element = document.createElement("div");
   element.className = "pdf-formula";
-  element.innerHTML = convertLatexToMarkup(latex);
+  const parts = mixedTextParts(latex, bareMath);
+  if (parts.every((part) => part.kind === "text"))
+    return { text: parts.map((part) => part.value).join(""), margin: [0, 2, 0, 5] };
+  element.innerHTML = mixedMarkup(latex, bareMath);
   element.style.cssText =
-    "position:fixed;left:-10000px;top:0;width:max-content;padding:14px 16px;font-size:22px;background:white;color:" +
+    "position:fixed;left:-10000px;top:0;width:max-content;max-width:680px;white-space:pre-wrap;overflow-wrap:anywhere;padding:14px 16px;font-size:22px;background:white;color:" +
     colors.ink;
   document.body.appendChild(element);
   try {
@@ -82,6 +87,7 @@ async function formulaImage(latex: string, colors: Palette): Promise<Content> {
   }
 }
 export async function downloadReport(report: Report) {
+  validateReportFormulas(report);
   const { work, student, revision } = report;
   const colors = palette();
   const content: Content[] = [
@@ -105,7 +111,7 @@ export async function downloadReport(report: Report) {
       },
       { text: task.title, fontSize: 14, bold: true, margin: [0, 12, 0, 8] },
     );
-    if (task.condition) content.push({ text: task.condition, margin: [0, 0, 0, 6] });
+    if (task.condition) content.push(await formulaImage(task.condition, colors, false));
     for (const id of task.conditionAttachmentIds || []) {
       for (const source of await attachmentImages(id))
         content.push({ image: source, fit: [480, 550], margin: [0, 8, 0, 12] });
@@ -138,7 +144,7 @@ export async function downloadReport(report: Report) {
             fontSize: 10,
           },
           formula,
-          { text: step.explanation, fontSize: 10, color: colors.text, margin: [0, 0, 0, 12] },
+          await formulaImage(step.explanation, colors, false),
         ],
         unbreakable: true,
       });
@@ -148,7 +154,7 @@ export async function downloadReport(report: Report) {
         box(
           [
             { text: "Комментарий", bold: true, fontSize: 11, margin: [0, 0, 0, 4] },
-            { text: task.feedback, color: colors.text },
+            await formulaImage(task.feedback, colors, false),
           ],
           colors.bg,
         ),
@@ -166,7 +172,7 @@ export async function downloadReport(report: Report) {
               color: colors.ink,
               margin: [0, 0, 0, 4],
             },
-            { text: gap.reason, color: colors.text },
+            await formulaImage(gap.reason, colors, false),
           ],
           colors.markerSoft,
         ),
@@ -176,7 +182,7 @@ export async function downloadReport(report: Report) {
   if (revision.draft.feedback)
     content.push(
       { text: "Что дальше", bold: true, fontSize: 14, margin: [0, 20, 0, 8] },
-      { text: revision.draft.feedback, color: colors.text },
+      await formulaImage(revision.draft.feedback, colors, false),
     );
   const definition: TDocumentDefinitions = {
     pageSize: "A4",

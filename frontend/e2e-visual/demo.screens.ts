@@ -76,10 +76,11 @@ export const demoScreens: Screen[] = [
     path: "/works/new",
     widths: [phone, 1440],
     prepare: async (page) => {
+      await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
       await page
-        .getByLabel("Загрузить решение")
+        .getByLabel("Добавить фотографии или PDF")
         .setInputFiles(path.join(import.meta.dirname, "../e2e/fixtures/solution.png"));
-      await expect(page.getByRole("list", { name: "Добавленные файлы" })).toBeVisible();
+      await expect(page.locator(".source-image")).toBeVisible();
     },
   },
   {

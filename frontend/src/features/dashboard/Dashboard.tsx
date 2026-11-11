@@ -1,13 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
-import { useLocation, useNavigate } from "react-router";
-import {
-  LayoutDashboard,
-  LoaderCircle,
-  Plus,
-  RotateCcw,
-  SlidersHorizontal,
-  Upload,
-} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { LayoutDashboard, LoaderCircle, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { deriveDashboard } from "../../domain/dashboard";
 import {
   addWidget,
@@ -31,7 +24,7 @@ import {
   useQueueFilters,
   worksLink,
 } from "../works/useQueueFilters";
-import { useQuickUpload, type QuickUpload } from "../works/useQuickUpload";
+import { useWriteAccess } from "../../shared/session";
 import { useLayoutEditor } from "./useLayoutEditor";
 import { WidgetCatalog } from "./WidgetCatalog";
 import { WidgetGrid } from "./WidgetGrid";
@@ -42,42 +35,10 @@ import "./widgets.css";
 const DashboardTour = lazy(() => import("../onboarding/DashboardTour"));
 
 const editHints: Record<Breakpoint, string> = {
-  wide: "Перетащите блок за ручку. Размер меняется за край или угол рамки.",
-  narrow: "Меняйте порядок кнопками со стрелками.",
-  medium: "Перетащите блок за ручку. Ширину можно поменять на широком экране.",
+  wide: "Перетащите блок за ручку. Размер меняется за край или угол рамки",
+  narrow: "Меняйте порядок кнопками со стрелками",
+  medium: "Перетащите блок за ручку. Ширину можно поменять на широком экране",
 };
-
-function UploadButton({ upload }: { upload: QuickUpload }) {
-  return (
-    <label
-      data-tour="new-work"
-      className={
-        "dp-primary dp-upload-button" +
-        (upload.busy ? " is-busy" : "") +
-        (upload.allowed ? "" : " is-disabled")
-      }
-    >
-      {upload.busy ? (
-        <LoaderCircle className="dp-spin" size={16} aria-hidden="true" />
-      ) : (
-        <Upload size={16} aria-hidden="true" />
-      )}
-      <span>Загрузить работу</span>
-      <input
-        type="file"
-        multiple
-        accept="image/jpeg,image/png,application/pdf"
-        className="dp-visually-hidden"
-        aria-label="Быстрая загрузка решения"
-        disabled={upload.busy || !upload.allowed}
-        onChange={(event) => {
-          void upload.addFiles(event.target.files);
-          event.target.value = "";
-        }}
-      />
-    </label>
-  );
-}
 
 function LayoutSkeleton({
   layout,
@@ -106,7 +67,7 @@ export default function Dashboard() {
   const query = useStore();
   const layoutQuery = useDashboardLayout();
   const { filters, update } = useQueueFilters();
-  const upload = useQuickUpload();
+  const access = useWriteAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const onboarding = useOnboarding();
@@ -137,13 +98,13 @@ export default function Dashboard() {
   const finish = () => {
     void editor
       .commit()
-      .then(() => setAnnouncement("Расположение обзора сохранено."))
+      .then(() => setAnnouncement("Расположение обзора сохранено"))
       .catch(() => {});
   };
   const add = (id: WidgetId) => {
     editor.apply((layout) => addWidget(layout, id));
     setCatalogOpen(false);
-    setAnnouncement(`«${widgets[id].title}» добавлен в конец обзора.`);
+    setAnnouncement(`«${widgets[id].title}» добавлен в конец обзора`);
     requestAnimationFrame(() =>
       document
         .querySelector(`[data-widget="${id}"]`)
@@ -175,7 +136,15 @@ export default function Dashboard() {
               <SlidersHorizontal size={16} aria-hidden="true" />
               <span>Настроить</span>
             </button>
-            <UploadButton upload={upload} />
+            {access.allowed ? (
+              <Link to="/homework" className="dp-primary" data-tour="new-work">
+                Создать ДЗ
+              </Link>
+            ) : (
+              <button className="dp-primary" disabled>
+                Создать ДЗ
+              </button>
+            )}
           </>
         )
       }
@@ -193,7 +162,14 @@ export default function Dashboard() {
       </>
     );
   if (!query.data)
-    return <PageState title="Обзор" error={query.error} retry={() => void query.refetch()} />;
+    return (
+      <PageState
+        title="Обзор"
+        errorTitle="Не удалось загрузить обзор"
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
+    );
   const state = query.data;
   const { layout } = editor;
   const placed = arrangeWidgets(layout, breakpoint, {
@@ -206,7 +182,6 @@ export default function Dashboard() {
     summary: deriveDashboard(state, topics),
     filters,
     update,
-    upload,
     queueRef,
     onChartChange: (value) => {
       if (hasQueue) {
@@ -267,7 +242,7 @@ export default function Dashboard() {
               <button
                 onClick={() => {
                   editor.reset();
-                  setAnnouncement("Восстановлен исходный вид обзора.");
+                  setAnnouncement("Восстановлен исходный вид обзора");
                 }}
                 disabled={isDefaultLayout(layout)}
               >
@@ -301,7 +276,7 @@ export default function Dashboard() {
           <div className="dp-empty">
             <LayoutDashboard size={32} aria-hidden="true" />
             <h2>На обзоре пока пусто</h2>
-            <p>Выберите, что показывать: очередь, сводку, графики или списки учеников.</p>
+            <p>Выберите, что показывать: очередь, сводку, графики или списки учеников</p>
             <button onClick={start}>
               <SlidersHorizontal size={16} aria-hidden="true" />
               Настроить обзор
@@ -326,7 +301,7 @@ export default function Dashboard() {
           if (!open) stayOnPage();
         }}
         title="Сохранить расположение?"
-        description="Вы изменили обзор, но ещё не нажали «Готово»."
+        description="Вы изменили обзор, но ещё не нажали «Готово»"
       >
         {Boolean(editor.error) && (
           <p className="dp-error" role="alert">

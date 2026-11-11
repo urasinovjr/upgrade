@@ -27,10 +27,13 @@ test("first uploaded image and PDF fit the preview at 100 percent after resizing
   page,
 }) => {
   await page.goto("/works/new");
-  await page
-    .getByLabel("Загрузить решение")
-    .setInputFiles(["e2e/fixtures/solution.png", "e2e/fixtures/solution.pdf"]);
+  await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
+  await page.getByLabel("Добавить фотографии или PDF").setInputFiles("e2e/fixtures/solution.png");
   await expect(page.locator(".source-image")).toBeVisible();
+  await page.getByLabel("Добавить фотографии или PDF").setInputFiles("e2e/fixtures/solution.pdf");
+  await expect(
+    page.getByRole("combobox", { name: "Оригинал работы" }).locator("option"),
+  ).toHaveCount(2);
   for (const width of [390, 1440, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await expect
@@ -42,17 +45,16 @@ test("first uploaded image and PDF fit the preview at 100 percent after resizing
           ),
       )
       .toBeLessThan(2);
-    const upload = await page.locator(".new-work-upload").boundingBox();
-    const preview = await page.locator(".preview-panel").boundingBox();
-    const conditions = await page.locator(".new-work-conditions").boundingBox();
-    if (width < 1200) {
-      expect(preview!.y).toBeGreaterThan(upload!.y + upload!.height);
-      expect(preview!.y + preview!.height).toBeLessThan(conditions!.y);
-    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
   }
-  await page
-    .getByRole("combobox", { name: "Оригинал работы" })
-    .selectOption({ label: "2. solution.pdf" });
+  const originals = page.getByRole("combobox", { name: "Оригинал работы" });
+  const pdfId = await originals
+    .locator("option")
+    .filter({ hasText: "solution.pdf" })
+    .getAttribute("value");
+  await originals.selectOption(pdfId!);
   await expect(page.locator(".react-pdf__Page canvas")).toBeVisible();
   await expect
     .poll(async () =>
@@ -65,17 +67,21 @@ test("first uploaded image and PDF fit the preview at 100 percent after resizing
     .toBeLessThan(2);
 });
 
-test("conditions, formulas and task changes are protected on leaving a new work", async ({
+test("conditions and task changes are protected on leaving homework", async ({
   page,
 }, testInfo) => {
   await page.goto("/works/new");
-  const condition = page.getByRole("textbox", { name: "Условие текстом" });
+  await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
+  const condition = page.getByRole("textbox", { name: "Текст для распознавания" });
   await condition.click();
   await condition.fill("Решите уравнение x² = 4");
-  await page.getByRole("navigation").getByRole("link", { name: "Работы", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Основная навигация" })
+    .getByRole("link", { name: "Проверка", exact: true })
+    .click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Продолжить заполнение" }).click();
+  await dialog.getByRole("button", { name: "Продолжить редактирование" }).click();
   await expect(condition).toHaveValue("Решите уравнение x² = 4");
   if (testInfo.project.name === "chromium") {
     const prompt = page.waitForEvent("dialog");
@@ -87,17 +93,12 @@ test("conditions, formulas and task changes are protected on leaving a new work"
     await expect(condition).toHaveValue("Решите уравнение x² = 4");
   }
   await condition.fill("");
-  const formula = page.locator('math-field[aria-label="Условие задачи 1"]');
-  await formula.focus();
-  await page.keyboard.type("x=2");
-  await page.getByRole("navigation").getByRole("link", { name: "Работы", exact: true }).click();
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole("button", { name: "Продолжить заполнение" }).click();
-  await formula.focus();
-  await page.keyboard.press("ControlOrMeta+A");
-  await page.keyboard.press("Backspace");
-  await page.getByRole("button", { name: "Добавить задачу" }).click();
-  await page.getByRole("navigation").getByRole("link", { name: "Работы", exact: true }).click();
+  await page.getByRole("button", { name: "Сверить задания" }).click();
+  await page.getByRole("button", { name: "Добавить задание", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Основная навигация" })
+    .getByRole("link", { name: "Проверка", exact: true })
+    .click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Выйти", exact: true }).click();
   await expect(page).toHaveURL(/\/works$/);
@@ -166,6 +167,15 @@ test("focused controls and math keyboard stay above the fixed action panel", asy
   await formula.locator('[part="virtual-keyboard-toggle"]').click();
   await expect(keyboard).toBeVisible();
   await expect.poll(() => fieldAboveKeys(Infinity)).toBe(true);
+  const targets = await keyboard
+    .locator(".MLK__layer.is-visible .MLK__row > div:not(.separator)")
+    .evaluateAll((keys) =>
+      keys.map((key) => ({
+        width: key.getBoundingClientRect().width,
+        height: key.getBoundingClientRect().height,
+      })),
+    );
+  expect(targets.every((target) => target.width >= 44 && target.height >= 44)).toBe(true);
   const apply = dialog.getByRole("button", { name: "Сохранить шаг" });
   await expect(async () => {
     await apply.scrollIntoViewIfNeeded();
@@ -181,20 +191,6 @@ test("focused controls and math keyboard stay above the fixed action panel", asy
         return field.top >= 0 && field.bottom <= innerHeight;
       }),
     )
-    .toBe(true);
-  await page.setViewportSize({ width: 390, height: 640 });
-  await page.goto("/works/new");
-  const condition = page.locator('math-field[aria-label="Условие задачи 1"]');
-  await condition.focus();
-  await condition.locator('[part="virtual-keyboard-toggle"]').click();
-  const pageKeys = page.locator(".ML__keyboard .MLK__layer.is-visible");
-  await expect(pageKeys).toBeVisible();
-  await expect
-    .poll(async () => {
-      const nav = (await page.locator(".sidebar").boundingBox())!;
-      const keys = (await pageKeys.boundingBox())!;
-      return nav.y + nav.height <= keys.y + 1;
-    })
     .toBe(true);
 });
 
@@ -215,31 +211,31 @@ test("long names, goals, work titles and filenames remain readable", async ({ pa
   await expect(page.locator("h1")).toHaveText(name);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto("/works/new");
-  await page
-    .getByRole("combobox", { name: "Ученик", exact: true })
-    .selectOption({ label: name + " · 10 класс" });
-  const title = "КонтрольнаяРаботаПоПреобразованиюВыражений".repeat(8);
-  await page.getByRole("textbox", { name: "Название работы" }).fill(title);
-  await page.getByLabel("Загрузить решение").setInputFiles({
+  await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
+  const title = "КонтрольнаяРаботаПоПреобразованиюВыражений".repeat(8).slice(0, 200);
+  await page.getByRole("textbox", { name: "Название ДЗ", exact: true }).fill(title);
+  await page.getByLabel("Добавить фотографии или PDF").setInputFiles({
     name: "решение_".repeat(20) + ".png",
     mimeType: "image/png",
     buffer: await readFile("e2e/fixtures/solution.png"),
   });
-  await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите уравнение x + 1 = 2");
-  await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
+  await expect(page.locator(".source-image")).toBeVisible();
+  await page.getByRole("button", { name: "Сохранить черновик" }).click();
   await expect(page.locator("h1")).toHaveText(title);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole("navigation").getByRole("link", { name: "Работы", exact: true }).click();
-  await expect(page.locator(".work-name strong").filter({ hasText: title })).toBeVisible();
+  await page.getByRole("link", { name: "Все ДЗ", exact: true }).click();
+  await expect(page.locator(".hw-list strong").filter({ hasText: title })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 for (const width of [1440, 1024, 390]) {
   test(`the active section and its count stay readable at ${width}px`, async ({ page }) => {
+    test.setTimeout(60_000);
     await page.setViewportSize({ width, height: 900 });
     for (const [title, heading] of [
       ["Обзор", "Обзор"],
-      ["Работы", "Работы"],
+      ["ДЗ", "Домашние задания"],
+      ["Проверка", "Проверка"],
       ["Ученики", "Ученики"],
     ]) {
       await page.goto("/dashboard");
@@ -251,7 +247,7 @@ for (const width of [1440, 1024, 390]) {
     }
     const count = page
       .getByRole("navigation")
-      .getByRole("link", { name: "Работы", exact: true })
+      .getByRole("link", { name: "Проверка", exact: true })
       .locator(".dp-nav-count");
     await page.goto("/works");
     await expect(count).toBeVisible();

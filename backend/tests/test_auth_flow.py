@@ -13,7 +13,7 @@ async def test_config_lists_documents(client):
     response = await client.get("/api/auth/config")
 
     assert response.status_code == 200
-    assert response.json()["termsVersion"] == "2026-10-21"
+    assert response.json()["termsVersion"] == "2026-11-11"
 
 
 async def test_unconfirmed_account_cannot_log_in(client):

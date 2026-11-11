@@ -15,7 +15,7 @@ export default function ProviderCallback() {
   const finish = useMutation({
     mutationFn: () => {
       if (params.get("error") || !params.get("code"))
-        throw new Error("Вход отменён. Попробуйте ещё раз.");
+        throw new Error("Вход отменён. Попробуйте ещё раз");
       return account.finishProvider(
         provider as Provider,
         params.get("code") ?? "",

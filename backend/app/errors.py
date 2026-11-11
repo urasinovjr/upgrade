@@ -1,7 +1,19 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
+from app.files.storage import StorageError
+
 REGISTRY: dict[str, int] = {
+    "event_not_found": status.HTTP_404_NOT_FOUND,
+    "homework_not_found": status.HTTP_404_NOT_FOUND,
+    "assignment_not_found": status.HTTP_404_NOT_FOUND,
+    "material_not_found": status.HTTP_404_NOT_FOUND,
+    "teacher_required": status.HTTP_403_FORBIDDEN,
+    "student_required": status.HTTP_403_FORBIDDEN,
+    "homework_frozen": status.HTTP_409_CONFLICT,
+    "homework_unconfirmed": status.HTTP_409_CONFLICT,
+    "submission_pending": status.HTTP_409_CONFLICT,
+    "gap_unconfirmed": status.HTTP_409_CONFLICT,
     "job_not_found": status.HTTP_404_NOT_FOUND,
     "work_in_progress": status.HTTP_409_CONFLICT,
     "provider_timeout": status.HTTP_504_GATEWAY_TIMEOUT,
@@ -69,3 +81,8 @@ class DomainError(Exception):
 async def domain_error_handler(request: Request, error: Exception) -> JSONResponse:
     assert isinstance(error, DomainError)
     return JSONResponse({"detail": error.code, **error.extra}, status_code=error.status_code)
+
+
+async def storage_error_handler(request: Request, error: Exception) -> JSONResponse:
+    assert isinstance(error, StorageError)
+    return await domain_error_handler(request, DomainError(error.code))

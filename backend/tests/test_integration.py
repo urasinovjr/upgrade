@@ -1,3 +1,4 @@
+import asyncio
 import socket
 import time
 from email.message import EmailMessage
@@ -61,21 +62,38 @@ async def test_smtp_mailer_delivers_to_mailpit():
     assert response.json()["messages_count"] == 1
 
 
-async def test_unreachable_storage_fails_fast():
+async def test_unreachable_storage_fails_fast(monkeypatch):
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("NO_PROXY", "")
+    connections = []
+
+    async def stalled(reader, writer):
+        connections.append(writer)
+        try:
+            await reader.read()
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+    server = await asyncio.start_server(stalled, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
     settings = Settings(
-        s3_endpoint_url="http://127.0.0.1:9",
+        s3_endpoint_url=f"http://127.0.0.1:{port}",
         s3_create_bucket=False,
         s3_connect_timeout=0.5,
         s3_read_timeout=0.5,
+        s3_write_timeout=2,
         s3_attempts=1,
     )
-    storage = await S3Storage.connect(settings)
-    started = time.perf_counter()
-    try:
-        with pytest.raises(StorageError) as error:
-            await storage.put("teachers/x/works/y/z", b"data", "image/png")
-    finally:
-        await storage.close()
+    async with server:
+        storage = await S3Storage.connect(settings)
+        started = time.perf_counter()
+        try:
+            with pytest.raises(StorageError) as error:
+                await storage.put("teachers/x/works/y/z", b"data", "image/png")
+        finally:
+            await storage.close()
 
     assert error.value.code == "storage_unavailable"
+    assert connections
     assert time.perf_counter() - started < 5

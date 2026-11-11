@@ -100,7 +100,7 @@ export function MaskControls({
     <div className="mask-controls">
       <p>
         Закрасьте имя ученика и другие личные данные. Проведите по странице или задайте область в
-        процентах. ИИ увидит страницу уже закрашенной.
+        процентах. ИИ увидит страницу уже закрашенной
       </p>
       <form
         onSubmit={(event) => {
@@ -113,7 +113,7 @@ export function MaskControls({
           Закрасить область
         </button>
       </form>
-      {full && <p>На одной странице можно закрасить до {maxMasksPerPage} областей.</p>}
+      {full && <p>На одной странице можно закрасить до {maxMasksPerPage} областей</p>}
       {masks.length > 0 && (
         <ol className="mask-list" aria-label="Закрашенные области на странице">
           {masks.map((mask, index) => (

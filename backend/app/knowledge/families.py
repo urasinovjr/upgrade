@@ -8,6 +8,10 @@ Family = Literal[
     "inequalities",
     "trigonometry",
     "mixed",
+    "geometry",
+    "functions",
+    "probability",
+    "applications",
 ]
 
 FAMILY_NAMES: dict[Family, str] = {
@@ -18,4 +22,8 @@ FAMILY_NAMES: dict[Family, str] = {
     "inequalities": "Неравенства",
     "trigonometry": "Тригонометрия",
     "mixed": "Несколько разделов",
+    "geometry": "Геометрия",
+    "functions": "Функции и анализ",
+    "probability": "Вероятность и статистика",
+    "applications": "Прикладные задачи",
 }

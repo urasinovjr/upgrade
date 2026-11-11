@@ -33,6 +33,7 @@ export function checkScreens(screens: Screen[]) {
       for (const width of screen.widths) {
         const tag = width === phone ? "@mobile" : "@desktop";
         test(screen.name + " " + width, { tag }, async ({ page }) => {
+          if (screen.capture?.timeout) test.setTimeout(screen.capture.timeout + 45_000);
           if (width !== phone) await page.setViewportSize({ width, height: viewportHeight(width) });
           await page.goto(screen.path);
           await screen.prepare?.(page);

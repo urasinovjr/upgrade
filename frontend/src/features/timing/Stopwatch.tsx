@@ -77,7 +77,7 @@ export default function Stopwatch() {
     return (
       <PageState
         title="Замер не включён"
-        description="Замер ручной проверки доступен участникам пилота."
+        description="Замер ручной проверки доступен участникам пилота"
         icon={Timer}
         to="/settings"
         linkLabel="Открыть настройки"
@@ -120,7 +120,7 @@ export default function Stopwatch() {
         <h2 id="stopwatch-title">Секундомер</h2>
         <p className="dp-caption">
           Засеките, сколько уходит на проверку без UpGrade, на бумаге или в привычном редакторе. Эти
-          замеры сравним со временем работы в UpGrade.
+          замеры сравним со временем работы в UpGrade
         </p>
         {state ? (
           <>
@@ -233,7 +233,7 @@ export default function Stopwatch() {
               <Play size={14} aria-hidden="true" />
               Начать проверку
             </button>
-            {!students.length && <p>Сначала добавьте ученика.</p>}
+            {!students.length && <p>Сначала добавьте ученика</p>}
           </form>
         )}
       </section>
@@ -260,7 +260,7 @@ export default function Stopwatch() {
             ))}
           </ul>
         ) : (
-          <p className="dp-caption">Замеров пока нет.</p>
+          <p className="dp-caption">Замеров пока нет</p>
         )}
       </section>
     </div>

@@ -1,0 +1,7 @@
+[Unit]
+Description=Renew UpGrade IP certificate
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/upgrade/certbot/bin/certbot renew --quiet --deploy-hook /usr/local/sbin/upgrade-renew-tls

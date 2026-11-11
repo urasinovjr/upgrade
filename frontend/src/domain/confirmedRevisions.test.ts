@@ -24,6 +24,23 @@ function republished(work: Work): Work {
 }
 
 describe("confirmed revisions", () => {
+  it("explains LaTeX only when the selected report contains that notation", () => {
+    const state = seedState();
+    const work = confirmedWork(state);
+    const revision = currentRevision(work)!;
+    const student = state.students.find((item) => item.id === work.studentId)!;
+    expect(reportText({ work, student, revision })).toContain("Формулы ниже записаны в LaTeX.");
+    const simple = structuredClone(revision);
+    simple.draft.tasks = [simple.draft.tasks[0]];
+    simple.draft.tasks[0].formula = "x=1";
+    simple.draft.tasks[0].steps = [{ ...simple.draft.tasks[0].steps[0], latex: "x=1" }];
+    expect(reportText({ work, student, revision: simple })).not.toContain("LaTeX");
+    simple.draft.tasks[0].steps[0].latex = "x=\\ldots";
+    expect(reportText({ work, student, revision: simple })).toContain(
+      "Формулы ниже записаны в LaTeX.",
+    );
+  });
+
   it("keeps a hypothesis out of gaps, overview, map and report until it is accepted", () => {
     const state = seedState();
     const work = confirmedWork(state);

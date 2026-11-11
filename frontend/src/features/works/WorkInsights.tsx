@@ -48,21 +48,21 @@ export function ActivityChart({ works, filter, onChange, titleId }: ChartProps) 
           </span>
           <span data-series="confirmed">
             <strong>{confirmed}</strong>
-            подтверждено впервые
+            опубликовано впервые
           </span>
         </div>
       </div>
       <div
         className="dp-bars"
         role="group"
-        aria-label="Активность по дням. Выберите день, чтобы отфильтровать работы."
+        aria-label="Активность по дням. Выберите день, чтобы отфильтровать работы"
       >
         {days.map((day, index) => (
           <button
             key={day.day}
             aria-pressed={filter.day === day.day}
-            title={`${dayLabel(day.day)} · добавлено ${day.created}, подтверждено впервые ${day.confirmed}`}
-            aria-label={`${dayLabel(day.day)}: добавлено ${day.created}, подтверждено впервые ${day.confirmed}`}
+            title={`${dayLabel(day.day)} · добавлено ${day.created}, опубликовано впервые ${day.confirmed}`}
+            aria-label={`${dayLabel(day.day)}: добавлено ${day.created}, опубликовано впервые ${day.confirmed}`}
             onClick={() =>
               onChange({ ...filter, day: filter.day === day.day ? undefined : day.day })
             }
@@ -92,14 +92,14 @@ export function ActivityChart({ works, filter, onChange, titleId }: ChartProps) 
         </span>
         <span>
           <i aria-hidden="true" data-series="confirmed" />
-          Подтверждено впервые
+          Опубликовано впервые
         </span>
         <span className="dp-chart-period">
           {dayLabel(days[0].day)} — {dayLabel(days[13].day)}
         </span>
       </div>
       {!total && !confirmed && (
-        <p className="dp-chart-empty">За этот период новых работ и подтверждений нет.</p>
+        <p className="dp-chart-empty">За этот период новых работ и публикаций нет</p>
       )}
     </div>
   );
@@ -145,7 +145,7 @@ export function StatusChart({ works, filter, onChange, titleId }: ChartProps) {
         })}
       </div>
       {!works.length && (
-        <p className="dp-chart-empty">Добавьте первую работу, чтобы увидеть сводку.</p>
+        <p className="dp-chart-empty">Добавьте первую работу, чтобы увидеть сводку</p>
       )}
     </div>
   );

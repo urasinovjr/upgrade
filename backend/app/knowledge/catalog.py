@@ -5,7 +5,7 @@ from app.knowledge.families import FAMILY_NAMES
 from app.knowledge.task_types import TASK_TYPES
 from app.knowledge.topics import TOPIC_IDS, TOPICS
 
-CATALOG_VERSION = "algebra-1"
+CATALOG_VERSION = "math-3"
 ALIASES: dict[str, str] = {}
 LEGACY_TOPICS = ("fractions", "powers", "domain", "equations", "roots", "inequalities", "logs")
 KNOWN_TOPICS = TOPIC_IDS | frozenset(ALIASES)

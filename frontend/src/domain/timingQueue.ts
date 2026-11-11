@@ -20,7 +20,7 @@ export function afterSend(
   const sentIds = new Set(sent.map((item) => item.interval.id));
   const unknown = new Set(unknownWorkIds);
   return [
-    ...sent.filter((item) => unknown.has(item.interval.workId)),
+    ...sent.filter((item) => unknown.has(item.interval.workId ?? item.interval.homeworkId ?? "")),
     ...items.filter((item) => !sentIds.has(item.interval.id)),
   ];
 }

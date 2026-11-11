@@ -47,7 +47,7 @@ async function send(path: string, { method = "GET", json, form, keepalive }: Opt
       keepalive,
     });
   } catch {
-    throw new Error("Нет связи с сервером. Проверьте подключение и повторите.");
+    throw new Error("Нет связи с сервером. Проверьте подключение и повторите");
   }
   if (response.ok) return response;
   const data = await response.json().catch(() => null);

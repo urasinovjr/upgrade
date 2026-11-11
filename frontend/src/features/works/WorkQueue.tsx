@@ -1,32 +1,32 @@
-import { useState, type DragEvent, type Ref } from "react";
+import type { Ref } from "react";
 import { Link, useViewTransitionState } from "react-router";
-import { AlertCircle, ArrowRight, ChevronRight, LoaderCircle, Search, Upload } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronRight, Search } from "lucide-react";
 import type { StoreState, Student, Work, WorkStatus } from "../../domain/models";
 import { inQueueView, matchesActivity, sortQueue, type QueueView } from "../../domain/analytics";
 import { currentRevision } from "../../domain/review";
 import { statusMeta } from "../../shared/status";
 import { Badge } from "../../shared/ui";
-import { date, dayLabel, errorText } from "../../shared/text";
+import { date, dayLabel } from "../../shared/text";
 import { ActiveFilter } from "./WorkInsights";
 import type { QueueFilters, useQueueFilters } from "./useQueueFilters";
-import type { QuickUpload } from "./useQuickUpload";
 import "./works.css";
 
 const hints: Partial<Record<WorkStatus, string>> = {
+  preparation: "Проверить обезличивание",
+  ready: "Проверить разбор",
   needs_input: "Сверить с оригиналом",
   failed: "Открыть и проверить вручную",
 };
 const views: [QueueView, string][] = [
   ["attention", "Требуют внимания"],
   ["all", "Все"],
-  ["confirmed", "Подтверждены"],
+  ["confirmed", statusMeta.confirmed.label],
 ];
 const previewLimit = 8;
-const hasFiles = (event: DragEvent) => event.dataTransfer.types.includes("Files");
 
 const preloadReview = () => void import("../review/Review");
 
-function WorkRow({ work, owner }: { work: Work; owner?: Student }) {
+function WorkRow({ work, owner, attempt }: { work: Work; owner?: Student; attempt?: number }) {
   const path = "/works/" + work.id;
   const moving = useViewTransitionState(path);
   const { label, tone, Icon } = statusMeta[work.status];
@@ -52,7 +52,7 @@ function WorkRow({ work, owner }: { work: Work; owner?: Student }) {
         </strong>
         {owner && (
           <span className="dp-work-student">
-            {owner.name} · {owner.grade} кл.
+            {owner.name} · {owner.grade} кл.{attempt ? " · Попытка " + attempt : ""}
           </span>
         )}
       </span>
@@ -67,7 +67,7 @@ function WorkRow({ work, owner }: { work: Work; owner?: Student }) {
           currentRevision(work) && (
             <span
               className="dp-work-revision"
-              title="Идёт работа над новой версией, подтверждённая версия остаётся в силе"
+              title="Идёт работа над новой версией, опубликованная версия остаётся доступной"
             >
               Черновик
             </span>
@@ -85,7 +85,6 @@ export function WorkQueue({
   mode,
   filters,
   update,
-  upload: offeredUpload,
   autoFocusSearch,
   className = "",
   ref,
@@ -94,13 +93,10 @@ export function WorkQueue({
   mode: "preview" | "full";
   filters: QueueFilters;
   update: ReturnType<typeof useQueueFilters>["update"];
-  upload?: QuickUpload;
   autoFocusSearch?: boolean;
   className?: string;
   ref?: Ref<HTMLElement>;
 }) {
-  const [dragging, setDragging] = useState(false);
-  const upload = offeredUpload?.allowed ? offeredUpload : undefined;
   const full = mode === "full";
   const students = new Map(state.students.map((student) => [student.id, student]));
   const { view } = filters;
@@ -159,32 +155,10 @@ export function WorkQueue({
   );
 
   return (
-    <section
-      ref={ref}
-      className={"dp-queue " + className}
-      aria-labelledby={titleId}
-      data-dragging={dragging}
-      onDragEnter={(event) => {
-        if (upload && hasFiles(event)) setDragging(true);
-      }}
-      onDragOver={(event) => {
-        if (!upload || !hasFiles(event)) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
-      }}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
-      }}
-      onDrop={(event) => {
-        if (!upload) return;
-        event.preventDefault();
-        setDragging(false);
-        void upload.addFiles(event.dataTransfer.files);
-      }}
-    >
+    <section ref={ref} className={"dp-queue " + className} aria-labelledby={titleId}>
       <div className="dp-viewbar">
         <div className="dp-viewbar-head">
-          <Heading id={titleId}>Работы</Heading>
+          <Heading id={titleId}>{full ? "Проверка" : "К проверке"}</Heading>
           {!!state.works.length && searchField}
         </div>
         {!!state.works.length && (
@@ -196,9 +170,17 @@ export function WorkQueue({
                   aria-pressed={view === value}
                   onClick={() => update({ view: value, status: undefined })}
                 >
-                  {label}
+                  <span className="dp-segment-label">{label}</span>
                   <span className="dp-segment-count">
-                    {state.works.filter((work) => inQueueView(work, value)).length}
+                    {
+                      state.works.filter(
+                        (work) =>
+                          inQueueView(work, value) &&
+                          matchesActivity(work, filters) &&
+                          (!student || work.studentId === student) &&
+                          matchesSearch(work),
+                      ).length
+                    }
                   </span>
                 </button>
               ))}
@@ -240,21 +222,23 @@ export function WorkQueue({
         )}
       </div>
       <ActiveFilter parts={parts} onReset={resetFilters} />
-      {upload?.busy && (
-        <p className="dp-queue-note" role="status">
-          <LoaderCircle className="dp-spin" size={14} aria-hidden="true" />
-          Проверяем файлы…
-        </p>
-      )}
-      {!!upload?.error && (
-        <p className="dp-queue-alert" role="alert">
-          <AlertCircle size={14} aria-hidden="true" />
-          {errorText(upload.error)}
-        </p>
-      )}
       <div className="dp-work-list">
         {shown.map((work) => {
-          return <WorkRow key={work.id} work={work} owner={students.get(work.studentId)} />;
+          const attempts = work.assignmentId
+            ? state.works
+                .filter((item) => item.assignmentId === work.assignmentId)
+                .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+            : [];
+          return (
+            <WorkRow
+              key={work.id}
+              work={work}
+              owner={students.get(work.studentId)}
+              attempt={
+                attempts.length ? attempts.findIndex((item) => item.id === work.id) + 1 : undefined
+              }
+            />
+          );
         })}
         {!full && matches.length > shown.length && (
           <Link className="dp-queue-rest" to={fullLink}>
@@ -266,17 +250,17 @@ export function WorkQueue({
           <div className="dp-queue-empty">
             {!state.works.length ? (
               <>
-                <Upload size={16} aria-hidden="true" />
+                <BookOpen size={16} aria-hidden="true" />
                 <span>
-                  <strong>{full ? "Работ пока нет" : "Добавьте первую работу"}</strong>
-                  {!full && upload && (
-                    <small>Перетащите решение сюда или нажмите «Загрузить работу».</small>
-                  )}
-                  {full && <small>Загрузите решение ученика, чтобы начать разбор.</small>}
+                  <strong>Сдач пока нет</strong>
+                  <small>
+                    Назначьте ДЗ, затем получите фотографии решений от ученика или загрузите их в
+                    назначении
+                  </small>
                 </span>
                 {full && (
-                  <Link className="dp-text" to="/works/new">
-                    Новая работа
+                  <Link className="dp-text" to="/homework">
+                    Открыть ДЗ
                   </Link>
                 )}
               </>
@@ -296,13 +280,6 @@ export function WorkQueue({
           </div>
         )}
       </div>
-      {upload && (
-        <div className="dp-drop-overlay dropzone" aria-hidden="true">
-          <Upload size={20} />
-          <strong>Отпустите файлы, чтобы добавить работу</strong>
-          <small>JPG, PNG или PDF · до 20 МБ на файл</small>
-        </div>
-      )}
     </section>
   );
 }

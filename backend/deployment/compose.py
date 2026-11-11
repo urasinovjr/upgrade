@@ -1,15 +1,19 @@
 import hashlib
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PRODUCTION = ROOT / "compose.production.yaml"
+PRODUCTION = Path(os.environ.get("UPGRADE_COMPOSE_FILE", ROOT / "compose.production.yaml"))
 DATABASE_DUMP = "database.dump"
 FILES_ARCHIVE = "files.tar"
 MANIFEST = "manifest.json"
 
 
 def compose(project: str) -> list[str]:
-    return ["docker", "compose", "-p", project, "-f", str(PRODUCTION)]
+    command = ["docker", "compose", "-p", project]
+    if environment := os.environ.get("UPGRADE_RELEASE_ENV"):
+        command += ["--env-file", environment]
+    return [*command, "-f", str(PRODUCTION)]
 
 
 def digest(path: Path) -> str:

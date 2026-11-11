@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+exec 9>/opt/upgrade/operation.lock
+flock 9
+install -o 101 -g 101 -m 644 /etc/letsencrypt/live/193.233.218.52/fullchain.pem /opt/upgrade/tls/fullchain.pem
+install -o 101 -g 101 -m 600 /etc/letsencrypt/live/193.233.218.52/privkey.pem /opt/upgrade/tls/privkey.pem
+if [ -L /opt/upgrade/current ]; then
+    docker compose -p upgrade-production --env-file /opt/upgrade/current/release.env -f /opt/upgrade/runtime/compose.production.yaml exec -T frontend nginx -t
+    docker compose -p upgrade-production --env-file /opt/upgrade/current/release.env -f /opt/upgrade/runtime/compose.production.yaml exec -T frontend nginx -s reload
+fi

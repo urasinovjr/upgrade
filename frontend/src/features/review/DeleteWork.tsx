@@ -10,8 +10,9 @@ export function DeleteWork({ work }: { work: Work }) {
   return (
     <ConfirmDelete
       label="Удалить работу"
+      confirmLabel="Удалить работу"
       title={"Удалить работу «" + work.title + "»?"}
-      description="Удалятся загруженные файлы, черновик и все подтверждённые отчёты этой работы."
+      description="Удалятся загруженные файлы, черновик и все опубликованные отчёты этой работы"
       onConfirm={async () => {
         await gateway.removeWork(work.id);
         await client.invalidateQueries({ queryKey: ["store"] });

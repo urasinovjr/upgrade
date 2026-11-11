@@ -1,7 +1,8 @@
 import asyncio
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from app import worker
 from app.queue import Job, claim_job
 from app.stand import StandResult, accept_work
 from app.worker import full_kinds, handle_job
@@ -9,12 +10,14 @@ from tests.conftest import FakeProvider, work_data, worker_context
 
 
 class SlowProvider(FakeProvider):
-    def __init__(self, seconds: float):
+    def __init__(self):
         super().__init__()
-        self.seconds = seconds
+        self.started = asyncio.Event()
+        self.release = asyncio.Event()
 
     async def recognize(self, upload_id: str, pages: int) -> str:
-        await asyncio.sleep(self.seconds)
+        self.started.set()
+        await self.release.wait()
         return await super().recognize(upload_id, pages)
 
 
@@ -60,23 +63,45 @@ async def test_worker_fails_job_on_last_attempt(sessions, test_settings):
     assert stored.status == "failed"
 
 
-async def test_long_job_keeps_its_lease(sessions, test_settings):
-    settings = test_settings.model_copy(update={"lease_seconds": 0.3, "heartbeat_seconds": 0.1})
+async def test_long_job_keeps_its_lease(sessions, test_settings, monkeypatch):
+    settings = test_settings
     async with sessions() as session:
         await accept_work(session, work_data(), "upload-1", 5)
     async with sessions() as session:
         job = await claim_job(session, lease_seconds=settings.lease_seconds)
-    context = worker_context(sessions, settings, SlowProvider(1.0))
+        original_expiry = await session.scalar(select(Job.lease_until).where(Job.id == job.id))
+    provider = SlowProvider()
+    context = worker_context(sessions, settings, provider)
+    renewed_after_expiry = asyncio.Event()
+    extend_lease = worker.extend_lease
+
+    async def observe_renewal(session, job_id, lease_seconds):
+        await extend_lease(session, job_id, lease_seconds)
+        async with sessions() as observation:
+            expiry, now = (
+                await observation.execute(
+                    select(Job.lease_until, func.clock_timestamp()).where(Job.id == job_id)
+                )
+            ).one()
+        if now > original_expiry and expiry > now:
+            renewed_after_expiry.set()
+
+    monkeypatch.setattr(worker, "extend_lease", observe_renewal)
 
     task = asyncio.create_task(handle_job(context, job))
-    await asyncio.sleep(0.7)
-    async with sessions() as session:
-        second = await claim_job(session, lease_seconds=settings.lease_seconds)
-    await task
+    try:
+        await asyncio.wait_for(provider.started.wait(), timeout=10)
+        await asyncio.wait_for(renewed_after_expiry.wait(), timeout=30)
+        async with sessions() as session:
+            second = await claim_job(session, lease_seconds=settings.lease_seconds)
+        assert second is None
+        assert not task.done()
+    finally:
+        provider.release.set()
+        await asyncio.wait_for(task, timeout=10)
 
     async with sessions() as session:
         stored = await session.get(Job, job.id)
-    assert second is None
     assert stored.status == "done"
     assert stored.attempts == 1
 
@@ -85,4 +110,4 @@ def test_full_kinds_are_skipped_until_a_slot_frees():
     limits = {"work_analysis": 1}
 
     assert full_kinds(["send_email"], limits) == ()
-    assert full_kinds(["work_analysis", "send_email"], limits) == ("work_analysis",)
+    assert set(full_kinds(["work_analysis", "send_email"], limits)) == set(worker.AI_KINDS)

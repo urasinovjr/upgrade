@@ -23,7 +23,7 @@ export const studentTone = (color: string): Tone => studentTones[color] ?? "neut
 
 export const statusMeta: Record<WorkStatus, { label: string; tone: Tone; Icon: LucideIcon }> = {
   ready: { label: "К проверке", tone: "action", Icon: FileEdit },
-  confirmed: { label: "Подтверждена", tone: "success", Icon: CheckCircle2 },
+  confirmed: { label: "Опубликовано", tone: "success", Icon: CheckCircle2 },
   needs_input: { label: "Нужна сверка", tone: "warning", Icon: CircleHelp },
   failed: { label: "Разбор не удался", tone: "danger", Icon: AlertCircle },
   preparation: { label: "Подготовка", tone: "neutral", Icon: PencilLine },

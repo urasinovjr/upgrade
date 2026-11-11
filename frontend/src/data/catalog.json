@@ -1,5 +1,5 @@
 {
-  "version": "algebra-1",
+  "version": "math-3",
   "families": [
     {
       "id": "expressions",
@@ -28,6 +28,22 @@
     {
       "id": "mixed",
       "name": "Несколько разделов"
+    },
+    {
+      "id": "geometry",
+      "name": "Геометрия"
+    },
+    {
+      "id": "functions",
+      "name": "Функции и анализ"
+    },
+    {
+      "id": "probability",
+      "name": "Вероятность и статистика"
+    },
+    {
+      "id": "applications",
+      "name": "Прикладные задачи"
     }
   ],
   "topics": [
@@ -469,6 +485,289 @@
       "prerequisites": [
         "trig_equations"
       ]
+    },
+    {
+      "id": "angles",
+      "name": "Прямые и углы",
+      "shortName": "Углы",
+      "description": "Параллельность, перпендикулярность и углы.",
+      "grade": 7,
+      "family": "geometry",
+      "prerequisites": []
+    },
+    {
+      "id": "triangles",
+      "name": "Треугольники",
+      "shortName": "Треуг.",
+      "description": "Равенство, подобие, медианы, биссектрисы и высоты.",
+      "grade": 8,
+      "family": "geometry",
+      "prerequisites": [
+        "angles"
+      ]
+    },
+    {
+      "id": "pythagoras",
+      "name": "Теорема Пифагора",
+      "shortName": "Пифагор",
+      "description": "Прямоугольные треугольники и расстояния.",
+      "grade": 8,
+      "family": "geometry",
+      "prerequisites": [
+        "triangles"
+      ]
+    },
+    {
+      "id": "quadrilaterals",
+      "name": "Четырёхугольники",
+      "shortName": "Четырёх.",
+      "description": "Параллелограмм, трапеция, ромб и прямоугольник.",
+      "grade": 8,
+      "family": "geometry",
+      "prerequisites": [
+        "triangles"
+      ]
+    },
+    {
+      "id": "circles",
+      "name": "Окружность и круг",
+      "shortName": "Окруж.",
+      "description": "Касательные, хорды, вписанные и центральные углы.",
+      "grade": 9,
+      "family": "geometry",
+      "prerequisites": [
+        "angles",
+        "triangles"
+      ]
+    },
+    {
+      "id": "areas",
+      "name": "Площади фигур",
+      "shortName": "Площади",
+      "description": "Площади многоугольников и круга.",
+      "grade": 9,
+      "family": "geometry",
+      "prerequisites": [
+        "triangles",
+        "quadrilaterals",
+        "circles"
+      ]
+    },
+    {
+      "id": "geometry_proof",
+      "name": "Геометрические доказательства",
+      "shortName": "Доказ.",
+      "description": "Обоснование переходов и применимости теорем.",
+      "grade": 9,
+      "family": "geometry",
+      "prerequisites": [
+        "triangles",
+        "circles"
+      ]
+    },
+    {
+      "id": "vectors",
+      "name": "Координаты и векторы",
+      "shortName": "Векторы",
+      "description": "Длины, координаты, скалярное произведение и углы.",
+      "grade": 9,
+      "family": "geometry",
+      "prerequisites": [
+        "pythagoras"
+      ]
+    },
+    {
+      "id": "solid_geometry",
+      "name": "Прямые и плоскости в пространстве",
+      "shortName": "Простр.",
+      "description": "Параллельность, перпендикулярность, углы и расстояния.",
+      "grade": 10,
+      "family": "geometry",
+      "prerequisites": [
+        "geometry_proof",
+        "vectors"
+      ]
+    },
+    {
+      "id": "polyhedra",
+      "name": "Многогранники и сечения",
+      "shortName": "Многогр.",
+      "description": "Призмы, пирамиды и построение сечений.",
+      "grade": 10,
+      "family": "geometry",
+      "prerequisites": [
+        "solid_geometry"
+      ]
+    },
+    {
+      "id": "solid_volumes",
+      "name": "Тела вращения, объёмы и поверхности",
+      "shortName": "Объёмы",
+      "description": "Цилиндр, конус, сфера, объём и площадь поверхности.",
+      "grade": 11,
+      "family": "geometry",
+      "prerequisites": [
+        "polyhedra",
+        "areas"
+      ]
+    },
+    {
+      "id": "functions",
+      "name": "Функции и графики",
+      "shortName": "Функции",
+      "description": "Область определения, значения, свойства и преобразования графика.",
+      "grade": 9,
+      "family": "functions",
+      "prerequisites": [
+        "domain"
+      ]
+    },
+    {
+      "id": "derivatives",
+      "name": "Производная",
+      "shortName": "Произв.",
+      "description": "Правила дифференцирования и касательная.",
+      "grade": 10,
+      "family": "functions",
+      "prerequisites": [
+        "functions"
+      ]
+    },
+    {
+      "id": "function_extrema",
+      "name": "Исследование функции",
+      "shortName": "Экстр.",
+      "description": "Монотонность, экстремумы и наибольшие значения.",
+      "grade": 11,
+      "family": "functions",
+      "prerequisites": [
+        "derivatives",
+        "inequalities"
+      ]
+    },
+    {
+      "id": "integrals",
+      "name": "Первообразная и интеграл",
+      "shortName": "Интегр.",
+      "description": "Первообразная, определённый интеграл и площадь под графиком.",
+      "grade": 11,
+      "family": "functions",
+      "prerequisites": [
+        "derivatives"
+      ]
+    },
+    {
+      "id": "sequences",
+      "name": "Последовательности и прогрессии",
+      "shortName": "Прогр.",
+      "description": "Общий член и сумма арифметической и геометрической прогрессий.",
+      "grade": 9,
+      "family": "applications",
+      "prerequisites": [
+        "powers"
+      ]
+    },
+    {
+      "id": "percentages",
+      "name": "Проценты и пропорции",
+      "shortName": "Проценты",
+      "description": "Доли, отношения, проценты и изменение величин.",
+      "grade": 7,
+      "family": "applications",
+      "prerequisites": [
+        "fractions"
+      ]
+    },
+    {
+      "id": "word_models",
+      "name": "Моделирование текстовых задач",
+      "shortName": "Модели",
+      "description": "Движение, работа, смеси и составление уравнений.",
+      "grade": 9,
+      "family": "applications",
+      "prerequisites": [
+        "linear_equations",
+        "percentages"
+      ]
+    },
+    {
+      "id": "financial_models",
+      "name": "Финансовые задачи",
+      "shortName": "Финансы",
+      "description": "Вклады, кредиты, платежи и математические модели.",
+      "grade": 11,
+      "family": "applications",
+      "prerequisites": [
+        "word_models",
+        "sequences"
+      ]
+    },
+    {
+      "id": "integer_reasoning",
+      "name": "Числа и доказательные рассуждения",
+      "shortName": "Числа",
+      "description": "Делимость, целые числа, примеры и контрпримеры.",
+      "grade": 11,
+      "family": "applications",
+      "prerequisites": [
+        "signed_numbers"
+      ]
+    },
+    {
+      "id": "parameters",
+      "name": "Задачи с параметрами",
+      "shortName": "Параметр",
+      "description": "Число решений, разбиение случаев и графический метод.",
+      "grade": 11,
+      "family": "equations",
+      "prerequisites": [
+        "systems",
+        "functions"
+      ]
+    },
+    {
+      "id": "combinatorics",
+      "name": "Комбинаторика",
+      "shortName": "Комбин.",
+      "description": "Перебор, сочетания, размещения и перестановки.",
+      "grade": 9,
+      "family": "probability",
+      "prerequisites": []
+    },
+    {
+      "id": "probability",
+      "name": "Вероятность событий",
+      "shortName": "Вероятн.",
+      "description": "События, условная вероятность, сложение и умножение.",
+      "grade": 9,
+      "family": "probability",
+      "prerequisites": [
+        "fractions",
+        "combinatorics"
+      ]
+    },
+    {
+      "id": "statistics",
+      "name": "Таблицы, диаграммы и статистика",
+      "shortName": "Статист.",
+      "description": "Среднее, медиана, разброс и чтение данных.",
+      "grade": 9,
+      "family": "probability",
+      "prerequisites": [
+        "fractions"
+      ]
+    },
+    {
+      "id": "distributions",
+      "name": "Случайные величины и распределения",
+      "shortName": "Распред.",
+      "description": "Ожидание, дисперсия и свойства распределений.",
+      "grade": 11,
+      "family": "probability",
+      "prerequisites": [
+        "probability",
+        "statistics"
+      ]
     }
   ],
   "taskTypes": [
@@ -789,38 +1088,127 @@
     },
     {
       "id": "derivative",
-      "family": null,
+      "family": "functions",
       "name": "Производная и исследование функции",
-      "topicIds": [],
-      "inScope": false
+      "topicIds": [
+        "derivatives",
+        "function_extrema"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "integral",
+      "family": "functions",
+      "name": "Первообразная и интеграл",
+      "topicIds": [
+        "integrals"
+      ],
+      "inScope": true
     },
     {
       "id": "word_problem",
-      "family": null,
+      "family": "applications",
       "name": "Текстовая задача",
-      "topicIds": [],
-      "inScope": false
+      "topicIds": [
+        "word_models"
+      ],
+      "inScope": true
     },
     {
       "id": "probability",
-      "family": null,
+      "family": "probability",
       "name": "Вероятность и комбинаторика",
-      "topicIds": [],
-      "inScope": false
+      "topicIds": [
+        "probability",
+        "combinatorics"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "statistics",
+      "family": "probability",
+      "name": "Статистика и распределения",
+      "topicIds": [
+        "statistics",
+        "distributions"
+      ],
+      "inScope": true
     },
     {
       "id": "geometry",
-      "family": null,
+      "family": "geometry",
       "name": "Геометрическая задача",
-      "topicIds": [],
-      "inScope": false
+      "topicIds": [
+        "triangles",
+        "circles",
+        "areas"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "geometry_proof",
+      "family": "geometry",
+      "name": "Геометрическое доказательство",
+      "topicIds": [
+        "geometry_proof"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "solid_geometry",
+      "family": "geometry",
+      "name": "Стереометрия",
+      "topicIds": [
+        "solid_geometry",
+        "polyhedra",
+        "solid_volumes"
+      ],
+      "inScope": true
     },
     {
       "id": "graph_reading",
-      "family": null,
+      "family": "functions",
       "name": "Задача по графику функции",
-      "topicIds": [],
-      "inScope": false
+      "topicIds": [
+        "functions"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "parameters",
+      "family": "equations",
+      "name": "Задача с параметрами",
+      "topicIds": [
+        "parameters"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "sequences",
+      "family": "applications",
+      "name": "Последовательности",
+      "topicIds": [
+        "sequences"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "financial",
+      "family": "applications",
+      "name": "Финансовая задача",
+      "topicIds": [
+        "financial_models"
+      ],
+      "inScope": true
+    },
+    {
+      "id": "integer_reasoning",
+      "family": "applications",
+      "name": "Числа и рассуждения",
+      "topicIds": [
+        "integer_reasoning"
+      ],
+      "inScope": true
     }
   ],
   "aliases": {}

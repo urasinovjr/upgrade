@@ -11,6 +11,7 @@ from app.worker import handle_job
 from loadgen import analyze, run
 from loadgen.matrix import build_plan, parse
 from loadgen.run import run_name
+from loadgen.scenario import Timing, Upload
 from loadgen.stand import ready_times
 from tests.conftest import FakeProvider, worker_context
 from tests.test_worker import claimed_job
@@ -34,6 +35,111 @@ def test_matrix_plan_follows_the_arguments():
 
     assert len(plan) == 10
     assert plan[0] == ("sync-idem", "normal", 1, 1, 1, "base")
+
+
+def test_bootstrap_resamples_independent_runs():
+    low, high = analyze.bootstrap_p95([[0.0] * 20, [100.0] * 20])
+
+    assert low == 0.0
+    assert high == 100.0
+
+
+def test_bootstrap_does_not_hide_a_run_without_observed_latency():
+    assert analyze.bootstrap_p95([[1.0, 2.0], []]) == (None, None)
+
+
+async def test_protocol_three_saves_a_run_without_successful_responses(tmp_path, monkeypatch):
+    async def no_op(*args):
+        return None
+
+    async def clock(*args):
+        return 0.0
+
+    async def empty(*args):
+        return {}
+
+    async def failed_upload(*args):
+        return {"first_send": 100.0, "upload_id": "one", "accepted": False}
+
+    for name in ("ensure_running", "reset_database", "configure_provider", "wait_until_settled"):
+        monkeypatch.setattr(run, name, no_op)
+    monkeypatch.setattr(run, "clock_offset", clock)
+    monkeypatch.setattr(run, "collect_outcomes", empty)
+    monkeypatch.setattr(run, "provider_stats", empty)
+    monkeypatch.setattr(run, "send_upload", failed_upload)
+    monkeypatch.setattr(run, "build_uploads", lambda *args: [Upload("one", "t", "s", 1, 0.0)])
+    monkeypatch.setattr(run, "PROTOCOL", 3)
+    monkeypatch.setattr(run, "RESULTS_DIR", tmp_path)
+
+    path = await run.run_once(None, "async", "normal", 1, 1, False, fault="none")
+
+    metadata = json.loads(path.with_suffix(".json").read_text())
+    rows = list(csv.DictReader(path.open()))
+    assert metadata["valid"] is True
+    assert metadata["uploads"] == 1
+    assert rows[0]["accepted"] == "False"
+    assert rows[0]["works"] == "0"
+
+
+def test_real_time_scenario_scales_all_client_delays():
+    timing = Timing.from_scale(1.0)
+
+    assert timing.window_seconds == 600.0
+    assert timing.client_timeout == 30.0
+    assert timing.retry_pause == 10.0
+    assert timing.poll_interval == 2.0
+    assert timing.crash_at == (200.0, 400.0)
+
+
+def test_api_failure_and_no_failure_have_separate_run_names():
+    assert run_name("async", "normal", 1, 1, fault="api").endswith("-fapi")
+    assert run_name("async", "normal", 1, 1, fault="none").endswith("-fnone")
+
+
+def test_incomplete_work_is_included_in_deadline_denominator():
+    rows = [
+        {**POLLED_ROW, "polled_ready_s": "10.0"},
+        {**POLLED_ROW, "polled_ready_s": "", "results": "0", "accepted": "False"},
+    ]
+
+    metrics = analyze.run_metrics(rows, protocol=3)
+
+    assert metrics["ready_within_limit"] == 1
+    assert metrics["uploads"] == 2
+
+
+def test_missing_records_are_separated_by_client_acknowledgement():
+    rows = [
+        {
+            **POLLED_ROW,
+            "accepted": "False",
+            "accept_s": "",
+            "works": "0",
+            "results": "0",
+            "ready_s": "",
+            "polled_ready_s": "",
+        },
+        {**POLLED_ROW, "works": "0", "results": "0", "ready_s": "", "polled_ready_s": ""},
+    ]
+
+    metrics = analyze.run_metrics(rows, protocol=3)
+
+    assert metrics["unconfirmed_missing"] == 1
+    assert metrics["acknowledged_missing"] == 1
+    assert metrics["lost"] == 2
+
+
+def test_protocol_three_requires_timely_results_for_all_uploads():
+    rows = [POLLED_ROW] + [
+        {**POLLED_ROW, "works": "1", "results": "0", "ready_s": "", "polled_ready_s": ""}
+    ] * 9
+    meta = {**ASYNC_META, "protocol": 3, "time_scale": 1.0}
+    metrics = analyze.run_metrics(rows, protocol=3)
+
+    summary = analyze.condition_summary(("async", "normal", 1, 1, "base"), [(meta, metrics)])
+
+    assert summary["ready_within_limit_share"] == 0.1
+    assert summary["meets_h1"] is False
 
 
 def write_run(folder, name: str, meta: dict, rows: list[dict]) -> None:

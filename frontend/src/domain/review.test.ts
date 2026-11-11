@@ -13,7 +13,7 @@ import {
 describe("confirmation and versions", () => {
   it("requires human review, clear steps and current inputs", () => {
     const work = seedState().works[0];
-    expect(reviewBlockers(work)).toContain("Задача 1: отметьте задачу проверенной.");
+    expect(reviewBlockers(work)).toContain("Задача 1: отметьте задачу проверенной");
     const draft = structuredClone(work.draft);
     draft.tasks.forEach((task) => (task.reviewed = true));
     draft.tasks[0].steps[0].latex = "x=100";
@@ -29,7 +29,7 @@ describe("confirmation and versions", () => {
     const draft = structuredClone(work.draft);
     Object.assign(draft.tasks[0], { condition: "", formula: "", conditionAttachmentIds: [] });
     const blank = applyDraft(work, draft);
-    expect(reviewBlockers(blank)).toContain("Задача 1: добавьте условие.");
+    expect(reviewBlockers(blank)).toContain("Задача 1: добавьте условие");
     const framed = structuredClone(blank.draft);
     framed.tasks[0].conditionRegion = {
       fileId,
@@ -37,7 +37,7 @@ describe("confirmation and versions", () => {
       region: { x: 0, y: 0, width: 1, height: 0.2 },
     };
     const withFrame = applyDraft(blank, framed);
-    expect(reviewBlockers(withFrame)).not.toContain("Задача 1: добавьте условие.");
+    expect(reviewBlockers(withFrame)).not.toContain("Задача 1: добавьте условие");
     expect(withFrame.draft.inputRevision).toBe(blank.draft.inputRevision + 1);
   });
   it("keeps the previous confirmed snapshot while editing and publishes idempotently", () => {

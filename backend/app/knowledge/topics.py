@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from app.knowledge.families import Family
+from app.knowledge.math_topics import MATH_TOPICS
 
 
 @dataclass(frozen=True)
@@ -358,4 +359,5 @@ TOPICS = (
         ("trig_equations",),
     ),
 )
+TOPICS += tuple(Topic(*values) for values in MATH_TOPICS)
 TOPIC_IDS = frozenset(topic.id for topic in TOPICS)

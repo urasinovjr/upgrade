@@ -159,6 +159,11 @@ def work_out(
         job=job_out(job),
         initial_analysis=initial_analysis(run),
         analysis=analysis_info(run),
+        assignment_id=work.assignment_id,
+        submission_snapshot=work.submission_snapshot,
+        task_files=work.task_files,
+        submitted_at=work.submitted_at,
+        late=work.late,
     )
 
 

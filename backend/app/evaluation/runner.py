@@ -40,6 +40,11 @@ EXPERT_COLUMNS = [
     "ai_explanation",
     "explanation_ok",
     "recognition_ok",
+    "expert_gap",
+    "ai_gap",
+    "transcription_complete_ok",
+    "gap_reason_ok",
+    "dependent_errors_ok",
     "note",
 ]
 
@@ -95,6 +100,11 @@ def card_task(work: WorkCard, card: TaskCard) -> Task:
         condition=card.condition,
         condition_attachment_ids=files or None,
         condition_region=card_region(work, card),
+        solution_attachment_ids=(
+            [file_id(work, index) for index in card.solution_files]
+            if card.solution_files is not None
+            else None
+        ),
         formula=card.formula,
         reference=card.reference,
         topic_id="",
@@ -180,6 +190,11 @@ def expert_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
         "ai_explanation": view["explanation"],
         "explanation_ok": "",
         "recognition_ok": "",
+        "expert_gap": "" if card.expected_gap is None else "yes" if card.expected_gap else "no",
+        "ai_gap": "yes" if task and task.gap else "no",
+        "transcription_complete_ok": "",
+        "gap_reason_ok": "",
+        "dependent_errors_ok": "",
         "note": "",
     }
 
@@ -187,6 +202,9 @@ def expert_row(work: WorkCard, card: TaskCard, task: Task | None) -> dict:
 def run_summary(record: RunRecord, error: str | None) -> dict:
     data = asdict(record)
     data["cost"] = str(record.cost)
+    data["actual_cost_usd"] = (
+        str(record.actual_cost_usd) if record.actual_cost_usd is not None else None
+    )
     data["error"] = error
     return data
 

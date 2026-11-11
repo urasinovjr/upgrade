@@ -46,7 +46,7 @@ function ConditionArea({
   return (
     <fieldset className="dp-condition-area">
       <legend>Условие на странице</legend>
-      <p>Если условие записано на фото, укажите страницу и область, где оно стоит.</p>
+      <p>Если условие записано на фото, укажите страницу и область, где оно стоит</p>
       <label>
         Страница с условием
         <select value={chosen} onChange={(event) => apply(values, event.target.value)}>

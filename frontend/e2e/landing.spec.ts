@@ -10,7 +10,7 @@ test.describe("with reduced motion", () => {
 
     const gap = page.locator(".dp-landing-gap");
     await expect(gap).toHaveAttribute("data-decision", "hypothesis");
-    await page.getByRole("button", { name: "Подтвердить пробел" }).click();
+    await page.getByRole("button", { name: "Подтвердить гипотезу" }).click();
     await expect(gap).toHaveAttribute("data-decision", "confirmed");
     await expect(gap.getByRole("heading", { name: "Пробел подтверждён" })).toBeVisible();
 
@@ -233,11 +233,15 @@ test.describe("with motion", () => {
     }
   });
 
-  test("the lamp follows a mouse and stays off on a touch screen", async ({ page, isMobile }) => {
+  test("the lamp follows a mouse and the notebook stays in a flat plane", async ({
+    page,
+    isMobile,
+  }) => {
     await page.goto("/welcome");
     const hero = page.locator(".dp-landing-hero");
     const lamp = page.locator(".dp-landing-lamp");
     const sheet = page.locator(".dp-landing-sheet");
+    await expect(sheet).not.toHaveAttribute("style", /perspective|rotate[XY]/);
     if (isMobile) {
       await hero.tap({ position: { x: 40, y: 40 } });
       await expect(lamp).not.toHaveAttribute("data-on");
@@ -248,6 +252,9 @@ test.describe("with motion", () => {
     await hero.hover({ position: { x: 1000, y: 260 } });
     await expect(lamp).toHaveAttribute("data-on", "true");
     await expect(sheet).toHaveAttribute("style", /rotate/);
+    await expect(sheet).not.toHaveAttribute("style", /perspective|rotate[XY]/);
+    await page.mouse.wheel(0, 120);
+    await expect(sheet).not.toHaveAttribute("style", /perspective|rotate[XY]/);
   });
 });
 

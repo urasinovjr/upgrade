@@ -9,6 +9,10 @@ export const familyIds = [
   "inequalities",
   "trigonometry",
   "mixed",
+  "geometry",
+  "functions",
+  "probability",
+  "applications",
 ] as const;
 export type FamilyId = (typeof familyIds)[number];
 

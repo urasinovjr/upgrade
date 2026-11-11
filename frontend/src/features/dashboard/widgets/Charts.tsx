@@ -60,7 +60,10 @@ function Meter({
 export function TopicErrors({ works, topics }: { works: Work[]; topics: Topic[] }) {
   const rows = errorsByTopic(works, topics);
   return (
-    <WidgetSection title="Ошибки по темам" caption="Доля шагов с ошибкой в подтверждённых работах">
+    <WidgetSection
+      title="Ошибки по темам"
+      caption="Доля шагов с ошибкой в опубликованных результатах"
+    >
       {rows.length ? (
         <ul className="dp-meter-list">
           {rows.map((row) => (
@@ -74,7 +77,7 @@ export function TopicErrors({ works, topics }: { works: Work[]; topics: Topic[] 
           ))}
         </ul>
       ) : (
-        <WidgetEmpty>Появится после первой подтверждённой работы.</WidgetEmpty>
+        <WidgetEmpty>Появится после первой публикации результата</WidgetEmpty>
       )}
     </WidgetSection>
   );
@@ -91,7 +94,7 @@ export function ReviewSpeed({ works }: { works: Work[] }) {
   const speed = reviewSpeed(works);
   const maximum = Math.max(1, ...speed.buckets.map((bucket) => bucket.count));
   return (
-    <WidgetSection title="Скорость проверки" caption="От загрузки до первого подтверждения">
+    <WidgetSection title="Скорость проверки" caption="От загрузки до первой публикации результата">
       {speed.median !== undefined ? (
         <>
           <p className="dp-insight-figure">
@@ -111,7 +114,7 @@ export function ReviewSpeed({ works }: { works: Work[] }) {
           </ul>
         </>
       ) : (
-        <WidgetEmpty>Появится после первого подтверждения работы.</WidgetEmpty>
+        <WidgetEmpty>Появится после первой публикации результата</WidgetEmpty>
       )}
     </WidgetSection>
   );
@@ -162,7 +165,7 @@ export function Closures({ closures }: { closures: Closure[] }) {
           ))}
         </ol>
       ) : (
-        <WidgetEmpty>За эти недели пробелы не закрывались.</WidgetEmpty>
+        <WidgetEmpty>За эти недели пробелы не закрывались</WidgetEmpty>
       )}
     </WidgetSection>
   );

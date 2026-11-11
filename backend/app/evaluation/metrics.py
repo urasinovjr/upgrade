@@ -126,6 +126,15 @@ def score(out: Path) -> str:
         "families": {name: asdict(item) for name, item in families.items()},
         "taskTypes": {name: asdict(item) for name, item in types.items()},
         "scenarios": {name: asdict(item) for name, item in scenarios.items()},
+        "quality": {
+            key: (
+                sum(row.get(key) == "yes" for row in rows)
+                / sum(row.get(key) in MARKS for row in rows)
+                if any(row.get(key) in MARKS for row in rows)
+                else None
+            )
+            for key in ("transcription_complete_ok", "gap_reason_ok", "dependent_errors_ok")
+        },
     }
     (out / "metrics.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), "utf-8")
     return "\n".join(lines)

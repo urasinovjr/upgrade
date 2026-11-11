@@ -59,6 +59,65 @@ class SimDraftProvider:
         }
         return await self.post("/draft/recognize", payload)
 
+    async def recognize_conditions(self, text: str, pages: list[PageImage]) -> ProviderReply:
+        tasks = [
+            {
+                "title": f"Задание {number}",
+                "condition": line,
+                "formula": "",
+                "topic_id": "",
+                "task_type_id": "",
+                "file_ids": [],
+                "exam": None,
+            }
+            for number, line in enumerate(text.split("\n\n"), 1)
+            if line.strip()
+        ]
+        if not text.strip() and pages:
+            tasks = [
+                {
+                    "title": "Задание 1",
+                    "condition": "В демонстрации перепишите условие с оригинала.",
+                    "formula": "",
+                    "topic_id": "",
+                    "task_type_id": "",
+                    "file_ids": list({page.file_id for page in pages}),
+                    "exam": None,
+                }
+            ]
+        return ProviderReply(
+            raw={"tasks": tasks}, provider=PROVIDER_NAME, model=MODEL, prompt_version="homework-1"
+        )
+
+    async def generate_material(self, topic_id: str, reason: str) -> ProviderReply:
+        return ProviderReply(
+            raw={
+                "explanation": (
+                    "Пример отработки. При сложении дробей приведите их к общему знаменателю."
+                ),
+                "exercises": [
+                    {
+                        "condition": "Вычислите 1/2 + 1/3.",
+                        "answer": "5/6",
+                        "solution": "1/2 + 1/3 = 3/6 + 2/6 = 5/6.",
+                    },
+                    {
+                        "condition": "Вычислите 1/4 + 1/6.",
+                        "answer": "5/12",
+                        "solution": "1/4 + 1/6 = 3/12 + 2/12 = 5/12.",
+                    },
+                    {
+                        "condition": "Вычислите 2/3 + 3/4.",
+                        "answer": "17/12",
+                        "solution": "2/3 + 3/4 = 8/12 + 9/12 = 17/12.",
+                    },
+                ],
+            },
+            provider=PROVIDER_NAME,
+            model=MODEL,
+            prompt_version="homework-1",
+        )
+
     async def review(
         self, tasks: list[ReviewTask], conditions: list[ConditionImage]
     ) -> ProviderReply:

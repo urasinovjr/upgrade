@@ -50,7 +50,7 @@ test.describe("with motion", () => {
     await page.goto("/dashboard");
     await page
       .getByRole("navigation", { name: "Основная навигация" })
-      .getByRole("link", { name: "Работы" })
+      .getByRole("link", { name: "Проверка" })
       .click();
     await expect(page).toHaveURL(/\/works$/);
     await page.locator(".dp-work-row").first().click();

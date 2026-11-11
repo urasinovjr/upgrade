@@ -2,7 +2,7 @@ name: upgrade
 
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
     command: postgres -c max_connections=200
     environment:
       POSTGRES_USER: upgrade
@@ -29,7 +29,7 @@ services:
       retries: 30
 
   s3:
-    image: chrislusf/seaweedfs:4.48
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
     command: server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -volume.max=100 -master.volumeSizeLimitMB=64
     ports:
       - "127.0.0.1:9000:8333"
@@ -42,7 +42,7 @@ services:
       retries: 60
 
   mailpit:
-    image: axllent/mailpit:v1.31.6
+    image: axllent/mailpit:v1.31.6@sha256:23fe39e81bde596a918000b3135c0f85dc8bb4c9ea6be274b051143f3e300387
     ports:
       - "127.0.0.1:1025:1025"
       - "127.0.0.1:8025:8025"
@@ -70,6 +70,11 @@ services:
       RATE_LIMIT_MAX_DELAY: ${RATE_LIMIT_MAX_DELAY:-120.0}
       ANALYSIS_VARIANT: ${ANALYSIS_VARIANT:-sim}
       ANALYSIS_API_KEY: ${ANALYSIS_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_PRIVACY_CONFIRMED: ${OPENROUTER_PRIVACY_CONFIRMED:-false}
+      ANALYSIS_CONCURRENCY: ${ANALYSIS_CONCURRENCY:-1}
+      ANALYSIS_TIMEOUT: ${ANALYSIS_TIMEOUT:-180}
+      HOMEWORK_INTERNAL_TEST: ${HOMEWORK_INTERNAL_TEST:-true}
       ANALYSIS_FOLDER_ID: ${ANALYSIS_FOLDER_ID:-}
       S3_ENDPOINT_URL: http://s3:8333
       SMTP_HOST: mailpit

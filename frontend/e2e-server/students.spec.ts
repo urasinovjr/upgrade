@@ -1,3 +1,4 @@
+import { submitRegistration } from "./setup";
 import { expect, test } from "./test";
 import { resetRateLimits } from "./database";
 import { mailedLink, uniqueEmail } from "./mailbox";
@@ -11,7 +12,7 @@ test("teacher archives, restores and deletes a student", async ({ page, request 
   await page.getByLabel("Пароль").fill("correct horse 42");
   await page.getByRole("checkbox", { name: /условия использования/ }).check();
   await page.getByRole("checkbox", { name: /обработку персональных данных/ }).check();
-  await page.getByRole("button", { name: "Создать аккаунт" }).click();
+  await submitRegistration(page);
   await page.goto(await mailedLink(request, email));
   await expect(page).toHaveURL(/\/dashboard$/);
 
@@ -29,7 +30,7 @@ test("teacher archives, restores and deletes a student", async ({ page, request 
   await expect(page.locator(".sidebar").getByRole("link", { name: "Пётр" })).toBeVisible();
 
   await page.getByRole("button", { name: "Удалить" }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Удалить" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Удалить ученика" }).click();
   await expect(page).toHaveURL(/\/students$/);
   await expect(page.locator(".sidebar").getByRole("link", { name: "Пётр" })).toHaveCount(0);
   await page.reload();

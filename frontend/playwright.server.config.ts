@@ -5,9 +5,14 @@ const externalUrl = process.env.E2E_BASE_URL;
 export default defineConfig({
   testDir: "./e2e-server",
   retries: 0,
+  workers: Number(process.env.E2E_WORKERS ?? 2),
   reporter: [["list"]],
   outputDir: "../output/playwright/server-results",
-  use: { baseURL: externalUrl ?? "http://127.0.0.1:5173", trace: "retain-on-failure" },
+  use: {
+    baseURL: externalUrl ?? "http://127.0.0.1:5173",
+    trace: "retain-on-failure",
+    ignoreHTTPSErrors: process.env.E2E_SELF_SIGNED_TLS === "1",
+  },
   webServer: externalUrl
     ? undefined
     : { command: "npm run dev:server", url: "http://127.0.0.1:5173", reuseExistingServer: false },

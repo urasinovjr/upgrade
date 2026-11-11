@@ -1,5 +1,4 @@
 import { expect, test } from "./onboarding";
-import { readFile } from "node:fs/promises";
 
 test(
   "dashboard navigation, filters and confirmed gaps follow current data",
@@ -21,18 +20,18 @@ test(
     await page.getByRole("button", { name: "Сбросить фильтры" }).click();
     await expect(page.locator(".work-row")).toHaveCount(5);
     await home.click();
-    await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
+    await page.getByRole("link", { name: "Опубликовано: 1", exact: true }).click();
     await expect(
       page
         .getByRole("group", { name: "Фильтр работ" })
-        .getByRole("button", { name: /^Подтверждены/ }),
+        .getByRole("button", { name: /^Опубликовано/ }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator(".work-row")).toHaveCount(1);
     await page.locator(".work-row").click();
     await page.getByRole("button", { name: "Начать новую версию", exact: true }).click();
     await home.click();
     await expect(page.getByRole("link", { name: "К проверке: 2", exact: true })).toBeVisible();
-    await page.getByRole("link", { name: "Подтверждены: 1", exact: true }).click();
+    await page.getByRole("link", { name: "Опубликовано: 1", exact: true }).click();
     await expect(page.locator(".work-row")).toHaveCount(1);
     await home.click();
     await page.locator(".dashboard-recommendation").click();
@@ -79,10 +78,10 @@ test(
       page.getByRole("link", { name: "Открытые пробелы: 1", exact: true }),
     ).toBeVisible();
     await page.goto("/works/demo-confirmed");
-    await page.getByRole("button", { name: "Отозвать", exact: true }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
+    await page.getByRole("button", { name: "Отозвать публикацию", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Отозвать публикацию" }).click();
     await home.click();
-    await expect(page.getByRole("link", { name: "Подтверждены: 0", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Опубликовано: 0", exact: true })).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Открытые пробелы: 0", exact: true }),
     ).toBeVisible();
@@ -103,9 +102,12 @@ test("an impossible day in the URL is ignored instead of breaking the queue", as
   }
 });
 
-test("quick upload validates files and hands off a batch exactly once", async ({ page }) => {
+test("dashboard starts homework and keeps uploads inside it", async ({ page }) => {
   await page.goto("/dashboard");
-  const input = page.getByLabel("Быстрая загрузка решения");
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  await page.getByRole("link", { name: "Создать ДЗ", exact: true }).click();
+  await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
+  const input = page.getByLabel("Добавить фотографии или PDF");
   await input.setInputFiles({
     name: "broken.png",
     mimeType: "image/png",
@@ -118,82 +120,41 @@ test("quick upload validates files and hands off a batch exactly once", async ({
     buffer: Buffer.alloc(20 * 1024 * 1024 + 1),
   });
   await expect(page.getByRole("alert")).toContainText("файл больше 20 МБ");
-  await input.setInputFiles(["e2e/fixtures/solution.png", "e2e/fixtures/solution.pdf"]);
-  await expect(page).toHaveURL(/\/works\/new$/);
-  await expect(page.getByRole("button", { name: "Удалить solution.png" })).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "Удалить solution.pdf" })).toHaveCount(1);
-  await page.getByRole("combobox", { name: "Ученик", exact: true }).selectOption("anna");
-  await page.getByRole("textbox", { name: "Название работы" }).fill("Загрузка с главной");
-  await page.getByRole("textbox", { name: "Условие текстом" }).fill("Решите x + 1 = 2");
-  await page.getByRole("button", { name: "Создать работу и открыть разбор" }).click();
-  await page.waitForURL(/\/works\/[^/]+$/);
-  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
+  await input.setInputFiles("e2e/fixtures/solution.png");
+  await expect(page.locator(".source-image")).toBeVisible();
+  await input.setInputFiles("e2e/fixtures/solution.pdf");
+  await expect(
+    page.getByRole("combobox", { name: "Оригинал работы" }).locator("option"),
+  ).toHaveCount(2);
   await page.reload();
-  await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
-  const original = page.getByRole("tab", { name: "Оригинал", exact: true });
-  if (await original.isVisible()) await original.click();
   await expect(
     page.getByRole("combobox", { name: "Оригинал работы" }).locator("option"),
   ).toHaveCount(2);
 });
 
-test("drop upload works; an unsaved form reload asks to choose files again", async ({ page }) => {
+test("unsaved homework text is restored after a reload", async ({ page }) => {
   await page.goto("/dashboard");
-  const input = page.getByLabel("Быстрая загрузка решения");
-  await input.focus();
-  await expect(input).toBeFocused();
-  const bytes = [...(await readFile("e2e/fixtures/solution.png"))];
-  const dataTransfer = await page.evaluateHandle((data) => {
-    const transfer = new DataTransfer();
-    transfer.items.add(new File([new Uint8Array(data)], "dropped.png", { type: "image/png" }));
-    return transfer;
-  }, bytes);
-  await page.locator(".dashboard-upload .dropzone").dispatchEvent("drop", { dataTransfer });
-  await expect(page).toHaveURL(/\/works\/new$/);
-  await expect(page.getByRole("button", { name: "Удалить dropped.png" })).toHaveCount(1);
+  await page.getByRole("link", { name: "Создать ДЗ", exact: true }).click();
+  await page.getByRole("button", { name: "Создать ДЗ", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Текст для распознавания" })
+    .fill("Докажите равенство углов.");
   page.once("dialog", (dialog) => void dialog.accept());
   await page.reload();
-  await expect(
-    page.getByText("Страница перезагрузилась, и файлы не сохранились.", { exact: false }),
-  ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Удалить dropped.png" })).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Текст для распознавания" })).toHaveValue(
+    "Докажите равенство углов.",
+  );
 });
 
-test("leaving during decoding does not redirect back to the upload form", async ({ page }) => {
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  let entered!: () => void;
-  const loading = new Promise<void>((resolve) => {
-    entered = resolve;
-  });
-  await page.route("**/src/shared/PdfPage.tsx", async (route) => {
-    entered();
-    await gate;
-    await route.continue();
-  });
+test("check queue opens homework without starting an independent upload", async ({ page }) => {
   await page.goto("/dashboard");
-  await page.getByLabel("Быстрая загрузка решения").setInputFiles("e2e/fixtures/solution.pdf");
-  await loading;
-  await expect(page.getByText("Проверяем файлы…", { exact: true })).toBeVisible();
   await page
     .getByRole("navigation", { name: "Основная навигация" })
-    .getByRole("link", { name: "Ученики", exact: true })
+    .getByRole("link", { name: "Проверка", exact: true })
     .click();
-  await expect(page.getByRole("heading", { name: "Ученики", exact: true })).toBeVisible();
-  const library = page.waitForResponse("**/src/shared/PdfPage.tsx");
-  release();
-  await library;
-  await page.waitForLoadState("networkidle");
-  await expect(page).toHaveURL(/\/students$/);
-  await page
-    .getByRole("navigation", { name: "Основная навигация" })
-    .getByRole("link", { name: "Работы", exact: true })
-    .click();
-  await page.getByRole("link", { name: "Новая работа", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Новая работа", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Удалить solution.pdf" })).toHaveCount(0);
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  await page.getByRole("link", { name: "Открыть ДЗ", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Домашние задания", exact: true })).toBeVisible();
 });
 
 test("empty dashboard and reading error provide a useful next action", async ({ page }) => {
@@ -215,7 +176,7 @@ test("empty dashboard and reading error provide a useful next action", async ({ 
   });
   await page.reload();
   await expect(page.getByRole("link", { name: "Ученики: 0", exact: true })).toBeVisible();
-  await expect(page.getByText("Добавьте первую работу", { exact: true })).toBeVisible();
+  await expect(page.getByText("Сдач пока нет", { exact: true })).toBeVisible();
   await expect(page.getByText("Открытых пробелов нет.", { exact: false })).toBeVisible();
   await page.getByRole("main").getByRole("link", { name: "Добавить ученика", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Новый ученик" })).toBeVisible();
@@ -229,12 +190,12 @@ test("empty dashboard and reading error provide a useful next action", async ({ 
       IDBObjectStore.prototype.get = original;
     };
     IDBObjectStore.prototype.get = function (...args: Parameters<typeof original>) {
-      if (this.name === "state") throw new Error("Тестовая ошибка чтения.");
+      if (this.name === "state") throw new Error("Тестовая ошибка чтения");
       return original.apply(this, args);
     };
   });
   await page.reload();
-  await expect(page.getByRole("alert")).toContainText("Тестовая ошибка чтения.");
+  await expect(page.getByRole("alert")).toContainText("Тестовая ошибка чтения");
   await page.evaluate(() =>
     (window as Window & { restoreReading?: () => void }).restoreReading?.(),
   );

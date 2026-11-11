@@ -17,7 +17,7 @@ test("a new cabinet starts the tour once and remembers the choice", async ({ pag
   await page.reload();
 
   const tour = page.getByRole("dialog");
-  await expect(tour.getByRole("heading", { name: "Начните с новой работы" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Начните с ДЗ" })).toBeVisible();
   const total = isMobile ? 4 : 5;
   await expect(tour).toContainText(`Шаг 1 из ${total}`);
   await expect(tour).toBeFocused();
@@ -86,7 +86,6 @@ test("the tour started from another page finds every target", async ({ page, isM
 
 test("each first-visit hint shows once", async ({ page }) => {
   for (const [path, title] of [
-    ["/works/new", "Как добавить работу"],
     ["/works/demo-ready", "Это черновик ИИ"],
     ["/students/anna", "Как читать карту знаний"],
   ]) {

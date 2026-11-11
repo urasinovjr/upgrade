@@ -23,27 +23,42 @@ from loadgen.stand import (
     wait_until_settled,
 )
 
-PROTOCOL = 2
+PROTOCOL = int(os.environ.get("STAND_PROTOCOL", "2"))
 PROTOCOL_DIRS = {
     1: Path(__file__).resolve().parent / "results",
     2: Path(__file__).resolve().parent / "results" / "protocol-2",
+    3: Path(
+        os.environ.get(
+            "STAND_RESULTS_DIR", str(Path(__file__).resolve().parent / "results" / "protocol-3")
+        )
+    ),
 }
 RESULTS_DIR = PROTOCOL_DIRS[PROTOCOL] / "runs"
-DATABASE_URL = "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
-API_URL = "http://localhost:8010"
-SIM_URL = "http://localhost:8011"
+DATABASE_URL = os.environ.get(
+    "STAND_DATABASE_URL", "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
+)
+API_URL = os.environ.get("STAND_API_URL", "http://localhost:8010")
+SIM_URL = os.environ.get("STAND_SIM_URL", "http://localhost:8011")
 PROCESSING_SERVICE = {"sync": "api", "async": "worker", "sync-idem": "api"}
 MODES = list(PROCESSING_SERVICE)
 
 
 def run_name(
-    mode: str, profile: str, level: int, seed: int, workers: int = 1, condition: str = "base"
+    mode: str,
+    profile: str,
+    level: int,
+    seed: int,
+    workers: int = 1,
+    condition: str = "base",
+    fault: str = "processing",
 ) -> str:
     name = f"{mode}-{profile}-x{level}-s{seed}"
     if workers != 1:
         name += f"-w{workers}"
     if condition != "base":
         name += f"-c{condition}"
+    if fault != "processing":
+        name += f"-f{fault}"
     return name
 
 
@@ -76,6 +91,7 @@ async def run_once(
     crashes: bool,
     workers: int = 1,
     condition: str = "base",
+    fault: str = "processing",
 ) -> Path:
     setup = CONDITIONS[condition]
     await ensure_running(workers, setup.env)
@@ -90,10 +106,10 @@ async def run_once(
     limits = httpx.Limits(max_connections=2000, max_keepalive_connections=200)
     async with httpx.AsyncClient(base_url=API_URL, limits=limits, trust_env=False) as http:
         started = time.time() + 1.0
-        service = PROCESSING_SERVICE[mode]
+        service = "api" if fault == "api" else PROCESSING_SERVICE[mode]
         replicas = workers if service == "worker" else 1
         crash = None
-        if crashes:
+        if crashes and fault != "none":
             crash = asyncio.create_task(crash_processing(service, started, replicas, offset))
         client_rows = await asyncio.gather(
             *(send_upload(http, mode, upload, started, page) for upload in uploads)
@@ -104,7 +120,7 @@ async def run_once(
 
     outcomes = await collect_outcomes(engine)
     rows = [merge_row(row, outcomes.get(row["upload_id"]), offset) for row in client_rows]
-    name = run_name(mode, profile, level, seed, workers, condition)
+    name = run_name(mode, profile, level, seed, workers, condition, fault)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     csv_path = RESULTS_DIR / f"{name}.csv"
     with csv_path.open("w", newline="") as file:
@@ -121,10 +137,11 @@ async def run_once(
         "condition": condition,
         "condition_env": setup.env,
         "protocol": PROTOCOL,
+        "fault": fault,
         "poll_interval": POLL_INTERVAL,
         "time_scale": TIME_SCALE,
         "uploads": len(uploads),
-        "valid": any(row["accepted"] for row in client_rows),
+        "valid": PROTOCOL >= 3 or any(row["accepted"] for row in client_rows),
         "clock_offset": offset,
         "restarts": restarts,
         "provider": await provider_stats(SIM_URL),
@@ -142,6 +159,7 @@ async def main() -> None:
     parser.add_argument("--no-crashes", action="store_true")
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--condition", choices=list(CONDITIONS), default="base")
+    parser.add_argument("--fault", choices=["processing", "api", "none"], default="processing")
     args = parser.parse_args()
     engine = create_async_engine(DATABASE_URL)
     try:
@@ -154,6 +172,7 @@ async def main() -> None:
             not args.no_crashes,
             args.workers,
             args.condition,
+            "none" if args.no_crashes else args.fault,
         )
     finally:
         await engine.dispose()

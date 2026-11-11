@@ -13,6 +13,7 @@ import { defaultLayout, normalizeLayout, type DashboardLayout } from "../domain/
 import { emptyOnboarding, normalizeOnboarding, type Onboarding } from "../domain/onboarding";
 import { request, requestBlob } from "./api";
 import type { Gateway } from "./gateway";
+import { httpHomework } from "./httpHomework";
 
 const layoutPath = "/account/preferences/dashboard-layout";
 const onboardingPath = "/account/preferences/onboarding";
@@ -39,6 +40,7 @@ async function putLayout(id: string, attachments: Attachment[]) {
 }
 
 export const httpGateway: Gateway = {
+  homework: httpHomework,
   async read() {
     const state = await request<StoreState>("/state");
     state.works.forEach(remember);

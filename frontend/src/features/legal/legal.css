@@ -1,0 +1,35 @@
+.legal-page {
+  min-height: 100svh;
+  padding: clamp(20px, 5vw, 64px) 20px;
+}
+
+.legal-document {
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.legal-document h1 {
+  margin-top: 36px;
+  font-size: clamp(24px, 5vw, 36px);
+  line-height: 1.25;
+}
+
+.legal-document h2 {
+  margin-top: 32px;
+  font-size: 20px;
+}
+
+.legal-document nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 36px;
+}
+
+.legal-document nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

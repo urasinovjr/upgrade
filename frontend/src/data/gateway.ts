@@ -3,8 +3,10 @@ import type { DashboardLayout } from "../domain/dashboardLayout";
 import type { Onboarding } from "../domain/onboarding";
 import { httpGateway } from "./httpGateway";
 import { localGateway } from "./localGateway";
+import type { HomeworkGateway } from "../domain/homework";
 
 export interface Gateway {
+  homework: HomeworkGateway;
   read(): Promise<StoreState>;
   asset(id: string): Promise<Blob>;
   student(student: Student): Promise<void>;

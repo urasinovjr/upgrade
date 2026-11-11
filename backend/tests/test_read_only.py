@@ -20,7 +20,7 @@ async def test_expired_subscription_blocks_changes_but_not_reading(teacher, sess
     assert create.status_code == 402
     assert create.json() == {"detail": "subscription_inactive"}
     assert closure.status_code == 402
-    assert archive.status_code == 200
+    assert archive.status_code == 402
     assert layout.status_code == 204
     assert state.status_code == 200
 

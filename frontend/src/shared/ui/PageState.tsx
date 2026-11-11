@@ -9,6 +9,7 @@ export function PageState({
   title,
   description,
   error,
+  errorTitle,
   retry,
   to,
   linkLabel,
@@ -18,12 +19,11 @@ export function PageState({
   title: string;
   description?: string;
   error?: unknown;
-  retry?: () => void;
   to?: string;
   linkLabel?: string;
   icon?: LucideIcon;
   level?: 1 | 2;
-}) {
+} & ({ retry: () => void; errorTitle: string } | { retry?: never; errorTitle?: never })) {
   const Heading = level === 1 ? "h1" : "h2";
   const SubHeading = level === 1 ? "h2" : "h3";
   const failedLoad = Boolean(retry);
@@ -38,13 +38,9 @@ export function PageState({
             <path d="M18 40C14 24 30 10 46 9c16-1 28 9 27 24-1 16-18 25-36 24C21 56 9 46 13 32c2-8 9-14 17-17" />
           </svg>
         </span>
-        {failedLoad ? (
-          <SubHeading>Не удалось загрузить данные</SubHeading>
-        ) : (
-          <Heading>{title}</Heading>
-        )}
+        {failedLoad ? <SubHeading>{errorTitle}</SubHeading> : <Heading>{title}</Heading>}
         {(description || failedLoad) && (
-          <p>{description || "Проверьте подключение и попробуйте ещё раз."}</p>
+          <p>{description || "Проверьте подключение и попробуйте ещё раз"}</p>
         )}
         <ErrorMessage error={error} />
         {(retry || to) && (

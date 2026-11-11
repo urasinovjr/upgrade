@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.analysis import start_analysis
 from app.config import Settings
 from app.errors import DomainError
+from app.events import record_event
 from app.students import StudentOut, owned_student
 from app.works.models import AnalysisRun, Work, WorkFile, WorkRevision
 from app.works.page_checks import kept_checks, stored_crops, stored_masks, valid_masks
@@ -54,6 +55,9 @@ async def save_draft(
     stored = read_draft(work)
     if stored.revision != base_revision:
         raise DomainError("draft_conflict", {"revision": stored.revision})
+    from app.homework.submissions import frozen_conditions
+
+    frozen_conditions(work, proposed)
     draft = apply_draft(stored, proposed)
     keep_known_attachments(draft, await file_ids(session, work_id))
     check_draft_size(draft, settings)
@@ -150,6 +154,10 @@ async def confirm(session: AsyncSession, work: Work) -> None:
     work.status = "confirmed"
     work.editing = False
     work.current_revision_id = revision.id
+    await record_event(session, work.teacher_id, "teacher_confirmed", revision.id)
+    await record_event(session, work.teacher_id, "result_published", revision.id)
+    if any(task.result == "needs_clarification" for task in draft.tasks):
+        await record_event(session, work.teacher_id, "clarification_published", revision.id)
 
 
 async def begin_revision(session: AsyncSession, work: Work) -> None:

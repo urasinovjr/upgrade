@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from typing import Annotated
 
 from fastapi import Depends, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.access import CurrentAccount, check_origin, load_current_account
@@ -10,6 +11,7 @@ from app.billing import current_state
 from app.config import Settings
 from app.errors import DomainError
 from app.files import Storage
+from app.homework.models import StudentAccess
 from app.provider import Provider
 
 
@@ -48,7 +50,13 @@ def verify_origin(request: Request, settings: SettingsDep) -> None:
 async def get_current_account(
     request: Request, session: SessionDep, settings: SettingsDep
 ) -> CurrentAccount:
-    return await load_current_account(request, session, settings)
+    current = await load_current_account(request, session, settings)
+    access = await session.scalar(
+        select(StudentAccess).where(StudentAccess.user_id == current.user.id)
+    )
+    if access is not None:
+        raise DomainError("teacher_required")
+    return current
 
 
 CurrentAccountDep = Annotated[CurrentAccount, Depends(get_current_account)]

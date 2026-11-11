@@ -35,7 +35,7 @@ export function Focus({ summary }: { summary: DashboardSummary }) {
         </ul>
       ) : (
         <p className="dp-recs-empty">
-          Открытых пробелов нет. Они появятся, когда вы подтвердите работы.
+          Открытых пробелов нет. Они появятся, когда вы опубликуете результаты
         </p>
       )}
     </aside>

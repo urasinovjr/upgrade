@@ -111,8 +111,8 @@
 }
 .media-canvas {
   scroll-margin-top: 96px;
-  min-height: 280px;
-  height: clamp(280px, calc(100dvh - 300px), 620px);
+  min-height: 0;
+  max-height: clamp(280px, calc(100dvh - 300px), 620px);
   overflow: auto;
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
@@ -179,8 +179,15 @@
     min-height: 44px;
   }
   .media-canvas {
-    height: clamp(280px, 55dvh, 480px);
+    max-height: clamp(280px, 55dvh, 480px);
   }
+}
+.media-compact .media-canvas {
+  max-height: 220px;
+}
+.dp-app .media-viewer .media-controls .media-expand {
+  width: auto;
+  padding-inline: var(--ug-space-2);
 }
 .media-page {
   position: relative;

@@ -19,7 +19,7 @@ export function CropControls({
         onApply(rectFromPercent(values, 0.05));
       }}
     >
-      <p>Область для разбора в процентах. Исходный файл не меняется.</p>
+      <p>Область для разбора в процентах. Исходный файл не меняется</p>
       <RectFields values={values} setValues={setValues} minSize={0.05} />
       <button type="submit" className="dp-primary">
         Сохранить обрезку

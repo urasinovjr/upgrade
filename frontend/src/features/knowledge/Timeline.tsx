@@ -41,7 +41,7 @@ function timelineEvents(works: Work[], closures: Closure[]): Event[] {
         id: revision.id,
         at: revision.confirmedAt,
         kind: "confirmed" as const,
-        title: `Подтверждена версия ${revision.number}`,
+        title: `Версия ${revision.number} опубликована`,
         text: work.title,
         href: `/works/${work.id}/report?revision=${revision.id}`,
         studentId: work.studentId,
@@ -106,7 +106,7 @@ export function Timeline({
         );
       })}
       {!events.length && (
-        <li className="dp-timeline-empty">История появится после первой работы.</li>
+        <li className="dp-timeline-empty">История появится после первой работы</li>
       )}
     </ol>
   );

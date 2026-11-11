@@ -1,3 +1,4 @@
+import { submitRegistration } from "./setup";
 import { type APIRequestContext, type Page } from "@playwright/test";
 import { expect, test } from "./test";
 import { endSubscription, resetRateLimits } from "./database";
@@ -13,7 +14,7 @@ async function signUp(page: Page, request: APIRequestContext, email: string) {
   await page.getByLabel("Пароль").fill(password);
   await page.getByRole("checkbox", { name: /условия использования/ }).check();
   await page.getByRole("checkbox", { name: /обработку персональных данных/ }).check();
-  await page.getByRole("button", { name: "Создать аккаунт" }).click();
+  await submitRegistration(page);
   await page.goto(await mailedLink(request, email));
   await expect(page).toHaveURL(/\/dashboard$/);
 }
@@ -31,7 +32,7 @@ test("expired subscription switches the workspace to read-only", async ({ page, 
   await expect(page.getByRole("status").filter({ hasText: "можно только смотреть" })).toBeVisible();
   await page.goto("/students");
   await expect(page.getByRole("button", { name: "Добавить ученика" }).first()).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Новая работа" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Открыть ДЗ" })).toBeDisabled();
 });
 
 test("teacher deletes the account from settings", async ({ page, request }) => {
@@ -51,5 +52,5 @@ test("teacher deletes the account from settings", async ({ page, request }) => {
   await page.getByLabel("Почта").fill(email);
   await page.getByLabel("Пароль").fill(password);
   await page.getByRole("button", { name: "Войти", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Неверная почта или пароль");
+  await expect(page.getByRole("alert")).toContainText("Не удалось войти. Проверьте логин и пароль");
 });

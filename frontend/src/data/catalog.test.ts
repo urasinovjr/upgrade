@@ -36,6 +36,6 @@ describe("topic catalog", () => {
   it("links every task type in scope to known topics", () => {
     for (const item of taskTypes.filter((entry) => entry.inScope))
       expect(item.topicIds.every((id) => topics.some((topic) => topic.id === id))).toBe(true);
-    expect(taskTypeById("derivative")?.inScope).toBe(false);
+    expect(taskTypeById("derivative")?.inScope).toBe(true);
   });
 });

@@ -94,8 +94,8 @@ async def test_deletion_works_without_subscription(teacher, sessions):
     work = await create_work(teacher, student_id)
     await end_all_subscriptions(sessions)
 
-    assert (await teacher.delete(f"/api/works/{work['id']}")).status_code == 204
-    assert (await teacher.delete(f"/api/students/{student_id}")).status_code == 204
+    assert (await teacher.delete(f"/api/works/{work['id']}")).status_code == 402
+    assert (await teacher.delete(f"/api/students/{student_id}")).status_code == 402
     assert (await delete_account(teacher)).status_code == 204
 
 

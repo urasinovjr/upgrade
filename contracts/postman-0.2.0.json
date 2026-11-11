@@ -1,0 +1,2345 @@
+{
+  "info": {
+    "name": "UpGrade 0.2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Фактические маршруты API. Схемы тел и ответов: openapi-0.2.0.json. Репетитор и ученик используют отдельные сессии. Результат ИИ проверяет репетитор перед публикацией."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8010"
+    },
+    {
+      "key": "origin",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Read Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "config"
+              ],
+              "variable": []
+            },
+            "description": "read_config_api_auth_config_get"
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ],
+              "variable": []
+            },
+            "description": "register_api_auth_register_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{Email}}\",\n  \"password\": \"{{Password}}\",\n  \"displayName\": \"{{Displayname}}\",\n  \"acceptTerms\": false,\n  \"acceptPersonalData\": false,\n  \"termsVersion\": \"{{Termsversion}}\",\n  \"personalDataVersion\": \"{{Personaldataversion}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "confirm"
+              ],
+              "variable": []
+            },
+            "description": "confirm_api_auth_confirm_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{Token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Resend Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-confirmation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-confirmation"
+              ],
+              "variable": []
+            },
+            "description": "resend_confirmation_api_auth_resend_confirmation_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{Email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password-reset/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password-reset",
+                "request"
+              ],
+              "variable": []
+            },
+            "description": "request_password_reset_api_auth_password_reset_request_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{Email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password-reset/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password-reset",
+                "confirm"
+              ],
+              "variable": []
+            },
+            "description": "reset_password_api_auth_password_reset_confirm_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{Token}}\",\n  \"password\": \"{{Password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "variable": []
+            },
+            "description": "login_api_auth_login_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{Email}}\",\n  \"password\": \"{{Password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Read Session",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "session"
+              ],
+              "variable": []
+            },
+            "description": "read_session_api_auth_session_get"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ],
+              "variable": []
+            },
+            "description": "logout_api_auth_logout_post"
+          }
+        },
+        {
+          "name": "Start Provider Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/oauth/:provider/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "oauth",
+                ":provider",
+                "start"
+              ],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "{{provider}}"
+                }
+              ]
+            },
+            "description": "start_provider_login_api_auth_oauth__provider__start_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Finish Provider Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/oauth/:provider/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "oauth",
+                ":provider",
+                "callback"
+              ],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "{{provider}}"
+                }
+              ]
+            },
+            "description": "finish_provider_login_api_auth_oauth__provider__callback_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{Code}}\",\n  \"state\": \"{{State}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "account",
+      "item": [
+        {
+          "name": "Read Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account"
+              ],
+              "variable": []
+            },
+            "description": "read_account_api_account_get"
+          }
+        },
+        {
+          "name": "Remove Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account"
+              ],
+              "variable": []
+            },
+            "description": "remove_account_api_account_delete",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Start Provider Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account/identities/:provider/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account",
+                "identities",
+                ":provider",
+                "start"
+              ],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "{{provider}}"
+                }
+              ]
+            },
+            "description": "start_provider_link_api_account_identities__provider__start_post"
+          }
+        },
+        {
+          "name": "Unlink Provider",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account/identities/:provider",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account",
+                "identities",
+                ":provider"
+              ],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "{{provider}}"
+                }
+              ]
+            },
+            "description": "unlink_provider_api_account_identities__provider__delete"
+          }
+        },
+        {
+          "name": "Read Account Preference",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account/preferences/:key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account",
+                "preferences",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "{{key}}"
+                }
+              ]
+            },
+            "description": "read_account_preference_api_account_preferences__key__get"
+          }
+        },
+        {
+          "name": "Save Account Preference",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/account/preferences/:key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "account",
+                "preferences",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "{{key}}"
+                }
+              ]
+            },
+            "description": "save_account_preference_api_account_preferences__key__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "billing",
+      "item": [
+        {
+          "name": "Read Subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/subscription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "subscription"
+              ],
+              "variable": []
+            },
+            "description": "read_subscription_api_subscription_get"
+          }
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ],
+              "variable": []
+            },
+            "description": "list_plans_api_plans_get"
+          }
+        }
+      ]
+    },
+    {
+      "name": "state",
+      "item": [
+        {
+          "name": "Read State",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/state",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "state"
+              ],
+              "variable": []
+            },
+            "description": "read_state_api_state_get"
+          }
+        }
+      ]
+    },
+    {
+      "name": "students",
+      "item": [
+        {
+          "name": "Put Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/students/:student_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                ":student_id"
+              ],
+              "variable": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "put_student_api_students__student_id__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{Name}}\",\n  \"grade\": 9.0,\n  \"goal\": \"{{Goal}}\",\n  \"color\": \"teal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Archive Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/students/:student_id/archive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                ":student_id",
+                "archive"
+              ],
+              "variable": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "archive_student_api_students__student_id__archive_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"archived\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "works",
+      "item": [
+        {
+          "name": "Remove Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/students/:student_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                ":student_id"
+              ],
+              "variable": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "remove_student_api_students__student_id__delete"
+          }
+        },
+        {
+          "name": "Post Work",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works"
+              ],
+              "variable": []
+            },
+            "description": "post_work_api_works_post"
+          }
+        },
+        {
+          "name": "Get Work",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "get_work_api_works__work_id__get"
+          }
+        },
+        {
+          "name": "Remove Work",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "remove_work_api_works__work_id__delete"
+          }
+        },
+        {
+          "name": "Put Draft",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "draft"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "put_draft_api_works__work_id__draft_put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"baseRevision\": 0,\n  \"draft\": {\n    \"revision\": 0,\n    \"inputRevision\": 0,\n    \"analysedInputRevision\": 0,\n    \"tasks\": []\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Put Attachments",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/attachments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "attachments"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "put_attachments_api_works__work_id__attachments_put",
+            "body": {
+              "mode": "raw",
+              "raw": "[]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Post Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/actions/:action",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "actions",
+                ":action"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                },
+                {
+                  "key": "action",
+                  "value": "{{action}}"
+                }
+              ]
+            },
+            "description": "post_action_api_works__work_id__actions__action__post"
+          }
+        },
+        {
+          "name": "Get Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "report"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "get_report_api_works__work_id__report_get"
+          }
+        },
+        {
+          "name": "Get Sent Pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/analysis/pages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "analysis",
+                "pages"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                }
+              ]
+            },
+            "description": "get_sent_pages_api_works__work_id__analysis_pages_get"
+          }
+        },
+        {
+          "name": "Get Sent Page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/works/:work_id/analysis/pages/:index",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "works",
+                ":work_id",
+                "analysis",
+                "pages",
+                ":index"
+              ],
+              "variable": [
+                {
+                  "key": "work_id",
+                  "value": "{{work_id}}"
+                },
+                {
+                  "key": "index",
+                  "value": "{{index}}"
+                }
+              ]
+            },
+            "description": "get_sent_page_api_works__work_id__analysis_pages__index__get"
+          }
+        },
+        {
+          "name": "Get File",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/:file_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                ":file_id"
+              ],
+              "variable": [
+                {
+                  "key": "file_id",
+                  "value": "{{file_id}}"
+                }
+              ]
+            },
+            "description": "get_file_api_files__file_id__get"
+          }
+        }
+      ]
+    },
+    {
+      "name": "knowledge",
+      "item": [
+        {
+          "name": "Create Closure",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/students/:student_id/closures",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                ":student_id",
+                "closures"
+              ],
+              "variable": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "create_closure_api_students__student_id__closures_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topicId\": \"{{Topicid}}\",\n  \"action\": \"close\",\n  \"note\": \"{{Note}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "events",
+      "item": [
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "variable": []
+            },
+            "description": "list_events_api_events_get"
+          }
+        }
+      ]
+    },
+    {
+      "name": "homework",
+      "item": [
+        {
+          "name": "Exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/exams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                "exams"
+              ],
+              "variable": []
+            },
+            "description": "exams_api_homework_exams_get"
+          }
+        },
+        {
+          "name": "List Homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework"
+              ],
+              "variable": []
+            },
+            "description": "list_homework_api_homework_get"
+          }
+        },
+        {
+          "name": "Get Homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "get_homework_api_homework__homework_id__get"
+          }
+        },
+        {
+          "name": "Save",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "save_api_homework__homework_id__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{Title}}\",\n  \"baseRevision\": 0.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Assign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "assign"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "assign_api_homework__homework_id__assign_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentIds\": [\n    \"{{$guid}}\"\n  ],\n  \"baseRevision\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Deadline",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/deadline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "deadline"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "deadline_api_homework__homework_id__deadline_put",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/copy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "copy"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "copy_api_homework__homework_id__copy_post"
+          }
+        },
+        {
+          "name": "Invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/students/:student_id/invitation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "students",
+                ":student_id",
+                "invitation"
+              ],
+              "variable": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "invitation_api_students__student_id__invitation_post"
+          }
+        },
+        {
+          "name": "Submission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/:assignment_id/submissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assignments",
+                ":assignment_id",
+                "submissions"
+              ],
+              "variable": [
+                {
+                  "key": "assignment_id",
+                  "value": "{{assignment_id}}"
+                }
+              ]
+            },
+            "description": "submission_api_assignments__assignment_id__submissions_post",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "meta",
+                  "value": "{\"id\":\"{{$guid}}\",\"taskFiles\":{}}",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "files"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "upload_file_api_homework__homework_id__files_post",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "File Layout",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/files/:file_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "files",
+                ":file_id"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                },
+                {
+                  "key": "file_id",
+                  "value": "{{file_id}}"
+                }
+              ]
+            },
+            "description": "file_layout_api_homework__homework_id__files__file_id__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"pageOrder\": [\n    0\n  ],\n  \"crops\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get File",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework-files/:file_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework-files",
+                ":file_id"
+              ],
+              "variable": [
+                {
+                  "key": "file_id",
+                  "value": "{{file_id}}"
+                }
+              ]
+            },
+            "description": "get_file_api_homework_files__file_id__get"
+          }
+        },
+        {
+          "name": "Recognize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework/:homework_id/recognize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework",
+                ":homework_id",
+                "recognize"
+              ],
+              "variable": [
+                {
+                  "key": "homework_id",
+                  "value": "{{homework_id}}"
+                }
+              ]
+            },
+            "description": "recognize_api_homework__homework_id__recognize_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"baseRevision\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Job",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/homework-jobs/:job_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "homework-jobs",
+                ":job_id"
+              ],
+              "variable": [
+                {
+                  "key": "job_id",
+                  "value": "{{job_id}}"
+                }
+              ]
+            },
+            "description": "get_job_api_homework_jobs__job_id__get"
+          }
+        },
+        {
+          "name": "Generate Material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "materials"
+              ],
+              "variable": []
+            },
+            "description": "generate_material_api_materials_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workId\": \"{{$guid}}\",\n  \"taskId\": \"{{Taskid}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Materials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "materials"
+              ],
+              "variable": []
+            },
+            "description": "list_materials_api_materials_get"
+          }
+        },
+        {
+          "name": "Save Material",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/materials/:job_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "materials",
+                ":job_id"
+              ],
+              "variable": [
+                {
+                  "key": "job_id",
+                  "value": "{{job_id}}"
+                }
+              ]
+            },
+            "description": "save_material_api_materials__job_id__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"explanation\": \"{{Explanation}}\",\n  \"exercises\": [\n    {\n      \"condition\": \"{{Condition}}\",\n      \"answer\": \"{{Answer}}\",\n      \"solution\": \"{{Solution}}\"\n    },\n    {\n      \"condition\": \"{{Condition}}\",\n      \"answer\": \"{{Answer}}\",\n      \"solution\": \"{{Solution}}\"\n    },\n    {\n      \"condition\": \"{{Condition}}\",\n      \"answer\": \"{{Answer}}\",\n      \"solution\": \"{{Solution}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "student",
+      "item": [
+        {
+          "name": "Activate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "activate"
+              ],
+              "variable": []
+            },
+            "description": "activate_api_student_activate_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{Token}}\",\n  \"password\": \"{{Password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "login"
+              ],
+              "variable": []
+            },
+            "description": "login_api_student_login_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{Login}}\",\n  \"password\": \"{{Password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Session",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "session"
+              ],
+              "variable": []
+            },
+            "description": "get_session_api_student_session_get"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "logout"
+              ],
+              "variable": []
+            },
+            "description": "logout_api_student_logout_post"
+          }
+        },
+        {
+          "name": "State",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/state",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "state"
+              ],
+              "variable": []
+            },
+            "description": "state_api_student_state_get"
+          }
+        },
+        {
+          "name": "Post Submission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/assignments/:assignment_id/submissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "assignments",
+                ":assignment_id",
+                "submissions"
+              ],
+              "variable": [
+                {
+                  "key": "assignment_id",
+                  "value": "{{assignment_id}}"
+                }
+              ]
+            },
+            "description": "post_submission_api_student_assignments__assignment_id__submissions_post",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "meta",
+                  "value": "{\"id\":\"{{$guid}}\",\"taskFiles\":{}}",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "File",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/files/:file_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "files",
+                ":file_id"
+              ],
+              "variable": [
+                {
+                  "key": "file_id",
+                  "value": "{{file_id}}"
+                }
+              ]
+            },
+            "description": "file_api_student_files__file_id__get"
+          }
+        }
+      ]
+    },
+    {
+      "name": "timing",
+      "item": [
+        {
+          "name": "Active Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing",
+                "summary"
+              ],
+              "variable": []
+            },
+            "description": "active_summary_api_timing_summary_get"
+          }
+        },
+        {
+          "name": "Read Timing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing"
+              ],
+              "variable": []
+            },
+            "description": "read_timing_api_timing_get"
+          }
+        },
+        {
+          "name": "Post Intervals",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing/intervals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing",
+                "intervals"
+              ],
+              "variable": []
+            },
+            "description": "post_intervals_api_timing_intervals_post",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intervals\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Manual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing/manual",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing",
+                "manual"
+              ],
+              "variable": []
+            },
+            "description": "get_manual_api_timing_manual_get"
+          }
+        },
+        {
+          "name": "Put Manual",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing/manual/:session_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing",
+                "manual",
+                ":session_id"
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}"
+                }
+              ]
+            },
+            "description": "put_manual_api_timing_manual__session_id__put",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{$guid}}\",\n  \"taskCount\": 1.0,\n  \"taskFamily\": \"expressions\",\n  \"activeSeconds\": 0.0,\n  \"startedAt\": \"{{$isoTimestamp}}\",\n  \"finishedAt\": \"{{$isoTimestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remove Manual",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{origin}}"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/timing/manual/:session_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "timing",
+                "manual",
+                ":session_id"
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}"
+                }
+              ]
+            },
+            "description": "remove_manual_api_timing_manual__session_id__delete"
+          }
+        }
+      ]
+    }
+  ]
+}

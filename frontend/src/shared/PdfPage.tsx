@@ -53,10 +53,10 @@ export default function PdfPage({
       file={url}
       onLoadSuccess={({ numPages }) => onPages?.(numPages)}
       onLoadError={() =>
-        setError("PDF не удалось открыть. Проверьте файл или загрузите его заново.")
+        setError("PDF не удалось открыть. Проверьте файл или загрузите его заново")
       }
       loading={<p>Открываем PDF…</p>}
-      error={<p role="alert">{error || "Не удалось открыть PDF."}</p>}
+      error={<p role="alert">{error || "Не удалось открыть PDF"}</p>}
     >
       <Page
         pageNumber={page}

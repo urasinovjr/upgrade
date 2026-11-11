@@ -53,6 +53,13 @@ class Work(Base):
     analysis_job_id: Mapped[UUID | None]
     analysis_run_id: Mapped[UUID | None]
     created_at: Mapped[datetime] = now_column()
+    assignment_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("assignments.id", ondelete="SET NULL"), index=True
+    )
+    submission_snapshot: Mapped[dict | None] = mapped_column(JSONB)
+    task_files: Mapped[dict | None] = mapped_column(JSONB)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    late: Mapped[bool] = mapped_column(default=False, server_default="false")
 
 
 class WorkFile(Base):
@@ -131,4 +138,6 @@ class AnalysisRun(Base):
     variant: Mapped[str] = mapped_column(String(64), default="")
     code_commit: Mapped[str] = mapped_column(String(40), default="")
     catalog_version: Mapped[str] = mapped_column(String(32), default="")
+    provider_calls: Mapped[list] = mapped_column(JSONB, default=list)
+    actual_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(16, 10))
     created_at: Mapped[datetime] = now_column()

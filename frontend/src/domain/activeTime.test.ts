@@ -86,4 +86,17 @@ describe("active time", () => {
     expect(seconds).toEqual([]);
     expect(activity.openedAt).toBeUndefined();
   });
+  it("records homework preparation without attributing it to a submission", () => {
+    const { intervals } = play([
+      { kind: "place", at: 0, homeworkId: "homework-1", stage: "preparation" },
+      { kind: "place", at: 30_000, homeworkId: "homework-1", stage: "teacher_upload" },
+      { kind: "place", at: 60_000, workId: "attempt-1", stage: "review" },
+      { kind: "visibility", at: 90_000, visible: false },
+    ]);
+    expect(intervals.map((item) => [item.homeworkId, item.workId, item.stage])).toEqual([
+      ["homework-1", undefined, "preparation"],
+      ["homework-1", undefined, "teacher_upload"],
+      [undefined, "attempt-1", "review"],
+    ]);
+  });
 });

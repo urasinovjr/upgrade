@@ -2,16 +2,16 @@ import type { Upload } from "../domain/models";
 
 export async function decodeUpload(file: File): Promise<Upload> {
   if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type))
-    throw new Error(file.name + ": поддерживаются JPG, PNG и PDF.");
+    throw new Error(file.name + ": поддерживаются JPG, PNG и PDF");
   if (file.size > 20 * 1024 * 1024)
-    throw new Error(file.name + ": файл больше 20 МБ. Уменьшите его или разделите на части.");
+    throw new Error(file.name + ": файл больше 20 МБ. Уменьшите его или разделите на части");
   let pages = 1;
   if (file.type === "application/pdf") {
     const module = await import("./PdfPage");
     try {
       pages = await module.pdfPageCount(file);
     } catch {
-      throw new Error(file.name + ": не удалось прочитать PDF. Проверьте файл.");
+      throw new Error(file.name + ": не удалось прочитать PDF. Проверьте файл");
     }
   } else {
     const url = URL.createObjectURL(file);
@@ -19,7 +19,7 @@ export async function decodeUpload(file: File): Promise<Upload> {
       await new Promise<void>((resolve, reject) => {
         const image = new Image();
         image.onload = () => resolve();
-        image.onerror = () => reject(new Error(file.name + ": изображение повреждено."));
+        image.onerror = () => reject(new Error(file.name + ": изображение повреждено"));
         image.src = url;
       });
     } finally {

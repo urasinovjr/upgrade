@@ -10,6 +10,7 @@ import { timing } from "../../data/timing";
 interface Place {
   key: number;
   workId?: string;
+  homeworkId?: string;
   stage: TimingStage;
 }
 
@@ -46,18 +47,18 @@ function apply(event: ActivityEvent) {
 
 function currentPlace() {
   const stage = places.at(-1)?.stage;
-  const workId = [...places].reverse().find((place) => place.workId)?.workId;
-  return { stage, workId };
+  const target = [...places].reverse().find((place) => place.workId || place.homeworkId);
+  return { stage, workId: target?.workId, homeworkId: target?.homeworkId };
 }
 
 function placeChanged() {
   apply({ kind: "place", at: Date.now(), ...currentPlace() });
 }
 
-export function enterPlace(stage: TimingStage, workId?: string) {
+export function enterPlace(stage: TimingStage, workId?: string, homeworkId?: string) {
   lastKey += 1;
   const key = lastKey;
-  places = [...places, { key, stage, workId }];
+  places = [...places, { key, stage, workId, homeworkId }];
   placeChanged();
   return () => {
     places = places.filter((place) => place.key !== key);

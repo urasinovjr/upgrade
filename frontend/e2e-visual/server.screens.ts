@@ -37,7 +37,9 @@ export const serverScreens: Screen[] = [
       await page.getByLabel("Почта").fill("olga@example.com");
       await page.getByLabel("Пароль").fill("wrong password");
       await page.getByRole("button", { name: "Войти", exact: true }).click();
-      await expect(page.getByRole("alert")).toContainText("Неверная почта или пароль");
+      await expect(page.getByRole("alert")).toContainText(
+        "Не удалось войти. Проверьте логин и пароль",
+      );
     },
   },
   { name: "register", path: "/register", widths: primaryWidths, scenario: guest },

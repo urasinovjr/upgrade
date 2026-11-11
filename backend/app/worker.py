@@ -11,7 +11,13 @@ from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.files import DELETE_FILES_JOB, S3Storage, handle_delete_files
 from app.heartbeat import write_heartbeat
-from app.mail import SEND_EMAIL_JOB, SmtpMailer, forget_email_token, handle_send_email
+from app.homework.tasks import (
+    MATERIAL_JOB,
+    RECOGNIZE_JOB,
+    handle_homework_task,
+    mark_homework_failed,
+)
+from app.mail import SEND_EMAIL_JOB, forget_email_token, handle_send_email, make_mailer
 from app.models import configure_models
 from app.observability import configure_logging, request_id_var
 from app.provider import Provider
@@ -37,11 +43,16 @@ HANDLERS: dict[str, JobHandler] = {
     SEND_EMAIL_JOB: handle_send_email,
     DELETE_FILES_JOB: handle_delete_files,
     WORK_ANALYSIS_JOB: handle_work_analysis,
+    RECOGNIZE_JOB: handle_homework_task,
+    MATERIAL_JOB: handle_homework_task,
 }
 FAILURE_HOOKS: dict[str, JobHandler] = {
     SEND_EMAIL_JOB: forget_email_token,
     WORK_ANALYSIS_JOB: mark_analysis_failed,
+    RECOGNIZE_JOB: mark_homework_failed,
+    MATERIAL_JOB: mark_homework_failed,
 }
+AI_KINDS = (WORK_ANALYSIS_JOB, RECOGNIZE_JOB, MATERIAL_JOB)
 
 
 async def keep_lease(context: WorkerContext, job: Job) -> None:
@@ -99,7 +110,11 @@ async def fail_abandoned_jobs(context: WorkerContext) -> None:
 
 def full_kinds(running: Iterable[str], limits: dict[str, int]) -> tuple[str, ...]:
     counts = Counter(running)
-    return tuple(kind for kind, limit in limits.items() if counts[kind] >= limit)
+    blocked = {kind for kind, limit in limits.items() if counts[kind] >= limit}
+    ai_limit = limits.get(WORK_ANALYSIS_JOB)
+    if ai_limit is not None and sum(counts[kind] for kind in AI_KINDS) >= ai_limit:
+        blocked.update(AI_KINDS)
+    return tuple(sorted(blocked))
 
 
 async def run_worker(context: WorkerContext) -> None:
@@ -146,7 +161,7 @@ async def main() -> None:
         settings.provider_url, settings.provider_timeout, settings.provider_concurrency
     )
     storage = await S3Storage.connect(settings)
-    mailer = SmtpMailer(settings)
+    mailer = make_mailer(settings)
     context = WorkerContext(
         make_session_factory(engine),
         provider,

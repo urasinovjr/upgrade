@@ -19,8 +19,23 @@ export async function register(page: Page, email: string) {
   await page.getByLabel("Пароль").fill(password);
   await page.getByRole("checkbox", { name: /условия использования/ }).check();
   await page.getByRole("checkbox", { name: /обработку персональных данных/ }).check();
+  await submitRegistration(page);
+}
+
+export async function submitRegistration(page: Page) {
+  const registered = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/auth/register") && response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Создать аккаунт" }).click();
+  expect((await registered).ok()).toBe(true);
   await expect(page.getByRole("heading", { name: "Проверьте почту" })).toBeVisible();
+}
+
+export async function waitForReport(page: Page, version: number) {
+  await expect(page).toHaveURL(/\/report(?:\?revision=[^&]+)?$/);
+  await expect(page.getByRole("heading", { name: "Отчёт по работе", exact: true })).toBeVisible();
+  await expect(page.locator(".dp-window-meta")).toContainText("версия " + version + " ·");
 }
 
 export async function signUp(page: Page, request: APIRequestContext, prefix: string) {
@@ -106,8 +121,10 @@ export async function startAnalysis(page: Page) {
   await page.getByRole("button", { name: "Запустить разбор" }).first().click();
 }
 
-export function taskTab(page: Page, number: number) {
-  return page.getByRole("tab", { name: "Задача " + number, exact: true });
+export async function selectTask(page: Page, number: number) {
+  const tab = page.getByRole("tab", { name: "Задача " + number, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
 }
 
 export async function waitForAnalysis(page: Page) {

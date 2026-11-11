@@ -68,6 +68,7 @@ async def create_work(
     teacher_id: UUID,
     meta: WorkCreateMeta,
     uploads: dict[str, UploadFile],
+    commit: bool = True,
 ) -> Work:
     found = await existing_work(session, meta.id, teacher_id)
     if found is not None:
@@ -120,7 +121,10 @@ async def create_work(
         session.add(work)
         await session.flush()
         session.add_all(files)
-        await session.commit()
+        if commit:
+            await session.commit()
+        else:
+            await session.flush()
     except IntegrityError as error:
         await session.rollback()
         found = await existing_work(session, meta.id, teacher_id)

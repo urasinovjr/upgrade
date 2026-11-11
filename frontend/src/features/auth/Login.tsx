@@ -37,11 +37,13 @@ export default function Login() {
       title="Вход"
       ticked={tick.ticked}
       aside={
-        <AuthAside caption="Черновики разборов ждут вас в кабинете. В отчёт попадает только то, что вы подтвердили." />
+        <AuthAside caption="Черновики разборов ждут вас в кабинете. В отчёт попадает опубликованный вами результат" />
       }
       footer={
         <>
           Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+          <br />
+          <Link to="/student/login">Вход для ученика</Link>
         </>
       }
     >

@@ -1,5 +1,5 @@
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from typing import Literal
 
@@ -69,6 +69,25 @@ VARIANTS = {
         ),
     ]
 }
+VARIANTS["yandex-qwen36-v3"] = replace(
+    VARIANTS["yandex-qwen36-v2"], name="yandex-qwen36-v3", prompt_version="math-3"
+)
+VARIANTS["openrouter-qwen38-v1"] = Variant(
+    name="openrouter-qwen38-v1",
+    kind="openai",
+    provider="openrouter",
+    model="qwen/qwen3.8-27b",
+    prompt_version="math-3",
+    base_url="https://openrouter.ai/api/v1",
+    model_uri="qwen/qwen3.8-27b",
+    max_tokens=16384,
+    price_input_per_mtok=Decimal("0.50"),
+    price_output_per_mtok=Decimal("3"),
+    currency="USD",
+)
+VARIANTS["openrouter-qwen38-v2"] = replace(
+    VARIANTS["openrouter-qwen38-v1"], name="openrouter-qwen38-v2", prompt_version="math-4"
+)
 
 
 def get_variant(name: str) -> Variant:

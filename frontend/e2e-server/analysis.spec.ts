@@ -5,15 +5,16 @@ import {
   addStudent,
   signUp,
   startAnalysis,
-  taskTab,
+  selectTask,
   waitForAnalysis,
+  waitForReport,
 } from "./setup";
 
 const analysisTimeout = { timeout: 60_000 };
 
 async function confirmTask(page: Page, number?: number) {
-  if (number) await taskTab(page, number).click();
-  await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
+  if (number) await selectTask(page, number);
+  await page.getByRole("button", { name: "Отметить проверенной" }).click();
 }
 
 test(
@@ -32,19 +33,19 @@ test(
     await page.goto("/works/" + workId);
     await startAnalysis(page);
     await waitForAnalysis(page);
-    await taskTab(page, 3).click();
+    await selectTask(page, 3);
     await expect(page.getByText("Задача отложена для отдельной проверки")).toBeVisible();
     await expect(page.getByRole("textbox", { name: "Почему задача отложена" })).toHaveValue(
       "UpGrade пока не разбирает задачи этого типа.",
     );
-    await taskTab(page, 2).click();
+    await selectTask(page, 2);
     await expect(
       page
         .getByRole("radiogroup", { name: "Вердикт шага 1" })
         .getByRole("radio", { name: "Верно" }),
     ).not.toBeChecked();
     await expect(
-      page.getByRole("button", { name: "Подтвердить работу", exact: true }),
+      page.getByRole("button", { name: "Опубликовать результат", exact: true }),
     ).toBeDisabled();
 
     await page
@@ -53,9 +54,10 @@ test(
       .click();
     await confirmTask(page, 2);
     await confirmTask(page, 1);
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
     await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
+    await waitForReport(page, 1);
     await expect(page.getByRole("main")).toContainText(
       "Разберём отдельно. UpGrade пока не разбирает задачи этого типа.",
     );
@@ -100,25 +102,27 @@ test(
     await startAnalysis(page);
     await waitForAnalysis(page);
     await confirmTask(page);
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
 
     await page.getByRole("button", { name: "Начать новую версию" }).click();
     await page.getByRole("textbox", { name: "Что дальше" }).fill("Комментарий второй версии");
     await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
     await confirmTask(page);
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
-    await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
+    await expect(page.getByText("Версия 2 опубликована")).toBeVisible();
     await page.getByRole("link", { name: "Отчёт, версия 2" }).click();
+    await waitForReport(page, 2);
     await expect(page.getByRole("main")).toContainText("Комментарий второй версии");
 
     await page.getByRole("link", { name: "К разбору работы" }).click();
-    await page.getByRole("button", { name: "Отозвать", exact: true }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Отозвать подтверждение" }).click();
+    await page.getByRole("button", { name: "Отозвать публикацию", exact: true }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Отозвать публикацию" }).click();
     await expect(page.getByRole("link", { name: "Отчёт, версия 2" })).toHaveCount(0);
     await page.getByText("История версий · 2").click();
     await expect(page.getByRole("link", { name: "Версия 1 · архивная" })).toBeVisible();
     await page.getByRole("link", { name: "Версия 2 · архивная" }).click();
+    await waitForReport(page, 2);
     await expect(page.getByRole("main")).toContainText("Комментарий второй версии");
   },
 );

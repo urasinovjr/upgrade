@@ -18,7 +18,10 @@ export function Reanalyse({
 }) {
   const [open, setOpen] = useState(false);
   const noteId = useId();
-  const blocked = unchecked > 0 || nameIssues.length > 0;
+  const qualityBlocked =
+    work.draft.inputRevision === work.draft.analysedInputRevision &&
+    work.draft.tasks.some((task) => task.qualityWarnings?.length);
+  const blocked = unchecked > 0 || nameIssues.length > 0 || qualityBlocked;
   const start = () => {
     setOpen(false);
     run();
@@ -35,15 +38,16 @@ export function Reanalyse({
       </button>
       {blocked && (
         <span id={noteId} className="dp-reanalyse-note">
-          {unchecked > 0 && `Отметьте «Данные скрыты» ещё на ${unchecked} стр. оригинала. `}
-          {nameIssues.length > 0 && `В тексте осталось имя ученика: ${nameIssues.join("; ")}.`}
+          {unchecked > 0 && `Отметьте «Данные скрыты» ещё на ${unchecked} стр. оригинала `}
+          {nameIssues.length > 0 && `В тексте осталось имя ученика: ${nameIssues.join("; ")}`}
+          {qualityBlocked && "Завершите сверку вручную. Лимит повторного разбора исчерпан"}
         </span>
       )}
       <Modal
         open={open}
         onOpenChange={setOpen}
         title="Запустить разбор заново?"
-        description="ИИ разберёт работу заново и заменит вердикты, объяснения, гипотезы о пробелах и комментарии. Шаги, которые вы исправили, сохранятся, если файлы и порядок страниц не менялись."
+        description="ИИ разберёт работу заново и заменит вердикты, объяснения, гипотезы о пробелах и комментарии. Шаги, которые вы исправили, сохранятся, если файлы и порядок страниц не менялись"
       >
         <div className="dp-dialog-actions">
           <button type="button" onClick={() => setOpen(false)}>

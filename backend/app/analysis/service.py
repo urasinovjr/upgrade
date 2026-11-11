@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.analysis.names import name_places, student_names
 from app.config import Settings
 from app.errors import DomainError
+from app.events import provider_source, record_event
 from app.observability import current_request_id
 from app.queue import enqueue
 from app.students.models import Student
@@ -24,6 +25,11 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
     if unchecked:
         raise DomainError("redaction_unchecked", {"pages": unchecked})
     draft = read_draft(work)
+    if any(task.quality_warnings for task in draft.tasks) and (
+        draft.input_revision == draft.analysed_input_revision
+    ):
+        work.status = "needs_input"
+        return
     student = await session.get(Student, work.student_id)
     places = name_places(student_names(student), draft.tasks)
     if places:
@@ -37,6 +43,13 @@ async def start_analysis(session: AsyncSession, settings: Settings, work: Work) 
     )
     work.analysis_job_id = job.id
     work.status = "queued"
+    await record_event(
+        session,
+        work.teacher_id,
+        "analysis_queued",
+        job.id,
+        source=provider_source(settings.analysis_variant),
+    )
 
 
 def accept_draft(work: Work, draft: Draft, run_id: UUID, input_revision: int) -> None:
@@ -47,7 +60,7 @@ def accept_draft(work: Work, draft: Draft, run_id: UUID, input_revision: int) ->
     work.draft = dump(draft)
     work.analysis_run_id = run_id
     work.manual = False
-    work.status = "ready"
+    work.status = "needs_input" if any(task.quality_warnings for task in draft.tasks) else "ready"
 
 
 def mark_failed(work: Work) -> None:

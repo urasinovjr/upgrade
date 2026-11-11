@@ -48,13 +48,13 @@ export function SentPages({
   });
   if (query.error) return <ErrorMessage error={query.error} />;
   if (!query.data) return <p role="status">Загружаем страницы…</p>;
-  if (!query.data.length) return <p>Для этого разбора копии страниц не сохранялись.</p>;
+  if (!query.data.length) return <p>Для этого разбора копии страниц не сохранялись</p>;
   const fileName = (id: string) => files.find((file) => file.id === id)?.name ?? "файл удалён";
   return (
     <>
       <p>
         ИИ получил только эти копии: с закрашенным именем и обрезкой, без названий файлов и данных о
-        съёмке.
+        съёмке
       </p>
       <div className="sent-pages">
         {query.data.map((page) => (

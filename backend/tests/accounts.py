@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.queue import Job
 
 PASSWORD = "correct horse 42"
-TERMS_VERSION = "2026-10-21"
+TERMS_VERSION = "2026-11-11"
 
 
 def registration(email: str, password: str = PASSWORD, **changes) -> dict:

@@ -7,9 +7,10 @@ LOCAL_HOSTS = {"localhost", "127.0.0.1", "mailpit"}
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", hide_input_in_errors=True)
 
     app_env: Literal["development", "test", "production"] = "development"
+    homework_internal_test: bool = False
     public_url: str = "http://127.0.0.1:5173"
     database_url: str = "postgresql+asyncpg://upgrade:upgrade@localhost:5433/upgrade"
     db_pool_size: int = 20
@@ -19,6 +20,8 @@ class Settings(BaseSettings):
     sync_claim_seconds: float = 3.0
     analysis_variant: str = "sim"
     analysis_api_key: SecretStr = SecretStr("")
+    openrouter_api_key: SecretStr = SecretStr("")
+    openrouter_privacy_confirmed: bool = False
     analysis_folder_id: str = ""
     analysis_timeout: float = 180.0
     analysis_max_bytes: int = 50 * 1024 * 1024
@@ -54,12 +57,12 @@ class Settings(BaseSettings):
     confirm_token_hours: int = 24
     reset_token_minutes: int = 60
     terms_url: str = "http://127.0.0.1:5173/legal/terms"
-    terms_version: str = "2026-10-21"
+    terms_version: str = "2026-11-11"
     personal_data_url: str = "http://127.0.0.1:5173/legal/personal-data"
-    personal_data_version: str = "2026-10-21"
+    personal_data_version: str = "2026-11-11"
 
     trial_days: int = 14
-    billing_contact_url: str = "mailto:support@upgrade.local"
+    billing_contact_url: str = "mailto:daniilurasinov@mail.ru"
 
     oauth_cookie_name: str = "upgrade_oauth"
     oauth_state_minutes: int = 10
@@ -75,6 +78,10 @@ class Settings(BaseSettings):
     vk_info_url: str = "https://id.vk.ru/oauth2/user_info"
 
     mail_from: str = "UpGrade <no-reply@upgrade.local>"
+    mail_transport: Literal["smtp", "unisender"] = "smtp"
+    unisender_api_key: SecretStr = SecretStr("")
+    unisender_api_url: str = "https://goapi.unisender.ru/ru/transactional/api/v1"
+    unisender_timeout: float = 15.0
     smtp_host: str = "localhost"
     smtp_port: int = 1025
     smtp_user: str = ""
@@ -91,6 +98,7 @@ class Settings(BaseSettings):
     s3_create_bucket: bool = True
     s3_connect_timeout: float = 5.0
     s3_read_timeout: float = 30.0
+    s3_write_timeout: float = 60.0
     s3_attempts: int = 2
     cleanup_job_attempts: int = 10
 
@@ -101,10 +109,16 @@ class Settings(BaseSettings):
 
     def service_problems(self) -> list[str]:
         problems = []
-        if self.smtp_host in LOCAL_HOSTS:
-            problems.append("SMTP_HOST must name a real mail server")
-        if self.smtp_tls == "none":
-            problems.append("SMTP_TLS must be tls or starttls")
+        if self.mail_transport == "smtp":
+            if self.smtp_host in LOCAL_HOSTS:
+                problems.append("SMTP_HOST must name a real mail server")
+            if self.smtp_tls == "none":
+                problems.append("SMTP_TLS must be tls or starttls")
+        else:
+            if not self.unisender_api_key.get_secret_value():
+                problems.append("UNISENDER_API_KEY must be set")
+            if not self.unisender_api_url.startswith("https://"):
+                problems.append("UNISENDER_API_URL must use https")
         if self.mail_from.rstrip(">").endswith(".local"):
             problems.append("MAIL_FROM must use a real domain")
         origin = "/".join(self.public_url.split("/")[:3])
@@ -144,7 +158,12 @@ class Settings(BaseSettings):
             problems.append("DATABASE_URL must not use the development password")
         if self.analysis_variant == "sim":
             problems.append("ANALYSIS_VARIANT must name a real provider")
-        if not self.analysis_api_key.get_secret_value():
+        if self.analysis_variant.startswith("openrouter-"):
+            if not self.openrouter_api_key.get_secret_value():
+                problems.append("OPENROUTER_API_KEY must be set")
+            if not self.openrouter_privacy_confirmed:
+                problems.append("OPENROUTER_PRIVACY_CONFIRMED must be true")
+        elif not self.analysis_api_key.get_secret_value():
             problems.append("ANALYSIS_API_KEY must be set")
         problems += self.service_problems()
         if problems:

@@ -110,7 +110,12 @@ export default function NewWork() {
   if (query.isPending) return <PageLoading variant="form" />;
   if (!query.data)
     return (
-      <PageState title="Новая работа" error={query.error} retry={() => void query.refetch()} />
+      <PageState
+        title="Новая работа"
+        errorTitle="Не удалось загрузить новую работу"
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
     );
   const selectedStudent = query.data.students.some((item) => item.id === studentId)
     ? studentId
@@ -126,20 +131,20 @@ export default function NewWork() {
   const submit = () => {
     setError(undefined);
     if (!selectedStudent) {
-      showError("Выберите ученика.", "details", studentSelect.current);
+      showError("Выберите ученика", "details", studentSelect.current);
       return;
     }
     if (!title.trim()) {
-      showError("Укажите название работы.", "details", titleInput.current);
+      showError("Укажите название работы", "details", titleInput.current);
       return;
     }
     if (!uploads.length) {
-      showError("Добавьте решение ученика.", "solution", solutionInput.current);
+      showError("Добавьте решение ученика", "solution", solutionInput.current);
       return;
     }
     if (uploads.every((file) => conditionFiles.has(file.id))) {
       showError(
-        "Добавьте файл с решением. Сейчас все файлы отмечены как условие.",
+        "Добавьте файл с решением. Сейчас все файлы отмечены как условие",
         "solution",
         solutionInput.current,
       );
@@ -151,7 +156,7 @@ export default function NewWork() {
     );
     if (missingCondition) {
       showError(
-        "Добавьте условие каждой задачи текстом, формулой или изображением.",
+        "Добавьте условие каждой задачи текстом, формулой или изображением",
         "conditions",
         conditionsPanel.current?.querySelector("textarea") || null,
       );
@@ -204,8 +209,8 @@ export default function NewWork() {
             tone="info"
             role="status"
             icon={<Info size={16} aria-hidden="true" />}
-            title="Страница перезагрузилась, и файлы не сохранились."
-            more="Выберите их ещё раз."
+            title="Страница перезагрузилась, и файлы не сохранились"
+            more="Выберите их ещё раз"
           />
         )}
         <div className="new-work-grid">
@@ -269,7 +274,7 @@ export default function NewWork() {
               )}
               <strong>{decoding ? "Проверяем файлы…" : "Добавьте фото или PDF решения"}</strong>
               <small>
-                Перетащите файлы сюда или нажмите, чтобы выбрать. JPG, PNG или PDF, до 20 МБ.
+                Перетащите файлы сюда или нажмите, чтобы выбрать. JPG, PNG или PDF, до 20 МБ
               </small>
               <input
                 ref={solutionInput}
@@ -351,7 +356,7 @@ export default function NewWork() {
               <span className="dp-nw-step">3</span>Условия задач
             </h2>
             <p className="dp-nw-hint">
-              Каждую задачу добавьте отдельно. Правильный ответ можно не указывать.
+              Каждую задачу добавьте отдельно. Правильный ответ можно не указывать
             </p>
             {tasks.map((task, index) => (
               <article className="dp-nw-task condition-card" key={task.id}>
@@ -375,7 +380,7 @@ export default function NewWork() {
                   <textarea
                     value={task.condition}
                     onChange={(event) => change(task.id, { condition: event.target.value })}
-                    placeholder="Решите уравнение…"
+                    placeholder="Например, решите уравнение"
                   />
                 </label>
                 <label>
@@ -429,7 +434,7 @@ export default function NewWork() {
           </section>
           <footer className="dp-nw-footer new-work-submit">
             <ErrorMessage error={command.error} />
-            <p>Следующий шаг: разбор. Там вы сверите шаги с оригиналом и подтвердите работу.</p>
+            <p>Следующий шаг: разбор. Там вы сверите шаги с оригиналом и опубликуете результат</p>
             <button
               className="dp-primary"
               disabled={command.isPending || decoding || !writeAccess.allowed}
@@ -452,7 +457,7 @@ export default function NewWork() {
           if (!open && blocker.state === "blocked") blocker.reset();
         }}
         title="Выйти из новой работы?"
-        description="Работа ещё не создана. Файлы и условия, которые вы добавили, пропадут."
+        description="Работа ещё не создана. Файлы и условия, которые вы добавили, пропадут"
       >
         <div className="dp-dialog-actions">
           <button onClick={() => blocker.state === "blocked" && blocker.reset()}>

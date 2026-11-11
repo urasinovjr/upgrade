@@ -1,9 +1,17 @@
 import { type Download } from "@playwright/test";
 import { expect, test } from "./test";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { addCheckedWork, addStudent, signUp, startAnalysis, waitForAnalysis } from "./setup";
+import {
+  addCheckedWork,
+  addStudent,
+  signUp,
+  startAnalysis,
+  waitForAnalysis,
+  waitForReport,
+} from "./setup";
 
-async function pdfContent(download: Download) {
+async function pdfContent(download: Download, outputPath: string) {
+  await download.saveAs(outputPath);
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(chunk as Buffer);
@@ -41,17 +49,21 @@ test(
     await page.goto("/works/" + workId);
     await startAnalysis(page);
     await waitForAnalysis(page);
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
     await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
+    await waitForReport(page, 1);
     await page.getByRole("button", { name: "Скопировать текст" }).click();
     await expect(page.getByRole("button", { name: "Скопировано" })).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     const downloading = page.waitForEvent("download");
     await page.getByRole("button", { name: "Скачать PDF" }).click();
-    const { text, images } = await pdfContent(await downloading);
+    const { text, images } = await pdfContent(
+      await downloading,
+      testInfo.outputPath("report-v1.pdf"),
+    );
 
-    expect(copied).toContain("Версия 1");
+    expect(copied).toContain("Проверено репетитором · версия 1");
     for (const line of ["Отчёт с формулами", "Мария", "Решите x + 1 = 2", "Решение верное."]) {
       expect(copied).toContain(line);
       expect(compact(text)).toContain(compact(line));
@@ -77,23 +89,27 @@ test(
     await page.goto("/works/" + workId);
     await startAnalysis(page);
     await waitForAnalysis(page);
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
     await page.getByRole("button", { name: "Начать новую версию" }).click();
     await page
       .getByRole("textbox", { name: "Что дальше" })
       .fill("Повторить разложение на множители");
     await expect(page.getByText("Сохранено", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
-    await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
+    await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
     await page.getByRole("link", { name: "Отчёт, версия 2" }).click();
+    await waitForReport(page, 2);
     await page.getByRole("button", { name: "Скопировать текст" }).click();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     const downloading = page.waitForEvent("download");
     await page.getByRole("button", { name: "Скачать PDF" }).click();
-    const { text, images } = await pdfContent(await downloading);
+    const { text, images } = await pdfContent(
+      await downloading,
+      testInfo.outputPath("report-v2.pdf"),
+    );
 
-    expect(copied).toContain("Версия 2");
+    expect(copied).toContain("Проверено репетитором · версия 2");
     expect(copied).toContain("Повторить разложение на множители");
     expect(compact(text)).toContain(compact("Повторить разложение на множители"));
     expect(compact(text)).toContain(compact("Проверено репетитором · версия 2"));

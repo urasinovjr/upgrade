@@ -10,11 +10,15 @@ from app.billing.router import router as billing_router
 from app.config import Settings
 from app.database import make_engine, make_session_factory
 from app.dependencies import verify_origin
-from app.errors import DomainError, domain_error_handler
-from app.files import S3Storage, Storage
+from app.errors import DomainError, domain_error_handler, storage_error_handler
+from app.events import APP_VERSION
+from app.events import router as events_router
+from app.files import S3Storage, Storage, StorageError
 from app.health import unavailable_parts
+from app.homework.router import router as homework_router
+from app.homework.student_router import router as student_router
 from app.knowledge.router import router as knowledge_router
-from app.mail import Mailer, SmtpMailer
+from app.mail import Mailer, make_mailer
 from app.models import configure_models
 from app.observability import RequestIdMiddleware, configure_logging
 from app.provider import Provider
@@ -46,16 +50,17 @@ def create_app(
             app_settings.provider_concurrency,
         )
         app.state.storage = storage or await S3Storage.connect(app_settings)
-        app.state.mailer = mailer or SmtpMailer(app_settings)
+        app.state.mailer = mailer or make_mailer(app_settings)
         app.state.oauth = oauth or HttpOAuthClient(app_settings)
         yield
         await app.state.storage.close()
         await app.state.provider.close()
         await engine.dispose()
 
-    app = FastAPI(title="UpGrade", lifespan=lifespan)
+    app = FastAPI(title="UpGrade", version=APP_VERSION, lifespan=lifespan)
     app.add_middleware(RequestIdMiddleware)
     app.add_exception_handler(DomainError, domain_error_handler)
+    app.add_exception_handler(StorageError, storage_error_handler)
     api = APIRouter(prefix="/api", dependencies=[Depends(verify_origin)])
     api.include_router(auth_router)
     api.include_router(account_router)
@@ -64,6 +69,10 @@ def create_app(
     api.include_router(students_router)
     api.include_router(knowledge_router)
     api.include_router(works_router)
+    api.include_router(events_router)
+    if app_settings.app_env != "production" or app_settings.homework_internal_test:
+        api.include_router(homework_router)
+        api.include_router(student_router)
     api.include_router(timing_router)
     app.include_router(api)
     if app_settings.stand_enabled:

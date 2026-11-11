@@ -53,26 +53,35 @@ def keep_known_attachments(draft: Draft, attachment_ids: set[str]) -> Draft:
 
 
 def task_problems(task: Task, attachment_ids: set[str]) -> list[str]:
+    if task.result == "needs_clarification":
+        problems = []
+        if not task.feedback.strip():
+            problems.append(f"{task.title}: напишите, что нужно уточнить")
+        if not task.reviewed:
+            problems.append(f"{task.title}: отметьте задачу проверенной")
+        if task.gap is not None and task.gap.decision == "confirmed":
+            problems.append(f"{task.title}: уточните решение перед подтверждением гипотезы")
+        return problems
     if task.omitted:
         if not task.feedback.strip():
-            return [f"{task.title}: напишите, почему задача отложена."]
+            return [f"{task.title}: напишите, почему задача отложена"]
         return []
     problems = []
     has_file = any(item in attachment_ids for item in task.condition_attachment_ids or [])
     region = task.condition_region
     has_file = has_file or (region is not None and region.file_id in attachment_ids)
     if not task.condition.strip() and not task.formula.strip() and not has_file:
-        problems.append(f"{task.title}: добавьте условие.")
+        problems.append(f"{task.title}: добавьте условие")
     if not task.steps or any(not step.latex.strip() for step in task.steps):
-        problems.append(f"{task.title}: добавьте шаги решения.")
+        problems.append(f"{task.title}: добавьте шаги решения")
     if any(step.verdict == "uncertain" for step in task.steps):
-        problems.append(f"{task.title}: уточните неясные шаги.")
+        problems.append(f"{task.title}: уточните неясные шаги")
     if any(step.verdict == "error" and not step.explanation.strip() for step in task.steps):
-        problems.append(f"{task.title}: объясните ошибку.")
+        problems.append(f"{task.title}: объясните ошибку")
     if task.gap is not None and task.gap.decision == "confirmed" and not task.gap.reason.strip():
-        problems.append(f"{task.title}: напишите, что повторить.")
+        problems.append(f"{task.title}: напишите, что повторить")
     if not task.reviewed:
-        problems.append(f"{task.title}: отметьте задачу проверенной.")
+        problems.append(f"{task.title}: отметьте задачу проверенной")
     return problems
 
 
@@ -82,15 +91,21 @@ def review_blockers(
     if not editing:
         return []
     if has_job:
-        return ["ИИ ещё разбирает работу."]
+        return ["ИИ ещё разбирает работу"]
     blockers = []
     if status != "ready":
-        blockers.append("Дождитесь разбора или сверьте работу с оригиналом вручную.")
+        blockers.append("Дождитесь разбора или сверьте работу с оригиналом вручную")
     if draft.input_revision != draft.analysed_input_revision:
-        blockers.append("Условия или шаги изменились. Запустите разбор заново.")
+        blockers.append("Условия или шаги изменились. Запустите разбор заново")
     if not draft.tasks:
-        blockers.append("Добавьте хотя бы одну задачу.")
+        blockers.append("Добавьте хотя бы одну задачу")
     for task in draft.tasks:
+        if (
+            task.solution_attachment_ids == []
+            and task.gap is not None
+            and task.gap.decision == "confirmed"
+        ):
+            blockers.append(f"{task.title}: без решения нельзя подтвердить гипотезу")
         blockers.extend(task_problems(task, attachment_ids))
     return blockers
 

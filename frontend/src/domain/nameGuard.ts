@@ -127,9 +127,9 @@ export function parsedAliases(text: string): string[] {
 }
 
 export function aliasProblem(aliases: string[]): string {
-  if (aliases.length > mostAliases) return `Укажите не больше ${mostAliases} форм имени.`;
+  if (aliases.length > mostAliases) return `Укажите не больше ${mostAliases} форм имени`;
   if (aliases.some((item) => item.length > longestAlias))
-    return `Каждая форма имени — не длиннее ${longestAlias} символов.`;
+    return `Каждая форма имени — не длиннее ${longestAlias} символов`;
   return "";
 }
 
@@ -168,4 +168,4 @@ export function namePlaceLabels(places: NamePlace[], tasks: Task[]): string[] {
 }
 
 export const nameMessage =
-  "Уберите имя ученика из текста задач. Условия, правильные ответы и шаги уходят ИИ без имени.";
+  "Уберите имя ученика из текста задач. Условия, правильные ответы и шаги уходят ИИ без имени";

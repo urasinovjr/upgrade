@@ -24,7 +24,8 @@ FRONTEND_CATALOG = Path(__file__).resolve().parents[2] / "frontend/src/data/cata
 def test_catalog_is_consistent_and_keeps_legacy_topics():
     assert catalog_problems() == []
     assert set(LEGACY_TOPICS) <= TOPIC_IDS
-    assert {"derivative", "geometry"} <= OUT_OF_SCOPE_TYPES
+    assert frozenset() == OUT_OF_SCOPE_TYPES
+    assert {"solid_geometry", "geometry_proof", "distributions", "integrals"} <= TOPIC_IDS
 
 
 def test_alias_problems_are_reported():

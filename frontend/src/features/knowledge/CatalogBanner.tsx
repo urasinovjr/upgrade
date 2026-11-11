@@ -8,7 +8,7 @@ export function CatalogBanner() {
   if (!serverVersion || serverVersion === catalogVersion) return null;
   return (
     <div className="dp-read-only" role="status">
-      <span>Справочник тем обновился. Обновите страницу, чтобы увидеть новые темы.</span>
+      <span>Справочник тем обновился. Обновите страницу, чтобы увидеть новые темы</span>
       <button type="button" className="dp-text" onClick={() => window.location.reload()}>
         Обновить страницу
       </button>

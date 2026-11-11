@@ -53,6 +53,7 @@ async def test_simulator_reply_passes_the_contract(provider):
         "sim-draft",
         "sim-1",
     )
+    assert recognized.raw["tasks"][0]["steps"][-1]["latex"] == r"x=\ldots"
     assert correct.supported and {step.verdict for step in correct.steps} == {"correct"}
     assert "error" in {step.verdict for step in error.steps}
     assert error.topic_id == "inequalities"

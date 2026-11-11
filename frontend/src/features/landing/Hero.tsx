@@ -44,7 +44,7 @@ export function Hero({ links }: { links: LandingLinks }) {
         </h1>
         <p className="dp-landing-lead">
           Загрузите фото тетради. UpGrade разложит решение по шагам, отметит ошибку и предложит,
-          какую тему повторить. В отчёт попадёт только то, что вы подтвердили.
+          какую тему повторить. В отчёт попадёт опубликованный вами результат
         </p>
         <div className="dp-landing-actions">
           <MagnetLink className="dp-landing-button is-marker" to={links.start}>
@@ -56,12 +56,18 @@ export function Hero({ links }: { links: LandingLinks }) {
             </Link>
           )}
         </div>
-        <p className="dp-landing-note">
-          Алгебра 9–11 класса. Имя ученика закрашивается до разбора.
-        </p>
+        <p className="dp-landing-note">Алгебра 9–11 класса. Имя ученика закрашивается до разбора</p>
       </div>
       <m.figure className="dp-landing-sheet" style={depth.sheet}>
         <div className="dp-notebook" role="img" aria-label="Фото решения ученика с пометкой ошибки">
+          <svg
+            className="dp-notebook-rule"
+            viewBox="0 0 4 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line x1="2" y1="0" x2="2" y2="100" vectorEffect="non-scaling-stroke" />
+          </svg>
           <span className="dp-notebook-line is-task">Упростите: (x² − 9) / (x − 3)</span>
           <span className="dp-notebook-line">= (x − 3)(x + 3) / (x − 3)</span>
           <span className="dp-notebook-line">= x + 3</span>

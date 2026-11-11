@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+case "$SSH_ORIGINAL_COMMAND" in
+    deploy|monitor) exec sudo -n /usr/local/sbin/upgrade-release "$SSH_ORIGINAL_COMMAND" ;;
+    *) exit 1 ;;
+esac

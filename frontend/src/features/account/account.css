@@ -2,6 +2,8 @@
   display: grid;
   gap: var(--ug-space-5);
   margin: 0;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
 }
 .dp-account > * {
   max-width: 720px;
@@ -14,6 +16,8 @@
 }
 .dp-account-section {
   display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--ug-space-3);
   padding: var(--ug-space-5);
   background: var(--ug-surface);
@@ -36,6 +40,17 @@
 .dp-account-section form {
   display: grid;
   gap: var(--ug-space-3);
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.dp-account-section label,
+.dp-account-section select {
+  min-width: 0;
+  max-width: 100%;
+}
+.dp-account-section select {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dp-account-check {
   grid-template-columns: auto 1fr;

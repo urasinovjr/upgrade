@@ -165,7 +165,7 @@ async def test_confirm_lists_blockers(teacher):
     assert response.status_code == 409
     assert response.json()["detail"] == "review_blocked"
     assert (
-        "Дождитесь разбора или сверьте работу с оригиналом вручную." in response.json()["blockers"]
+        "Дождитесь разбора или сверьте работу с оригиналом вручную" in response.json()["blockers"]
     )
 
 

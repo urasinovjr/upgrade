@@ -1,0 +1,14 @@
+[Unit]
+Description=Start the active UpGrade release
+After=docker.service network-online.target
+Requires=docker.service
+ConditionPathIsSymbolicLink=/opt/upgrade/current
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+TimeoutStartSec=600
+ExecStart=/usr/local/sbin/upgrade-release start
+
+[Install]
+WantedBy=multi-user.target

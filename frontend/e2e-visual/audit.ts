@@ -24,6 +24,7 @@ interface TextSample {
 
 interface Layout {
   overflow: string[];
+  clippedControls: string[];
   headings: number;
   squeezed: string[];
   texts: TextSample[];
@@ -35,6 +36,9 @@ async function settleMedia() {
   await Promise.all([...document.images].map((image) => image.decode().catch(() => undefined)));
   if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   scrollTo(0, 0);
+  await new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
 }
 
 function auditLayout(scope: string): Layout {
@@ -73,11 +77,28 @@ function auditLayout(scope: string): Layout {
     for (const element of document.body.querySelectorAll("*")) {
       const box = element.getBoundingClientRect();
       if (box.width && box.right > innerWidth + 1 && !clipped(element))
-        overflow.push(describe(element));
+        overflow.push(innerWidth + "px " + describe(element));
     }
     if (!overflow.length) overflow.push("document " + document.documentElement.scrollWidth);
   }
   const texts: TextSample[] = [];
+  const clippedControls: string[] = [];
+  if (scope === "body") {
+    for (const nav of document.querySelectorAll(".dp-sidebar nav")) {
+      const container = nav.getBoundingClientRect();
+      for (const link of nav.querySelectorAll("a")) {
+        const box = link.getBoundingClientRect();
+        if (!box.width || !box.height) continue;
+        if (
+          box.bottom > innerHeight + 1 ||
+          box.top < -1 ||
+          box.bottom > container.bottom + 1 ||
+          box.right > container.right + 1
+        )
+          clippedControls.push(describe(link));
+      }
+    }
+  }
   const squeezed: string[] = [];
   const root = document.querySelector(scope) ?? document.body;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -102,6 +123,7 @@ function auditLayout(scope: string): Layout {
   }
   return {
     overflow: overflow.slice(0, 10),
+    clippedControls,
     headings: document.querySelectorAll("h1").length,
     squeezed,
     texts,
@@ -137,6 +159,7 @@ export async function auditPage(page: Page, options: CaptureOptions = {}) {
   const scope = (await page.getByRole("dialog").count()) ? "[role=dialog]" : "body";
   const layout = await page.evaluate(auditLayout, scope);
   expect.soft(layout.overflow, "horizontal overflow").toEqual([]);
+  expect.soft(layout.clippedControls, "navigation clipping").toEqual([]);
   expect.soft(layout.headings, "h1 count").toBe(headings);
   expect.soft(lowContrast(layout.texts), "text contrast").toEqual([]);
   expect.soft(layout.squeezed, "squeezed text").toEqual([]);
@@ -146,7 +169,6 @@ export async function auditPage(page: Page, options: CaptureOptions = {}) {
 async function checkAccessibility(page: Page, scope: string) {
   const results = await new AxeBuilder({ page })
     .include(scope)
-    .exclude("math-field")
     .disableRules(["color-contrast"])
     .analyze();
   const violations = results.violations
@@ -166,6 +188,7 @@ async function checkAccessibility(page: Page, scope: string) {
 export async function capture(page: Page, name: string, options: CaptureOptions = {}) {
   const scope = await auditPage(page, options);
   await checkAccessibility(page, scope);
+  await page.bringToFront();
   const fullPage = scope === "body" && (options.fullPage ?? true);
   await expect(page).toHaveScreenshot(name + ".png", {
     fullPage,

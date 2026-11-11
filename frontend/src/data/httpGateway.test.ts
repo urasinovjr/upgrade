@@ -118,10 +118,10 @@ describe("http gateway", () => {
 
   it("turns server errors into readable messages", async () => {
     stubFetch(
-      json({ detail: "review_blocked", blockers: ["Задача 1: добавьте шаги решения."] }, 409),
+      json({ detail: "review_blocked", blockers: ["Задача 1: добавьте шаги решения"] }, 409),
     );
     const failure = httpGateway.action("w1", "confirm");
-    await expect(failure).rejects.toThrow("Задача 1: добавьте шаги решения.");
+    await expect(failure).rejects.toThrow("Задача 1: добавьте шаги решения");
     await expect(failure).rejects.toBeInstanceOf(ApiError);
   });
 

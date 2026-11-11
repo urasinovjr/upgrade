@@ -11,7 +11,7 @@ test("the tour choice follows the teacher to another browser", async ({
 }) => {
   const email = await signUp(page, request, "tour");
   const tour = page.getByRole("dialog");
-  await expect(tour.getByRole("heading", { name: "Начните с новой работы" })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: "Начните с ДЗ" })).toBeVisible();
   await tour.getByRole("button", { name: "Пропустить" }).click();
   await expect(tour).toHaveCount(0);
 

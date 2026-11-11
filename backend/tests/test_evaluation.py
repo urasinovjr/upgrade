@@ -120,8 +120,8 @@ def test_validation_finds_leaks_and_gaps(tmp_path: Path):
     assert "w2: в w2.png остались метаданные" in problems
     assert "w2/t1: первый ошибочный шаг вне транскрипции" in problems
     assert "w3/t1: тема 'calculus' не из справочника" in problems
-    assert "w4/t1: тип задачи 'integral' не из справочника" in problems
-    assert "w4/t2: тип derivative вне охвата, исключите задачу с причиной" in problems
+    assert "w4/t1: тип integral из семейства functions, а не equations" in problems
+    assert "w4/t2: тип derivative из семейства functions, а не equations" in problems
     assert "w4/t3: тип log_ineq из семейства inequalities, а не equations" in problems
 
 

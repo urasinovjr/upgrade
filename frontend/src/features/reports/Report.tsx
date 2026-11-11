@@ -16,7 +16,7 @@ import {
 import { gateway } from "../../data/gateway";
 import { topicById } from "../../data/catalog";
 import { reportText } from "../../domain/review";
-import { Formula } from "../../shared/math";
+import { Formula, MixedText } from "../../shared/math";
 import {
   Avatar,
   Callout,
@@ -31,6 +31,7 @@ import { verdictMeta } from "../../shared/status";
 import { date, errorText } from "../../shared/text";
 import { MediaViewer } from "../../shared/MediaViewer";
 import "./report.css";
+import { ReportFormulaError } from "./formulaValidation";
 import { useActiveTime } from "../timing/useActiveTime";
 export default function Report() {
   const { id } = useParams();
@@ -53,6 +54,7 @@ export default function Report() {
     return (
       <PageState
         title="Отчёт недоступен"
+        errorTitle="Не удалось загрузить отчёт"
         error={query.error}
         retry={() => void query.refetch()}
         to={"/works/" + id}
@@ -128,7 +130,8 @@ export default function Report() {
           <>
             <h1>Отчёт по работе</h1>
             <span className="dp-window-meta">
-              Шаг 3 из 3 · версия {revision.number} · {date(revision.confirmedAt)}
+              {work.assignmentId ? "" : "Шаг 3 из 3 · "}версия {revision.number} ·{" "}
+              {date(revision.confirmedAt)}
             </span>
             {archived && <span className="dp-report-archived">Архивная</span>}
           </>
@@ -144,7 +147,7 @@ export default function Report() {
           <Callout
             tone="warning"
             icon={<History size={16} aria-hidden="true" />}
-            title="Это старая версия отчёта. В карте знаний учтена более новая."
+            title="Это старая версия отчёта. В карте знаний учтена более новая"
           />
         )}
         {Boolean(error) && (
@@ -152,8 +155,22 @@ export default function Report() {
             tone="danger"
             role="alert"
             icon={<AlertCircle size={16} aria-hidden="true" />}
-            title={errorText(error)}
-          />
+            title={error instanceof ReportFormulaError ? error.message : errorText(error)}
+            more={
+              error instanceof ReportFormulaError && archived
+                ? "Архивную версию изменить нельзя. Начните новую версию работы"
+                : undefined
+            }
+          >
+            {error instanceof ReportFormulaError && (
+              <Link
+                className="dp-button"
+                to={"/works/" + work.id + "?task=" + encodeURIComponent(error.taskId)}
+              >
+                {archived ? "К новой версии" : "Исправить формулу"}
+              </Link>
+            )}
+          </Callout>
         )}
         <div className="dp-report-canvas">
           <article className="dp-report-sheet report-paper">
@@ -175,7 +192,11 @@ export default function Report() {
               return (
                 <section className="dp-report-task" key={task.id}>
                   <h3>{task.title}</h3>
-                  {task.condition && <p className="dp-report-condition-text">{task.condition}</p>}
+                  {task.condition && (
+                    <p className="dp-report-condition-text">
+                      <MixedText value={task.condition} />
+                    </p>
+                  )}
                   {task.conditionAttachmentIds?.length ? (
                     <div className="dp-report-attachments">
                       <MediaViewer
@@ -215,7 +236,11 @@ export default function Report() {
                               <div className="dp-report-formula">
                                 <Formula value={step.latex} />
                               </div>
-                              {step.explanation && <p>{step.explanation}</p>}
+                              {step.explanation && (
+                                <p>
+                                  <MixedText value={step.explanation} />
+                                </p>
+                              )}
                             </li>
                           );
                         })}
@@ -223,7 +248,9 @@ export default function Report() {
                       {task.feedback && (
                         <div className="dp-report-feedback">
                           <h4>Комментарий</h4>
-                          <p>{task.feedback}</p>
+                          <p>
+                            <MixedText value={task.feedback} />
+                          </p>
                         </div>
                       )}
                       {task.gap?.decision === "confirmed" && (
@@ -256,7 +283,7 @@ export default function Report() {
         open={manualCopy}
         onOpenChange={setManualCopy}
         title="Скопировать текст отчёта"
-        description="Браузер не дал скопировать текст сам. Текст уже выделен, нажмите ⌘C или Ctrl+C. На телефоне выберите «Копировать» в меню."
+        description="Браузер не дал скопировать текст сам. Текст уже выделен, нажмите ⌘C или Ctrl+C. На телефоне выберите «Копировать» в меню"
         initialFocusRef={copyText}
       >
         <label>

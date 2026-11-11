@@ -13,15 +13,12 @@ export function useHeroDepth(
   { pointer, scroll }: DepthOptions,
 ) {
   const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
   const smoothX = useSpring(pointerX, spring);
-  const smoothY = useSpring(pointerY, spring);
   const { scrollYProgress } = useScroll({ target: hero, offset: ["start start", "end start"] });
 
-  const pointerTiltX = useTransform(smoothY, [-0.5, 0.5], [5, -5]);
-  const scrollTiltX = useTransform(scrollYProgress, [0, 1], [0, 10]);
-  const sheetRotateX = useTransform(() => pointerTiltX.get() + scrollTiltX.get());
-  const sheetRotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
+  const pointerRotate = useTransform(smoothX, [-0.5, 0.5], [-1.5, 1.5]);
+  const scrollRotate = useTransform(scrollYProgress, [0, 1], [0, 2]);
+  const sheetRotate = useTransform(() => pointerRotate.get() + scrollRotate.get());
   const sheetY = useTransform(scrollYProgress, [0, 1], [0, 80]);
   const sheetScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
   const verdictX = useTransform(smoothX, [-0.5, 0.5], [-12, 12]);
@@ -33,21 +30,19 @@ export function useHeroDepth(
     if (!pointer) return;
     const box = event.currentTarget.getBoundingClientRect();
     pointerX.set((event.clientX - box.left) / box.width - 0.5);
-    pointerY.set((event.clientY - box.top) / box.height - 0.5);
   }
 
   function onPointerLeave() {
     pointerX.set(0);
-    pointerY.set(0);
   }
 
   if (!scroll) return { onPointerMove, onPointerLeave };
-  const lift = { y: sheetY, scale: sheetScale, transformPerspective: 1000 };
+  const lift = { y: sheetY, scale: sheetScale };
   if (!pointer) {
     return {
       onPointerMove,
       onPointerLeave,
-      sheet: { ...lift, rotateX: scrollTiltX },
+      sheet: { ...lift, rotate: scrollRotate },
       verdict: { y: verdictY },
       arrow: { opacity: arrowOpacity },
     };
@@ -55,7 +50,7 @@ export function useHeroDepth(
   return {
     onPointerMove,
     onPointerLeave,
-    sheet: { ...lift, rotateX: sheetRotateX, rotateY: sheetRotateY },
+    sheet: { ...lift, rotate: sheetRotate },
     verdict: { x: verdictX, y: verdictY },
     arrow: { x: arrowX, opacity: arrowOpacity },
   };

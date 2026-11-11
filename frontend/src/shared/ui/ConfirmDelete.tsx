@@ -5,11 +5,13 @@ import { Modal } from "./Modal";
 
 export function ConfirmDelete({
   label,
+  confirmLabel,
   title,
   description,
   onConfirm,
 }: {
   label: string;
+  confirmLabel: string;
   title: string;
   description: string;
   onConfirm: () => Promise<void>;
@@ -42,7 +44,7 @@ export function ConfirmDelete({
             Отмена
           </button>
           <button className="dp-destructive" disabled={pending} onClick={() => void confirm()}>
-            {pending ? "Удаляем…" : "Удалить"}
+            {pending ? "Удаляем…" : confirmLabel}
           </button>
         </div>
       </Modal>

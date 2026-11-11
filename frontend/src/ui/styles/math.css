@@ -12,6 +12,10 @@ math-field {
   scroll-margin-block: 32px
     calc(var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px);
 }
+body {
+  --keycap-height: clamp(44px, 7vh, 60px);
+  --keyboard-accent-color: var(--ug-action, #26348c);
+}
 math-field:focus-within {
   outline: 2px solid var(--ug-action);
   outline-offset: 2px;
@@ -32,17 +36,59 @@ math-field::part(menu-toggle) {
   scroll-margin-block: 32px
     calc(var(--review-actions-height) + var(--ug-bottom-nav-h) + var(--keyboard-height) + 32px);
 }
-.formula {
+.formula,
+.formula-part {
   display: inline-block;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   vertical-align: middle;
 }
+.mixed-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  min-width: 0;
+}
+.formula-error {
+  color: var(--ug-danger);
+  font: inherit;
+}
 @media (max-width: 700px) {
   math-field::part(virtual-keyboard-toggle),
   math-field::part(menu-toggle) {
     min-width: 44px;
     min-height: 44px;
+  }
+}
+@media (max-width: 700px) {
+  body {
+    --keycap-height: 44px;
+    --keycap-max-width: 64px;
+    --keycap-gap: 4px;
+    --keyboard-toolbar-font-size: 14px;
+  }
+  .ML__keyboard .MLK__rows {
+    --keycap-width: min(64px, calc((100cqw - 16px) / 5));
+  }
+  .ML__keyboard .MLK__row > div {
+    flex: 0 0 min(64px, calc((100% - 16px) / 5));
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .ML__keyboard .MLK__toolbar > div > div {
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .MLK__variant-panel .item {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .MLK__variant-panel {
+    max-width: calc(100vw - 24px);
   }
 }

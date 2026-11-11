@@ -13,4 +13,6 @@ __all__ = [
     "enqueue_email",
     "forget_email_token",
     "handle_send_email",
+    "make_mailer",
 ]
+from app.mail.factory import make_mailer

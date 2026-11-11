@@ -63,6 +63,11 @@ class Task(ApiModel):
     reviewed: bool
     omitted: bool
     gap: GapProposal | None = None
+    solution_attachment_ids: list[str] | None = Field(default=None, max_length=50)
+    result: Literal["solved", "errors", "needs_clarification"] | None = None
+    quality_warnings: list[str] = Field(default_factory=list, max_length=50)
+    gap_assessment: Literal["proposed", "not_evidenced", "insufficient_data"] | None = None
+    gap_reason: str = Field(default="", max_length=5000)
 
 
 class Draft(ApiModel):
@@ -136,6 +141,11 @@ class WorkOut(ApiModel):
     job: WorkJob | None = None
     initial_analysis: Draft | None = None
     analysis: AnalysisInfo | None = None
+    assignment_id: UUID | None = None
+    submission_snapshot: dict | None = None
+    task_files: dict | None = None
+    submitted_at: datetime | None = None
+    late: bool = False
 
 
 class AttachmentMeta(ApiModel):
@@ -147,7 +157,7 @@ class WorkCreateMeta(ApiModel):
     id: UUID
     student_id: UUID
     title: str = Field(min_length=1, max_length=200)
-    attachments: list[AttachmentMeta] = Field(min_length=1, max_length=50)
+    attachments: list[AttachmentMeta] = Field(max_length=50)
     tasks: list[Task] = Field(max_length=100)
 
 

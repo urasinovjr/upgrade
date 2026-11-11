@@ -23,7 +23,7 @@ export function StudentForm({
         if (!value) onClose();
       }}
       title={student ? "Редактировать ученика" : "Новый ученик"}
-      description="Имя видно только в вашем кабинете."
+      description="Имя видно только в вашем кабинете"
     >
       <Form
         key={student?.id || String(open)}
@@ -95,7 +95,7 @@ function Form({
           placeholder="Даша, Дашуля, Dasha"
         />
         <small id="student-aliases-note">
-          Через запятую. Эти формы имени тоже проверяются перед разбором и не уходят ИИ.
+          Через запятую. Эти формы имени тоже проверяются перед разбором и не уходят ИИ
         </small>
       </label>
       <label>

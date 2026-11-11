@@ -34,7 +34,7 @@ export function Kpis({ summary }: { summary: DashboardSummary }) {
       to: "/works?view=all&status=needs_input",
     },
     {
-      label: "Подтверждены",
+      label: statusMeta.confirmed.label,
       value: summary.confirmed,
       Icon: statusMeta.confirmed.Icon,
       tone: statusMeta.confirmed.tone,

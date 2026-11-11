@@ -1,4 +1,5 @@
 from collections import Counter
+from decimal import Decimal
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field, ValidationError
@@ -11,9 +12,10 @@ Verdict = Literal["correct", "error", "uncertain"]
 
 
 class InvalidReply(Exception):
-    def __init__(self, reason: str):
+    def __init__(self, reason: str, task_ids: list[str] | None = None):
         super().__init__(reason)
         self.reason = reason
+        self.task_ids = task_ids or []
 
 
 class Region(BaseModel):
@@ -36,6 +38,7 @@ class TaskInput(BaseModel):
     reference: str
     condition_file_ids: list[str]
     condition_region: ConditionArea | None = None
+    solution_file_ids: list[str] | None = None
 
 
 class StepInput(BaseModel):
@@ -52,6 +55,7 @@ class ConditionImage(BaseModel):
     task_id: str
     image: PageImage
     region: Region | None = None
+    kind: Literal["condition", "solution"] = "condition"
 
 
 class ProviderReply(BaseModel):
@@ -61,6 +65,14 @@ class ProviderReply(BaseModel):
     prompt_version: str
     input_tokens: int = 0
     output_tokens: int = 0
+    generation_id: str | None = None
+    actual_provider: str | None = None
+    returned_model: str | None = None
+    actual_cost_usd: Decimal | None = None
+    processing: dict = Field(default_factory=dict)
+
+    def call_metadata(self) -> dict:
+        return self.model_dump(mode="json", exclude={"raw"})
 
 
 class RecognizedStep(BaseModel):
@@ -74,6 +86,8 @@ class RecognizedTask(BaseModel):
     task_id: str
     matched: bool
     steps: list[RecognizedStep] = Field(max_length=200)
+    complete: bool | None = None
+    issues: list[str] = Field(default_factory=list, max_length=50)
 
 
 class Recognition(BaseModel):
@@ -84,6 +98,7 @@ class ReviewedStep(BaseModel):
     id: str
     verdict: Verdict
     explanation: str = Field(max_length=5000)
+    consequence_of: str | None = None
 
 
 class GapHypothesis(BaseModel):
@@ -100,6 +115,8 @@ class ReviewedTask(BaseModel):
     steps: list[ReviewedStep] = Field(max_length=200)
     gap: GapHypothesis | None = None
     feedback: str = Field(default="", max_length=10000)
+    gap_assessment: Literal["proposed", "not_evidenced", "insufficient_data"] | None = None
+    gap_reason: str = Field(default="", max_length=5000)
 
 
 class Review(BaseModel):
@@ -114,6 +131,10 @@ class DraftProvider(Protocol):
     ) -> ProviderReply: ...
 
     async def close(self) -> None: ...
+
+    async def recognize_conditions(self, text: str, pages: list[PageImage]) -> ProviderReply: ...
+
+    async def generate_material(self, topic_id: str, reason: str) -> ProviderReply: ...
 
 
 def parse[T: BaseModel](model: type[T], raw: dict) -> T:
@@ -157,7 +178,11 @@ def read_review(raw: dict, tasks: list[ReviewTask]) -> Review:
     if not same_ids([item.task_id for item in review.tasks], [task.id for task in tasks]):
         raise InvalidReply("task_ids")
     for item in review.tasks:
-        check_reviewed_task(item, expected[item.task_id])
+        try:
+            check_reviewed_task(item, expected[item.task_id])
+        except InvalidReply as error:
+            error.task_ids = [item.task_id]
+            raise
         item.topic_id = canonical_topic(item.topic_id)
         if item.gap:
             item.gap.topic_id = canonical_topic(item.gap.topic_id)

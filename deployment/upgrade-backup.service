@@ -1,0 +1,9 @@
+[Unit]
+Description=UpGrade daily backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=SSH_ORIGINAL_COMMAND=backup
+ExecStart=/usr/local/sbin/upgrade-release

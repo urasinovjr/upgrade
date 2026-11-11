@@ -26,7 +26,7 @@ test(
     expect((await other.request.get("/api/files/" + fileId)).status()).toBe(404);
     expect((await other.request.get("/api/works/" + workId)).status()).toBe(404);
     await other.goto("/works");
-    await expect(other.getByRole("heading", { name: "Работы", exact: true })).toBeVisible();
+    await expect(other.getByRole("heading", { name: "Проверка", exact: true })).toBeVisible();
     await expect(other.getByRole("link", { name: /Чужая контрольная/ })).toHaveCount(0);
     await context.close();
   },

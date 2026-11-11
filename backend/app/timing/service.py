@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.errors import DomainError
+from app.homework.models import Homework
 from app.students import owned_student
 from app.timing.models import ActiveInterval, ManualSession, PilotParticipant
 from app.timing.schemas import IntervalIn, IntervalsOut, ManualSessionIn, ManualSessionOut
@@ -55,18 +56,29 @@ async def save_intervals(
 ) -> IntervalsOut:
     now = datetime.now(UTC)
     valid = [interval for interval in intervals if plausible(interval, now)]
-    known = await owned_work_ids(session, teacher_id, {interval.work_id for interval in valid})
+    known = await owned_work_ids(
+        session, teacher_id, {interval.work_id for interval in valid if interval.work_id}
+    )
+    homework_ids = {interval.homework_id for interval in valid if interval.homework_id}
+    known_homework = set(
+        await session.scalars(
+            select(Homework.id).where(
+                Homework.teacher_id == teacher_id, Homework.id.in_(homework_ids)
+            )
+        )
+    )
     rows = [
         {
             "id": interval.id,
             "teacher_id": teacher_id,
             "work_id": interval.work_id,
+            "homework_id": interval.homework_id,
             "stage": interval.stage,
             "started_at": interval.started_at,
             "ended_at": interval.ended_at,
         }
         for interval in valid
-        if interval.work_id in known
+        if interval.work_id in known or interval.homework_id in known_homework
     ]
     accepted = 0
     if rows:
@@ -78,7 +90,11 @@ async def save_intervals(
         )
         accepted = len(list(result))
     await session.commit()
-    unknown = sorted({interval.work_id for interval in valid} - known, key=str)
+    unknown = sorted(
+        ({interval.work_id for interval in valid if interval.work_id} - known)
+        | (homework_ids - known_homework),
+        key=str,
+    )
     return IntervalsOut(
         accepted=accepted, rejected=len(intervals) - len(valid), unknown_work_ids=unknown
     )

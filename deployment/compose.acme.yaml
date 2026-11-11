@@ -2,7 +2,7 @@ name: upgrade-acme
 
 services:
   challenge:
-    image: nginxinc/nginx-unprivileged:1.29-alpine
+    image: nginx/nginx-unprivileged:1.30.6-alpine@sha256:c3fc8fa482be50ef709c6438eb1bc98d50dbfe5a9b48be90711b8814f4dfd701
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]

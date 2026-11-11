@@ -113,13 +113,10 @@ def reviewed_as(task_type_id: str, **changes):
 
 
 @pytest.mark.prd(5)
-def test_task_out_of_scope_is_omitted_whatever_the_reply():
+def test_derivative_is_supported_and_correct_work_has_no_gap():
     merged = reviewed_as("derivative", gap={"topic_id": "domain", "reason": "ОДЗ"})
 
-    assert (merged.omitted, merged.task_type_id, merged.gap) == (True, "derivative", None)
-    assert merged.feedback == (
-        "UpGrade пока не разбирает такие задачи: производная и исследование функции."
-    )
+    assert (merged.omitted, merged.task_type_id, merged.gap) == (False, "derivative", None)
 
 
 def test_task_type_in_scope_is_kept():

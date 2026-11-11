@@ -19,8 +19,25 @@ export function inputSignature(draft: Draft): string {
 }
 
 export function applyDraft(work: Work, proposed: Draft): Work {
-  if (!work.editing) throw new Error("Начните новую версию разбора.");
-  if (work.job) throw new Error("ИИ ещё разбирает работу.");
+  if (!work.editing) throw new Error("Начните новую версию разбора");
+  if (work.job) throw new Error("ИИ ещё разбирает работу");
+  if (work.submissionSnapshot) {
+    const frozen = (draft: Draft) =>
+      JSON.stringify(
+        draft.tasks.map(
+          ({ id, title, condition, formula, conditionAttachmentIds, solutionAttachmentIds }) => ({
+            id,
+            title,
+            condition,
+            formula,
+            conditionAttachmentIds,
+            solutionAttachmentIds,
+          }),
+        ),
+      );
+    if (frozen(work.draft) !== frozen(proposed))
+      throw new Error("Условия назначенного ДЗ зафиксированы");
+  }
   const changedInputs = inputSignature(work.draft) !== inputSignature(proposed);
   const draft = structuredClone(proposed);
   draft.revision = work.draft.revision + 1;
@@ -39,20 +56,29 @@ export function applyDraft(work: Work, proposed: Draft): Work {
   return { ...work, draft };
 }
 
-export const unreviewedBlocker = ": отметьте задачу проверенной.";
+export const unreviewedBlocker = ": отметьте задачу проверенной";
 
 export function reviewBlockers(work: Work): string[] {
   if (!work.editing) return [];
-  if (work.job) return ["ИИ ещё разбирает работу."];
+  if (work.job) return ["ИИ ещё разбирает работу"];
   const blockers: string[] = [];
   if (work.status !== "ready")
-    blockers.push("Дождитесь разбора или сверьте работу с оригиналом вручную.");
+    blockers.push("Дождитесь разбора или сверьте работу с оригиналом вручную");
   if (work.draft.inputRevision !== work.draft.analysedInputRevision)
-    blockers.push("Условия или шаги изменились. Запустите разбор заново.");
-  if (!work.draft.tasks.length) blockers.push("Добавьте хотя бы одну задачу.");
+    blockers.push("Условия или шаги изменились. Запустите разбор заново");
+  if (!work.draft.tasks.length) blockers.push("Добавьте хотя бы одну задачу");
   for (const task of work.draft.tasks) {
+    if (task.solutionAttachmentIds?.length === 0 && task.gap?.decision === "confirmed")
+      blockers.push(task.title + ": без решения нельзя подтвердить гипотезу");
+    if (task.result === "needs_clarification") {
+      if (!task.feedback.trim()) blockers.push(task.title + ": напишите, что нужно уточнить");
+      if (!task.reviewed) blockers.push(task.title + unreviewedBlocker);
+      if (task.gap?.decision === "confirmed")
+        blockers.push(task.title + ": уточните решение перед подтверждением гипотезы");
+      continue;
+    }
     if (task.omitted) {
-      if (!task.feedback.trim()) blockers.push(task.title + ": напишите, почему задача отложена.");
+      if (!task.feedback.trim()) blockers.push(task.title + ": напишите, почему задача отложена");
       continue;
     }
     const known = (id: string) => work.attachments.some((file) => file.id === id);
@@ -63,15 +89,15 @@ export function reviewBlockers(work: Work): string[] {
       !task.conditionAttachmentIds?.some(known) &&
       !(regionFile && known(regionFile))
     )
-      blockers.push(task.title + ": добавьте условие.");
+      blockers.push(task.title + ": добавьте условие");
     if (!task.steps.length || task.steps.some((step) => !step.latex.trim()))
-      blockers.push(task.title + ": добавьте шаги решения.");
+      blockers.push(task.title + ": добавьте шаги решения");
     if (task.steps.some((step) => step.verdict === "uncertain"))
-      blockers.push(task.title + ": уточните неясные шаги.");
+      blockers.push(task.title + ": уточните неясные шаги");
     if (task.steps.some((step) => step.verdict === "error" && !step.explanation.trim()))
-      blockers.push(task.title + ": объясните ошибку.");
+      blockers.push(task.title + ": объясните ошибку");
     if (task.gap?.decision === "confirmed" && !task.gap.reason.trim())
-      blockers.push(task.title + ": напишите, что повторить.");
+      blockers.push(task.title + ": напишите, что повторить");
     if (!task.reviewed) blockers.push(task.title + unreviewedBlocker);
   }
   return blockers;
@@ -167,9 +193,15 @@ export function reportText(report: Report): string {
     "UpGrade · Отчёт по работе",
     student.name + " · " + student.grade + " класс",
     work.title,
-    "Версия " + revision.number,
+    "Проверено репетитором · версия " + revision.number,
     "",
   ];
+  const formulas = revision.draft.tasks.flatMap((task) => [
+    task.formula,
+    ...(!task.omitted ? task.steps.map((step) => step.latex) : []),
+  ]);
+  if (formulas.some((value) => /\\[a-zA-Z]|[{}^_]/.test(value)))
+    lines.push("Формулы ниже записаны в LaTeX. В PDF они показаны в обычном виде.", "");
   for (const task of revision.draft.tasks) {
     lines.push(task.title, task.condition, task.formula);
     const conditionFiles = revision.attachments.filter((file) =>

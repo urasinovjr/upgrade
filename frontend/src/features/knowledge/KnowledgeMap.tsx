@@ -105,14 +105,14 @@ export function KnowledgeMap({
           ref={scroller}
           className="dp-map-scroll"
           tabIndex={0}
-          aria-label="Карта связей тем. На узком экране прокручивается по горизонтали."
+          aria-label="Карта связей тем. На узком экране прокручивается по горизонтали"
           onScroll={updateFade}
         >
           <svg
             viewBox={`0 0 ${graph.width} ${graph.height}`}
             style={{ "--ug-map-width": graph.width + "px" } as CSSProperties}
             role="group"
-            aria-label="Карта знаний по алгебре"
+            aria-label="Карта знаний по математике"
           >
             <defs>
               {(["dp-map-arrow", "dp-map-arrow-path"] as const).map((id) => (
@@ -233,7 +233,7 @@ export function KnowledgeMap({
           <ChevronRight size={16} />
         </button>
       </div>
-      <div className="dp-map-levels" role="group" aria-label="Карта знаний по алгебре">
+      <div className="dp-map-levels" role="group" aria-label="Карта знаний по математике">
         {levels.map((level) => (
           <section key={level.key}>
             <h3>{level.title}</h3>

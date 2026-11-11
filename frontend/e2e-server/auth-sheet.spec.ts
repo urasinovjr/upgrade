@@ -17,9 +17,7 @@ test("signing in ticks the sheet and then opens the cabinet", async ({ page, req
   const emailField = page.getByLabel("Почта");
   await emailField.fill(email);
   await page.getByLabel("Пароль").fill(password);
-  expect(
-    await emailField.evaluate((input) => getComputedStyle(input).backgroundSize),
-  ).not.toContain("0%");
+  await expect(emailField).toHaveCSS("background-size", "100% 2px");
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await expect(page.locator('.dp-auth-tick .dp-ink-stroke[data-drawn="true"]')).toHaveCount(1);
   await expect(page).toHaveURL(/\/dashboard$/);

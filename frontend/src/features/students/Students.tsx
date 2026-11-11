@@ -46,7 +46,14 @@ export default function Students() {
       </>
     );
   if (!query.data)
-    return <PageState title="Ученики" error={query.error} retry={() => void query.refetch()} />;
+    return (
+      <PageState
+        title="Ученики"
+        errorTitle="Не удалось загрузить учеников"
+        error={query.error}
+        retry={() => void query.refetch()}
+      />
+    );
   const state = query.data;
   const term = search.trim().toLowerCase();
   const archivedCount = state.students.filter((student) => student.archivedAt).length;
@@ -96,7 +103,7 @@ export default function Students() {
                 <Search size={16} aria-hidden="true" />
                 <span>
                   <strong>Ученики не найдены</strong>
-                  Проверьте написание имени или цели занятий.
+                  Проверьте написание имени или цели занятий
                 </span>
                 <button className="dp-text" onClick={() => setSearch("")}>
                   Сбросить поиск
@@ -107,7 +114,7 @@ export default function Students() {
                 <Users size={16} aria-hidden="true" />
                 <span>
                   <strong>Учеников пока нет</strong>
-                  Добавьте ученика, чтобы загружать его работы и собирать карту знаний.
+                  Добавьте ученика, чтобы загружать его работы и собирать карту знаний
                 </span>
                 <button className="dp-text" onClick={add} disabled={!writeAccess.allowed}>
                   <UserPlus size={14} aria-hidden="true" />

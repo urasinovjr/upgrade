@@ -6,18 +6,19 @@ import {
   csrfHeaders,
   signUp,
   startAnalysis,
-  taskTab,
+  selectTask,
   waitForAnalysis,
+  waitForReport,
 } from "./setup";
 
 const analysisTimeout = { timeout: 60_000 };
 
 async function confirmTasks(page: Page, count: number) {
   for (let number = 1; number <= count; number += 1) {
-    if (count > 1) await taskTab(page, number).click();
-    await page.getByRole("button", { name: "Отметить задачу проверенной" }).click();
+    if (count > 1) await selectTask(page, number);
+    await page.getByRole("button", { name: "Отметить проверенной" }).click();
   }
-  await page.getByRole("button", { name: "Подтвердить работу", exact: true }).click();
+  await page.getByRole("button", { name: "Опубликовать результат", exact: true }).click();
 }
 
 async function readWork(page: Page, workId: string) {
@@ -60,7 +61,7 @@ test(
       ["x+1=2", "x=1"],
       ["4x=8", "x=2"],
     ]);
-    await taskTab(page, 2).click();
+    await selectTask(page, 2);
     await expect(page.getByRole("heading", { name: "Решите 4x = 8" })).toBeVisible();
     await page.getByRole("button", { name: "Что получил ИИ" }).click();
     await expect(page.getByRole("figure", { name: /^Страница 1 · page-/ })).toHaveText([
@@ -82,7 +83,7 @@ test(
 
     await expect(page.getByText("Задача 1: добавьте условие").first()).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Подтвердить работу", exact: true }),
+      page.getByRole("button", { name: "Опубликовать результат", exact: true }),
     ).toBeDisabled();
   },
 );
@@ -101,7 +102,7 @@ test(
     await startAnalysis(page);
     await waitForAnalysis(page);
     await confirmTasks(page, 1);
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
 
     await page.getByRole("button", { name: "Начать новую версию" }).click();
     await page.getByRole("textbox", { name: "Что дальше" }).fill("Правка до сбоя");
@@ -122,6 +123,7 @@ test(
     await expect(page.getByRole("textbox", { name: "Что дальше" })).toHaveValue("Правка до сбоя");
     await expect(page.getByRole("main")).toContainText(marker);
     await page.getByRole("link", { name: "Отчёт, версия 1" }).click();
+    await waitForReport(page, 1);
     await expect(page.getByRole("main")).toContainText("Решите x + 1 = 2");
     await expect(page.getByRole("main")).not.toContainText("[[fail");
   },
@@ -141,7 +143,7 @@ test(
     await startAnalysis(page);
     await waitForAnalysis(page);
     await confirmTasks(page, 1);
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
 
     const headers = await csrfHeaders(page);
     const again = await Promise.all(
@@ -151,7 +153,7 @@ test(
     const work = await readWork(page, workId);
     expect(work.published).toHaveLength(1);
     await page.goto("/dashboard");
-    await expect(page.getByRole("link", { name: "Подтверждены: 1", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Опубликовано: 1", exact: true })).toBeVisible();
   },
 );
 
@@ -169,18 +171,18 @@ test(
     await startAnalysis(page);
     await waitForAnalysis(page);
     await expect(
-      page.getByRole("button", { name: "Подтвердить пробел", exact: true }),
+      page.getByRole("button", { name: "Подтвердить гипотезу", exact: true }),
     ).toBeVisible();
     await confirmTasks(page, 1);
-    await expect(page.getByText("Версия 1 подтверждена")).toBeVisible();
+    await expect(page.getByText("Версия 1 опубликована")).toBeVisible();
     await page.goto("/students/" + studentId);
     await expect(page.getByRole("main")).toContainText("0 открытых пробелов");
 
     await page.goto("/works/" + workId);
     await page.getByRole("button", { name: "Начать новую версию" }).click();
-    await page.getByRole("button", { name: "Подтвердить пробел", exact: true }).click();
+    await page.getByRole("button", { name: "Подтвердить гипотезу", exact: true }).click();
     await confirmTasks(page, 1);
-    await expect(page.getByText("Версия 2 подтверждена")).toBeVisible();
+    await expect(page.getByText("Версия 2 опубликована")).toBeVisible();
     await page.goto("/students/" + studentId);
     await expect(page.getByRole("main")).toContainText("1 открытый пробел");
 

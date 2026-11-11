@@ -112,7 +112,7 @@ def test_closed_work_and_running_job():
     draft = draft_of(finished_task())
 
     assert review_blockers("confirmed", False, False, draft, set()) == []
-    assert review_blockers("queued", True, True, draft, set()) == ["ИИ ещё разбирает работу."]
+    assert review_blockers("queued", True, True, draft, set()) == ["ИИ ещё разбирает работу"]
     assert any("хотя бы одну" in item for item in blockers(draft_of()))
 
 

@@ -5,9 +5,10 @@ import httpx
 
 
 class ProviderError(Exception):
-    def __init__(self, code: str):
+    def __init__(self, code: str, reply=None):
         super().__init__(code)
         self.code = code
+        self.reply = reply
 
 
 class Provider:

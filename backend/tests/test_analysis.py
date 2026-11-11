@@ -187,7 +187,16 @@ async def test_provider_failure_is_retried_then_failed(teacher, sessions, test_s
     assert (await act(teacher, work["id"], "manual")).json()["status"] == "ready"
 
 
-@pytest.mark.parametrize("code", ["provider_auth", "provider_rejected"])
+@pytest.mark.parametrize(
+    "code",
+    [
+        "provider_auth",
+        "provider_rejected",
+        "provider_budget_exhausted",
+        "provider_budget_configuration",
+        "provider_route_unavailable",
+    ],
+)
 async def test_refused_credentials_fail_without_retries(
     teacher, sessions, test_settings, storage, code
 ):
@@ -261,7 +270,7 @@ async def test_work_is_locked_while_analysed(teacher):
 
     assert again.json() == {"detail": "analysis_in_progress"}
     assert edit.json() == {"detail": "analysis_in_progress"}
-    assert confirm.json()["blockers"] == ["ИИ ещё разбирает работу."]
+    assert confirm.json()["blockers"] == ["ИИ ещё разбирает работу"]
 
 
 @pytest.mark.prd(6)

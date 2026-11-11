@@ -6,6 +6,7 @@ import type { Student } from "../../domain/models";
 import { useCommand } from "../../shared/query";
 import { useWriteAccess } from "../../shared/session";
 import { ConfirmDelete } from "../../shared/ui";
+import { StudentInvitation } from "./StudentInvitation";
 
 export function StudentActions({ student }: { student: Student }) {
   const command = useCommand();
@@ -15,6 +16,7 @@ export function StudentActions({ student }: { student: Student }) {
   const writeAccess = useWriteAccess();
   return (
     <>
+      <StudentInvitation studentId={student.id} disabled={!writeAccess.allowed || archived} />
       <button
         className="dp-compact-action"
         disabled={command.isPending || !writeAccess.allowed}
@@ -29,8 +31,9 @@ export function StudentActions({ student }: { student: Student }) {
       </button>
       <ConfirmDelete
         label="Удалить"
+        confirmLabel="Удалить ученика"
         title={"Удалить ученика «" + student.name + "»?"}
-        description="Вместе с учеником удалятся его работы, файлы, отчёты и история пробелов."
+        description="Вместе с учеником удалятся его работы, файлы, отчёты и история пробелов"
         onConfirm={async () => {
           await gateway.removeStudent(student.id);
           await client.invalidateQueries({ queryKey: ["store"] });

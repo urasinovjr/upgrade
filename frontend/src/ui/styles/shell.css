@@ -514,7 +514,7 @@ a.dp-workspace:hover {
     display: none;
   }
   .dp-sidebar nav {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--ug-space-1);
     height: 56px;
     align-items: center;

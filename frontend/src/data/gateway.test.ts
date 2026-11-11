@@ -172,7 +172,7 @@ describe("demo persistence", () => {
     await gateway.removeWork(work.id);
     state = await gateway.read();
     expect(state.works.some((item) => item.id === work.id)).toBe(false);
-    await expect(gateway.asset(fileId)).rejects.toThrow("Файл не найден");
+    await expect(gateway.asset(fileId)).rejects.toThrow("Файл не найден. Загрузите его заново");
     await gateway.archiveStudent(work.studentId, false);
     await gateway.removeStudent(work.studentId);
     state = await gateway.read();

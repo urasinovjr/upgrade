@@ -102,9 +102,23 @@
   white-space: nowrap;
 }
 .dp-segment-count {
+  flex: none;
   color: var(--ug-muted);
   font-size: var(--ug-fs-caption);
   font-variant-numeric: tabular-nums;
+}
+.dp-segment-label {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+@media (max-width: 420px) {
+  .dp-app .dp-viewbar .dp-segment {
+    display: grid;
+    grid-template-columns: minmax(min-content, 2fr) minmax(min-content, 1fr);
+  }
+  .dp-app .dp-viewbar .dp-segment > button:last-child {
+    grid-column: 1 / -1;
+  }
 }
 .dp-active-filter {
   display: inline-flex;
@@ -203,19 +217,23 @@
 }
 .dp-queue-empty {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ug-space-2);
   min-height: 48px;
-  padding: 0 var(--ug-space-2);
+  padding: var(--ug-space-3) var(--ug-space-2);
   border-bottom: 1px solid var(--ug-line);
   color: var(--ug-muted);
 }
 .dp-queue-empty .dp-text {
   margin-left: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .dp-queue-empty > span {
   display: grid;
   min-width: 0;
+  flex: 1 1 200px;
 }
 .dp-queue-empty strong {
   color: var(--ug-ink);
@@ -521,11 +539,13 @@
     order: 2;
     display: flex;
     width: 100%;
+    flex-wrap: wrap;
   }
   .dp-app.dp-app .dp-viewbar .dp-segment > button {
     flex: 1 1 auto;
     min-height: 44px;
     padding-inline: var(--ug-space-1);
+    min-width: min-content;
   }
   .dp-queue-selects {
     order: 3;

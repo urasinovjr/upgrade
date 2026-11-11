@@ -79,14 +79,14 @@ async def get_work(work_id: UUID, current: CurrentAccountDep, session: SessionDe
 
 @router.delete("/works/{work_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_work(
-    work_id: UUID, current: CurrentAccountDep, session: SessionDep, settings: SettingsDep
+    work_id: UUID, current: WritableAccountDep, session: SessionDep, settings: SettingsDep
 ) -> None:
     await delete_work(session, settings, current.user.id, work_id)
 
 
 @router.delete("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_student(
-    student_id: UUID, current: CurrentAccountDep, session: SessionDep, settings: SettingsDep
+    student_id: UUID, current: WritableAccountDep, session: SessionDep, settings: SettingsDep
 ) -> None:
     await delete_student(session, settings, current.user.id, student_id)
 

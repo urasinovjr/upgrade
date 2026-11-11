@@ -124,7 +124,7 @@ export function PencilDemo() {
           <button type="button" onClick={toggle}>
             <span className="dp-landing-swap">
               <span data-active={!decided} aria-hidden={decided}>
-                Подтвердить пробел
+                Подтвердить гипотезу
               </span>
               <span data-active={decided} aria-hidden={!decided}>
                 Отменить подтверждение

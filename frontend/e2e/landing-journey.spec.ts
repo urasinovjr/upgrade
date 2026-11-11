@@ -19,7 +19,7 @@ test.describe("with motion", () => {
     const stages = [
       { progress: 0.15, step: "1", title: "Загрузите работу" },
       { progress: 0.4, step: "2", title: "Проверьте шаги" },
-      { progress: 0.65, step: "3", title: "Подтвердите пробел" },
+      { progress: 0.65, step: "3", title: "Подтвердите гипотезу" },
       { progress: 0.9, step: "4", title: "Отправьте отчёт" },
     ];
     for (const stage of stages) {

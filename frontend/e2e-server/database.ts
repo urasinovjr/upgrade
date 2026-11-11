@@ -1,9 +1,27 @@
 import { execFileSync } from "node:child_process";
 
+const databaseName = process.env.E2E_DATABASE_NAME ?? "upgrade";
+
 function compose(...args: string[]) {
-  return execFileSync("docker", ["compose", "-f", "../compose.yaml", "exec", "-T", ...args], {
-    encoding: "utf8",
-  });
+  const project = process.env.E2E_COMPOSE_PROJECT;
+  return execFileSync(
+    "docker",
+    [
+      "compose",
+      ...(project ? ["-p", project] : []),
+      "-f",
+      process.env.E2E_COMPOSE_FILE ?? "../compose.yaml",
+      "exec",
+      "-T",
+      ...(args[0] === "api" && process.env.E2E_DATABASE_NAME
+        ? ["-e", "DATABASE_URL=postgresql+asyncpg://upgrade:upgrade@db:5432/" + databaseName]
+        : []),
+      ...args,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
 }
 
 function quoted(value: string) {
@@ -11,7 +29,7 @@ function quoted(value: string) {
 }
 
 export function resetRateLimits() {
-  compose("db", "psql", "-U", "upgrade", "-d", "upgrade", "-c", "DELETE FROM rate_limits");
+  compose("db", "psql", "-U", "upgrade", "-d", databaseName, "-c", "DELETE FROM rate_limits");
 }
 
 export function enrollInPilot(email: string) {
@@ -35,19 +53,5 @@ export function endSubscription(email: string) {
     "(SELECT id FROM users WHERE email = '" +
     email.replaceAll("'", "''") +
     "')";
-  execFileSync("docker", [
-    "compose",
-    "-f",
-    "../compose.yaml",
-    "exec",
-    "-T",
-    "db",
-    "psql",
-    "-U",
-    "upgrade",
-    "-d",
-    "upgrade",
-    "-c",
-    sql,
-  ]);
+  compose("db", "psql", "-U", "upgrade", "-d", "upgrade", "-c", sql);
 }

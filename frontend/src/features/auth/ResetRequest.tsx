@@ -13,14 +13,14 @@ export default function ResetRequest() {
     return (
       <AuthLayout
         title="Проверьте почту"
-        lead={`Если аккаунт с адресом ${email} существует, мы отправили ссылку для смены пароля. Она действует час.`}
+        lead={`Если аккаунт с адресом ${email} существует, мы отправили ссылку для смены пароля. Она действует час`}
         footer={footer}
       >
         {null}
       </AuthLayout>
     );
   return (
-    <AuthLayout title="Смена пароля" lead="Пришлём ссылку для нового пароля." footer={footer}>
+    <AuthLayout title="Смена пароля" lead="Пришлём ссылку для нового пароля" footer={footer}>
       <form
         onSubmit={(event) => {
           event.preventDefault();

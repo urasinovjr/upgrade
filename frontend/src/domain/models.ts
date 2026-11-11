@@ -45,6 +45,11 @@ export interface Task {
   reviewed: boolean;
   omitted: boolean;
   gap?: GapProposal;
+  solutionAttachmentIds?: string[];
+  result?: "solved" | "errors" | "needs_clarification";
+  qualityWarnings?: string[];
+  gapAssessment?: "proposed" | "not_evidenced" | "insufficient_data";
+  gapReason?: string;
 }
 export interface ConditionRegion {
   fileId: string;
@@ -116,6 +121,17 @@ export interface Work {
   job?: Job;
   initialAnalysis?: Draft;
   analysis?: AnalysisInfo;
+  assignmentId?: string;
+  submissionSnapshot?: {
+    homeworkId?: string;
+    title: string;
+    tasks: import("./homework").HomeworkTask[];
+    revision: number;
+    deadline?: string | null;
+  };
+  taskFiles?: Record<string, string[]>;
+  submittedAt?: string;
+  late?: boolean;
 }
 export interface Topic {
   id: string;

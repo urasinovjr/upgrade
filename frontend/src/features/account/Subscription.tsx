@@ -37,15 +37,15 @@ export default function Subscription() {
         )}
         <p className="dp-caption">
           {active
-            ? "Все возможности доступны: загрузка, разбор и подтверждение работ."
-            : "Работы, отчёты и карту знаний можно смотреть и скачивать. Новые работы и правки откроются после продления."}
+            ? "Все возможности доступны: загрузка, разбор и публикация результатов"
+            : "Работы, отчёты и карту знаний можно смотреть и скачивать. Новые работы и правки откроются после продления"}
         </p>
         <div className="dp-account-row">
           <a className="dp-button dp-primary" href={contactUrl}>
             <CreditCard size={14} aria-hidden="true" />
             {status === "trial" || status === "none" ? "Оформить подписку" : "Продлить подписку"}
           </a>
-          <span className="dp-caption">Оплата картой появится позже, пока напишите нам.</span>
+          <span className="dp-caption">Оплата картой появится позже, пока напишите нам</span>
         </div>
       </section>
     </div>

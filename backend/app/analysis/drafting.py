@@ -1,5 +1,5 @@
 import hashlib
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid5
 
 from app.analysis.contract import (
     ConditionArea,
@@ -40,8 +40,10 @@ def tasks_to_recognize(
     draft: Draft, layout: list[dict], last_layout: list[dict] | None
 ) -> list[Task]:
     if layout != last_layout:
-        return list(draft.tasks)
-    return [task for task in draft.tasks if not has_steps(task)]
+        return [task for task in draft.tasks if task.solution_attachment_ids != []]
+    return [
+        task for task in draft.tasks if not has_steps(task) and task.solution_attachment_ids != []
+    ]
 
 
 def page_crops(layout: list[dict]) -> dict[str, dict]:
@@ -67,6 +69,7 @@ def task_input(task: Task, crops: dict[str, dict] | None = None) -> TaskInput:
         reference=task.reference,
         condition_file_ids=task.condition_attachment_ids or [],
         condition_region=condition_area(task, crops or {}),
+        solution_file_ids=task.solution_attachment_ids,
     )
 
 
@@ -102,10 +105,14 @@ def recognized_steps(
         return []
     return [
         (
-            StepInput(id=str(uuid4()), latex=step.latex, legible=step.legible),
+            StepInput(
+                id=str(uuid5(NAMESPACE_URL, f"{item.task_id}:{index}:{step.latex}")),
+                latex=step.latex,
+                legible=step.legible,
+            ),
             origin_of(step, pages, crops),
         )
-        for step in item.steps
+        for index, step in enumerate(item.steps)
     ]
 
 
@@ -126,8 +133,19 @@ def review_tasks(
     result = []
     origins: Origins = {}
     for task in draft.tasks:
-        if task.id in recognized:
-            pairs = recognized_steps(recognized[task.id], pages or [], crops)
+        if task.solution_attachment_ids == []:
+            pairs = []
+        elif task.id in recognized:
+            item = recognized[task.id].model_copy(deep=True)
+            if task.solution_attachment_ids is not None:
+                for step in item.steps:
+                    images = pages or []
+                    if step.page is not None and (
+                        not 0 <= step.page < len(images)
+                        or images[step.page].file_id not in task.solution_attachment_ids
+                    ):
+                        step.legible = False
+            pairs = recognized_steps(item, pages or [], crops)
         else:
             pairs = kept_steps(task)
         origins.update({step.id: origin for step, origin in pairs})
@@ -175,6 +193,7 @@ def condition_record(conditions: list[ConditionImage]) -> list[dict]:
             "width": item.image.width,
             "height": item.image.height,
             "region": item.region.model_dump() if item.region else None,
+            **({"kind": "solution"} if item.kind == "solution" else {}),
         }
         for item in conditions
     ]
@@ -195,7 +214,17 @@ def out_of_scope_reason(task_type_id: str) -> str:
 def merged_task(task: Task, source: ReviewTask, item: ReviewedTask, origins: Origins) -> Task:
     reviewed = {step.id: step for step in item.steps}
     gap = None
-    if item.gap is not None:
+    if (
+        item.gap is not None
+        and source.steps
+        and any(
+            step.verdict == "error"
+            and any(
+                source_step.id == step.id and source_step.legible for source_step in source.steps
+            )
+            for step in item.steps
+        )
+    ):
         gap = GapProposal(topic_id=item.gap.topic_id, reason=item.gap.reason, decision="hypothesis")
     outside = item.task_type_id in OUT_OF_SCOPE_TYPES
     supported = item.supported and not outside
@@ -209,8 +238,17 @@ def merged_task(task: Task, source: ReviewTask, item: ReviewedTask, origins: Ori
             "topic_id": item.topic_id,
             "task_type_id": item.task_type_id,
             "gap": None if outside else gap,
-            "feedback": item.feedback if supported else reason,
-            "omitted": not supported,
+            "gap_assessment": item.gap_assessment,
+            "gap_reason": item.gap_reason,
+            "feedback": (item.feedback if supported else reason)
+            if source.steps
+            else "Решение не прислано",
+            "omitted": not supported or not source.steps,
+            "result": (
+                "needs_clarification"
+                if task.solution_attachment_ids is not None and (not supported or not source.steps)
+                else None
+            ),
             "reviewed": False,
         }
     )

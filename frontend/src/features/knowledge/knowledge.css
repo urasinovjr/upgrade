@@ -833,3 +833,20 @@
     stroke-dashoffset: 1;
   }
 }
+@media (max-width: 1000px) {
+  .dp-topbar-actions:has(.dp-student-access) .dp-compact-action {
+    position: relative;
+    flex: 0 0 44px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+  .dp-topbar-actions:has(.dp-student-access) .dp-compact-action > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

@@ -10,6 +10,7 @@ import { FocusBox, MaskControls, MaskLayer, PageCheck } from "./MaskEditor";
 import { ErrorMessage } from "./ui";
 import "./media.css";
 const PdfPage = lazy(() => import("./PdfPage"));
+const selections = new Map<string, { fileId: string; page: number }>();
 
 function swapWithNeighbour<T>(items: T[], index: number, direction: number): T[] | undefined {
   const target = index + direction;
@@ -34,6 +35,10 @@ export function MediaViewer({
   lead,
   redaction = false,
   focus,
+  loadAsset = gateway.asset,
+  layoutTools = true,
+  compact = false,
+  selectionKey,
 }: {
   files: Attachment[];
   update?: (files: Attachment[]) => void;
@@ -41,9 +46,16 @@ export function MediaViewer({
   lead?: ReactNode;
   redaction?: boolean;
   focus?: OriginFocus;
+  loadAsset?: (id: string) => Promise<Blob>;
+  layoutTools?: boolean;
+  compact?: boolean;
+  selectionKey?: string;
 }) {
-  const [selected, setSelected] = useState(files[0]?.id || "");
-  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(
+    () => (selectionKey && selections.get(selectionKey)?.fileId) || files[0]?.id || "",
+  );
+  const [page, setPage] = useState(() => (selectionKey && selections.get(selectionKey)?.page) || 1);
+  const [expanded, setExpanded] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [tool, setTool] = useState<"crop" | "mask">();
   useActiveTime(tool === "mask" ? "masking" : undefined);
@@ -61,6 +73,9 @@ export function MediaViewer({
   const [width, setWidth] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const localBlob = uploads?.find((item) => item.id === fileId)?.blob;
+  useEffect(() => {
+    if (selectionKey && fileId) selections.set(selectionKey, { fileId, page });
+  }, [selectionKey, fileId, page]);
   useEffect(() => {
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => revealFocus(focusBox.current));
@@ -83,7 +98,7 @@ export function MediaViewer({
     let active = true;
     let url: string | undefined;
     if (fileId) {
-      const promise = localBlob ? Promise.resolve(localBlob) : gateway.asset(fileId);
+      const promise = localBlob ? Promise.resolve(localBlob) : loadAsset(fileId);
       promise
         .then((blob) => {
           url = URL.createObjectURL(blob);
@@ -100,14 +115,14 @@ export function MediaViewer({
       active = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [fileId, localBlob, attempt]);
+  }, [fileId, localBlob, attempt, loadAsset]);
   if (!file)
     return (
       <section className="media-viewer">
         {lead && <div className="media-controls">{lead}</div>}
         <div className="media-empty">
           <ImageUp size={28} aria-hidden="true" />
-          <p>Добавьте фото или PDF решения.</p>
+          <p>Добавьте фото или PDF решения</p>
         </div>
       </section>
     );
@@ -136,7 +151,7 @@ export function MediaViewer({
   const bottom = (1 - crop.y - crop.height) * 100;
   const left = crop.x * 100;
   return (
-    <section className="media-viewer">
+    <section className={"media-viewer" + (compact && !expanded ? " media-compact" : "")}>
       <div className="media-controls">
         {lead}
         {files.length > 1 ? (
@@ -159,6 +174,7 @@ export function MediaViewer({
           <span className="media-name">{file.name}</span>
         )}
         <button
+          type="button"
           className="icon-button"
           aria-label="Уменьшить оригинал"
           onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
@@ -167,37 +183,50 @@ export function MediaViewer({
         </button>
         <span className="media-zoom">{Math.round(zoom * 100)}%</span>
         <button
+          type="button"
           className="icon-button"
           aria-label="Увеличить оригинал"
           onClick={() => setZoom(Math.min(3, zoom + 0.25))}
         >
           <ZoomIn size={18} />
         </button>
+        {compact && (
+          <button
+            type="button"
+            className="media-expand"
+            aria-expanded={expanded}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? "Свернуть оригинал" : "Развернуть оригинал"}
+          </button>
+        )}
       </div>
       {update && (
         <div className="media-tools">
-          {files.length > 1 && (
+          {layoutTools && files.length > 1 && (
             <>
-              <button onClick={() => move(-1)} disabled={files[0].id === file.id}>
+              <button type="button" onClick={() => move(-1)} disabled={files[0].id === file.id}>
                 <ArrowUp size={14} />
                 Файл выше
               </button>
-              <button onClick={() => move(1)} disabled={files.at(-1)?.id === file.id}>
+              <button type="button" onClick={() => move(1)} disabled={files.at(-1)?.id === file.id}>
                 <ArrowDown size={14} />
                 Файл ниже
               </button>
             </>
           )}
           {redaction && (
-            <button onClick={() => toggle("mask")} aria-expanded={tool === "mask"}>
+            <button type="button" onClick={() => toggle("mask")} aria-expanded={tool === "mask"}>
               <EyeOff size={14} />
               Закрасить данные
             </button>
           )}
-          <button onClick={() => toggle("crop")} aria-expanded={tool === "crop"}>
-            <Crop size={14} />
-            Обрезать
-          </button>
+          {layoutTools && (
+            <button type="button" onClick={() => toggle("crop")} aria-expanded={tool === "crop"}>
+              <Crop size={14} />
+              Обрезать
+            </button>
+          )}
         </div>
       )}
       {tool === "mask" && update && (
@@ -231,9 +260,10 @@ export function MediaViewer({
               ))}
             </select>
           </label>
-          {update && (
+          {update && layoutTools && (
             <>
               <button
+                type="button"
                 aria-label="Переместить страницу выше"
                 disabled={order[0] === activePage}
                 onClick={() => movePage(-1)}
@@ -241,6 +271,7 @@ export function MediaViewer({
                 <ArrowUp size={16} />
               </button>
               <button
+                type="button"
                 aria-label="Переместить страницу ниже"
                 disabled={order.at(-1) === activePage}
                 onClick={() => movePage(1)}
@@ -292,13 +323,15 @@ export function MediaViewer({
                 className="source-image"
                 src={source.url}
                 alt={"Оригинал: " + file.name}
-                onError={() => setError(new Error("Изображение повреждено. Загрузите его заново."))}
+                onError={() => setError(new Error("Изображение повреждено. Загрузите его заново"))}
               />
             )
           ) : error ? (
             <div className="media-placeholder">
               <p>Оригинал недоступен</p>
-              <button onClick={() => setAttempt((value) => value + 1)}>Попробовать ещё раз</button>
+              <button type="button" onClick={() => setAttempt((value) => value + 1)}>
+                Попробовать ещё раз
+              </button>
             </div>
           ) : (
             <MediaPlaceholder />

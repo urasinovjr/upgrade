@@ -34,13 +34,13 @@ export default function Register() {
     </>
   );
   const aside = (
-    <AuthAside caption="Загрузите фото тетради: ИИ разложит решение по шагам и отметит ошибку, а вы проверите и подтвердите." />
+    <AuthAside caption="Загрузите фото тетради: ИИ разложит решение по шагам и отметит ошибку, а вы проверите и опубликуете результат" />
   );
   if (register.isSuccess)
     return (
       <AuthLayout
         title="Проверьте почту"
-        lead={`Мы отправили ссылку для подтверждения на ${email}. После подтверждения начнётся пробный период на 14 дней.`}
+        lead={`Мы отправили ссылку для подтверждения на ${email}. После подтверждения начнётся пробный период на 14 дней`}
         footer={footer}
         aside={aside}
         ticked={tick.ticked}
@@ -55,7 +55,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Регистрация"
-      lead="14 дней бесплатно, без привязки карты."
+      lead="14 дней бесплатно, без привязки карты"
       footer={footer}
       aside={aside}
       ticked={tick.ticked}
@@ -96,7 +96,7 @@ export default function Register() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-          <small id="password-rule">Не короче 10 символов и не только из цифр.</small>
+          <small id="password-rule">Не короче 10 символов и не только из цифр</small>
         </label>
         <label className="dp-auth-check">
           <input

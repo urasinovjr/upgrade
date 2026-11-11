@@ -1,0 +1,232 @@
+name: Checks and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ANALYSIS_VARIANT: sim
+  OPENROUTER_API_KEY: ""
+  ANALYSIS_API_KEY: ""
+  UV_VERSION: "0.10.11"
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      db:
+        image: postgres:17-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
+        env:
+          POSTGRES_USER: upgrade
+          POSTGRES_PASSWORD: upgrade
+          POSTGRES_DB: upgrade
+        ports: [5433:5432]
+        options: --health-cmd "pg_isready -U upgrade" --health-interval 2s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.13.12"
+      - run: uv sync --project backend --frozen
+      - run: uv run --project backend ruff check backend
+      - run: uv run --project backend ruff format --check backend
+      - run: docker compose up -d --wait s3 mailpit
+      - run: uv run --project backend pytest backend/tests
+      - run: uv run python -m app.contracts && git diff --exit-code -- ../contracts
+        working-directory: backend
+      - run: docker compose down -v
+        if: always()
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.22.2"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run format:check && npm run lint && npm run typecheck && npm test
+        working-directory: frontend
+      - run: npm run build && npm run build:server && npm run build:standalone
+        working-directory: frontend
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - run: npm ci && npm run e2e
+        working-directory: frontend
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: browser-results
+          path: output/playwright
+          retention-days: 7
+
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - run: npm ci && npm run e2e:visual
+        working-directory: frontend
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: visual-results
+          path: output/playwright
+          retention-days: 7
+
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.22.2"
+      - uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff
+        with:
+          version: ${{ env.UV_VERSION }}
+          python-version: "3.13.12"
+      - run: npm ci && npm audit --audit-level=high
+        working-directory: frontend
+      - run: uv sync --project backend --frozen --no-dev
+      - run: uvx pip-audit==2.9.0 --path backend/.venv/lib/python3.13/site-packages
+      - run: docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 -color
+      - run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git /repo --redact
+
+  production:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24.22.2"
+      - run: npm ci
+        working-directory: frontend
+      - run: docker build --provenance=false --label "org.opencontainers.image.revision=$GITHUB_SHA" --label org.opencontainers.image.source=https://github.com/urasinovjr/upgrade --build-arg "APP_COMMIT=$GITHUB_SHA" -t "ghcr.io/urasinovjr/upgrade-backend:$GITHUB_SHA" backend
+      - run: docker build --provenance=false --target production --label "org.opencontainers.image.revision=$GITHUB_SHA" --label org.opencontainers.image.source=https://github.com/urasinovjr/upgrade -t "ghcr.io/urasinovjr/upgrade-frontend:$GITHUB_SHA" frontend
+      - run: npx playwright install --with-deps chromium webkit
+        working-directory: frontend
+      - run: python3 -m deployment.production_checks
+        working-directory: backend
+      - run: python3 -m deployment.artifacts create ../output/release
+        working-directory: backend
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: checked-images
+          path: output/release
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+
+  checks:
+    if: always()
+    needs: [backend, frontend, browser, visual, security, production]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          assert len(results) == 6 and all(job['result'] == 'success' for job in results.values()), results
+          PY
+
+  publish:
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: checked-images
+          path: output/release
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: python3 -m deployment.artifacts publish ../output/release
+        working-directory: backend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: published-digests
+          path: output/release/published.json
+          if-no-files-found: error
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: upgrade-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: published-digests
+          path: output/release
+      - run: python3 -m deployment.send_release --images ../output/release/published.json
+        working-directory: backend
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          RELEASE_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -24,15 +24,16 @@ def percentile(values: list[float], share: float) -> float | None:
 
 
 def bootstrap_p95(runs: list[list[float]]) -> tuple[float | None, float | None]:
-    if not any(runs):
+    if not runs or any(not values for values in runs):
         return None, None
     rng = random.Random(0)
     estimates = []
+    cache = {}
     for _ in range(BOOTSTRAP_ROUNDS):
-        pooled = []
-        for values in runs:
-            pooled.extend(rng.choices(values, k=len(values)) if values else [])
-        estimates.append(percentile(pooled, 0.95))
+        selected = tuple(sorted(rng.choices(range(len(runs)), k=len(runs))))
+        if selected not in cache:
+            cache[selected] = pooled_p95([runs[index] for index in selected])
+        estimates.append(cache[selected])
     return percentile(estimates, 0.025), percentile(estimates, 0.975)
 
 
@@ -107,6 +108,7 @@ def run_metrics(rows: list[dict], protocol: int = 1, restarts: list[dict] | None
     undelivered = [row for row in rows if not int(row["results"])]
     saved_failures = [row for row in undelivered if row["failed"] == "True"]
     pending = [row for row in undelivered if int(row["works"]) and row["failed"] != "True"]
+    missing = [row for row in undelivered if not int(row["works"])]
     return {
         "uploads": len(rows),
         "accepted_values": accepted,
@@ -118,10 +120,13 @@ def run_metrics(rows: list[dict], protocol: int = 1, restarts: list[dict] | None
         "restart_seconds": restart_seconds(restarts),
         "polls": sum(int(row.get("poll_count") or 0) for row in rows),
         "delivered": len(delivered),
+        "ready_within_limit": sum(value <= READY_LIMIT_SECONDS for value in ready),
         "duplicated": sum(1 for row in rows if int(row["results"]) > 1),
         "failed_saved": len(saved_failures),
         "pending": len(pending),
-        "lost": sum(1 for row in undelivered if not int(row["works"])),
+        "lost": len(missing),
+        "acknowledged_missing": sum(row["accepted"] == "True" for row in missing),
+        "unconfirmed_missing": sum(row["accepted"] != "True" for row in missing),
         "accept_p95": percentile(accepted, 0.95),
         "ready_p95": percentile(ready, 0.95),
     }
@@ -152,13 +157,21 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
         "level": level,
         "workers": workers,
         "condition": condition,
+        "fault": runs[0][0].get("fault", "processing"),
         "protocol": runs[0][0].get("protocol", 1),
         "runs": len(runs),
         "uploads": uploads,
         "accepted": sum(len(values) for values in accepted_runs),
         "accepted_share": sum(len(values) for values in accepted_runs) / uploads,
         "delivered_share": delivered / uploads,
+        "ready_within_limit_share": sum(
+            sum(value / time_scale <= READY_LIMIT_SECONDS for value in values)
+            for values in ready_runs
+        )
+        / uploads,
         "lost": sum(run["lost"] for run in metrics),
+        "acknowledged_missing": sum(run["acknowledged_missing"] for run in metrics),
+        "unconfirmed_missing": sum(run["unconfirmed_missing"] for run in metrics),
         "duplicated": sum(run["duplicated"] for run in metrics),
         "failed_saved": sum(run["failed_saved"] for run in metrics),
         "pending": sum(run["pending"] for run in metrics),
@@ -188,6 +201,7 @@ def condition_summary(key: tuple, runs: list[tuple[dict, dict]]) -> dict:
         and summary["duplicated"] == 0
         and summary["ready_p95_real_s"] is not None
         and summary["ready_p95_real_s"] <= READY_LIMIT_SECONDS
+        and (summary["protocol"] < 3 or summary["ready_within_limit_share"] >= 0.95)
     )
     return summary
 
@@ -198,7 +212,8 @@ def run_key(meta: dict) -> tuple:
         meta["profile"],
         meta["level"],
         meta.get("workers", 1),
-        meta.get("condition", "base"),
+        meta.get("condition", "base")
+        + (f"-f{meta['fault']}" if meta.get("fault", "processing") != "processing" else ""),
     )
 
 

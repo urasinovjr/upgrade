@@ -151,7 +151,7 @@ async def test_confirmation_with_unclear_steps_is_blocked(teacher, sessions):
 
     assert response.status_code == 409
     assert response.json()["detail"] == "review_blocked"
-    assert "Задача 1: уточните неясные шаги." in response.json()["blockers"]
+    assert "Задача 1: уточните неясные шаги" in response.json()["blockers"]
     assert await revision_count(sessions, work["id"]) == 0
 
 

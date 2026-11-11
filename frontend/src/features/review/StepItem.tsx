@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Check, Link2Off, LocateFixed, Pencil, Trash2 } from "lucide-react";
 import type { Step, Verdict } from "../../domain/models";
 import { fromOriginal } from "../../domain/stepOrigin";
-import { Formula, FormulaInput } from "../../shared/math";
+import { Formula, FormulaInput, MixedText } from "../../shared/math";
 import { verdictMeta } from "../../shared/status";
 
 const verdicts: { value: Verdict; label: string }[] = [
@@ -84,7 +84,10 @@ function OriginTools({
 }) {
   return (
     <div className="dp-step-origin">
-      {!fromOriginal(step) && <span className="dp-step-origin-note">Не из оригинала</span>}
+      {!step.origin && <span className="dp-step-origin-note">Нет привязки к странице</span>}
+      {step.origin && !fromOriginal(step) && (
+        <span className="dp-step-origin-note">Запись изменена после распознавания</span>
+      )}
       {step.origin && (
         <>
           <button
@@ -197,7 +200,9 @@ export function StepItem({
         {origin}
         <div className="dp-step-detail" inert={!open} aria-hidden={!open}>
           <div id={detail}>
-            <p>{step.explanation || "Объяснения нет."}</p>
+            <p>
+              <MixedText value={step.explanation || "Объяснения нет"} />
+            </p>
           </div>
         </div>
       </article>
@@ -206,8 +211,8 @@ export function StepItem({
   const hasExplanation = Boolean(step.explanation.trim());
   const explanationPrompt =
     step.verdict === "error"
-      ? "Объясните, в чём ошибка."
-      : "Сверьте запись с оригиналом и уточните этот шаг.";
+      ? "Объясните, в чём ошибка"
+      : "Сверьте запись с оригиналом и уточните этот шаг";
   return (
     <article ref={root} className={"dp-step dp-step-card dp-step-" + step.verdict}>
       <div className="dp-step-heading">
@@ -220,7 +225,7 @@ export function StepItem({
       {tools}
       <div className="dp-step-formula">{formula}</div>
       <p className={"dp-step-explanation" + (hasExplanation ? "" : " is-empty")}>
-        {hasExplanation ? step.explanation : explanationPrompt}
+        <MixedText value={hasExplanation ? step.explanation : explanationPrompt} />
       </p>
       {origin}
     </article>

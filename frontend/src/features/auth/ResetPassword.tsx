@@ -16,7 +16,7 @@ export default function ResetPassword() {
     return (
       <AuthLayout
         title="Пароль обновлён"
-        lead="Войдите с новым паролем. На других устройствах придётся войти заново."
+        lead="Войдите с новым паролем. На других устройствах придётся войти заново"
       >
         <Link className="dp-button dp-primary" to="/login">
           Войти
@@ -54,7 +54,7 @@ export default function ResetPassword() {
             onChange={(event) => setRepeat(event.target.value)}
           />
         </label>
-        {mismatch && <p className="dp-error">Пароли не совпадают.</p>}
+        {mismatch && <p className="dp-error">Пароли не совпадают</p>}
         <ErrorMessage error={reset.error} />
         <button className="dp-primary" disabled={reset.isPending || mismatch}>
           Сохранить пароль

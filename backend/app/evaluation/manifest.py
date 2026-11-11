@@ -33,9 +33,13 @@ class TaskCard(ApiModel):
     formula: str = ""
     reference: str = ""
     condition_files: list[int] = Field(default_factory=list)
+    solution_files: list[int] | None = None
     condition_region: CardRegion | None = None
     transcription: list[str] = Field(default_factory=list)
     correct: bool | None = None
+    expected_verdict: Literal["correct", "error", "uncertain", "refused"] | None = None
+    expected_gap: bool | None = None
+    independent_errors: int | None = Field(default=None, ge=0)
     first_error_step: int | None = None
     explanation: str = ""
     topic_id: str = ""

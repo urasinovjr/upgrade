@@ -45,7 +45,7 @@ def account_exists_letter(public_url: str) -> Letter:
         subject="Вы уже зарегистрированы в UpGrade",
         text=(
             "Здравствуйте!\n\n"
-            "С этой почтой пытались зарегистрироваться в UpGrade, но аккаунт уже есть.\n"
+            "В UpGrade уже есть аккаунт с этой почтой.\n"
             f"Войти: {link(public_url, '/login')}\n"
             f"Забыли пароль: {link(public_url, '/auth/reset')}\n\n"
             "Если это были не вы, ничего делать не нужно."

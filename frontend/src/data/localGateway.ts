@@ -13,6 +13,7 @@ import { keptChecks, layoutChanged, redactionMessage, uncheckedPages } from "../
 import { nameMessage, namePlaces, studentNames } from "../domain/nameGuard";
 import { fixtureUploads, seedState } from "./fixtures";
 import type { Gateway } from "./gateway";
+import { localHomework } from "./localHomework";
 
 interface DemoDatabase extends DBSchema {
   state: { key: string; value: StoreState };
@@ -33,7 +34,7 @@ function openDatabase() {
         if (oldVersion < 2) db.createObjectStore("preferences");
       },
       blocked() {
-        reject(new Error("Закройте другие вкладки UpGrade и обновите страницу."));
+        reject(new Error("Закройте другие вкладки UpGrade и обновите страницу"));
       },
       blocking() {
         void openDatabase().then((db) => db.close());
@@ -109,7 +110,7 @@ async function initialize() {
 function storageError(cause: unknown) {
   if (cause instanceof DOMException && cause.name === "QuotaExceededError")
     return new Error(
-      "В браузере закончилось место. Освободите его и сохраните снова. Изменения пока на экране.",
+      "В браузере закончилось место. Освободите его и сохраните снова. Изменения пока на экране",
     );
   return cause;
 }
@@ -127,7 +128,7 @@ async function mutate(change: (state: StoreState) => StoreState) {
   void tx.done.catch(() => {});
   try {
     const state = await tx.store.get("root");
-    if (!state) throw new Error("Не удалось открыть данные.");
+    if (!state) throw new Error("Не удалось открыть кабинет. Обновите страницу");
     await tx.store.put(change(state), "root");
     await tx.done;
   } catch (cause) {
@@ -142,7 +143,8 @@ function hasDueJob(work: Work) {
   return finished || leftQueue;
 }
 function updateWork(state: StoreState, id: string, change: (work: Work) => Work) {
-  if (!state.works.some((work) => work.id === id)) throw new Error("Работа не найдена.");
+  if (!state.works.some((work) => work.id === id))
+    throw new Error("Работа не найдена. Откройте очередь проверки");
   return { ...state, works: state.works.map((work) => (work.id === id ? change(work) : work)) };
 }
 async function removeFiles(works: Work[]) {
@@ -156,11 +158,12 @@ async function removeFiles(works: Work[]) {
   await tx.done;
 }
 export const localGateway: Gateway = {
+  homework: localHomework,
   async read() {
     await initialize();
     const db = await openDatabase();
     let state = await db.get("state", "root");
-    if (!state) throw new Error("Данные недоступны.");
+    if (!state) throw new Error("Не удалось открыть кабинет. Обновите страницу");
     if (state.works.some(hasDueJob)) {
       await mutate((state) => ({
         ...state,
@@ -174,19 +177,19 @@ export const localGateway: Gateway = {
       }));
       state = await db.get("state", "root");
     }
-    if (!state) throw new Error("Данные недоступны.");
+    if (!state) throw new Error("Не удалось открыть кабинет. Обновите страницу");
     return state;
   },
   async asset(id) {
     await initialize();
     const blob = await (await openDatabase()).get("files", id);
-    if (!blob) throw new Error("Файл не найден. Добавьте его заново.");
+    if (!blob) throw new Error("Файл не найден. Загрузите его заново");
     return blob instanceof Blob
       ? blob
       : new Blob([blob.bytes.slice().buffer as ArrayBuffer], { type: blob.type });
   },
   async student(student) {
-    if (!student.name.trim()) throw new Error("Укажите имя ученика.");
+    if (!student.name.trim()) throw new Error("Укажите имя ученика");
     await mutate((state) => ({
       ...state,
       students: state.students.some((item) => item.id === student.id)
@@ -202,7 +205,7 @@ export const localGateway: Gateway = {
     void tx.done.catch(() => {});
     try {
       const state = await tx.objectStore("state").get("root");
-      if (!state) throw new Error("Данные недоступны.");
+      if (!state) throw new Error("Не удалось открыть кабинет. Обновите страницу");
       for (const file of files)
         await tx.objectStore("files").put({ bytes: file.bytes, type: file.type }, file.id);
       await tx.objectStore("state").put({ ...state, works: [work, ...state.works] }, "root");
@@ -221,8 +224,8 @@ export const localGateway: Gateway = {
         if (action === "edit") return beginRevision(work);
         if (action === "withdraw")
           return { ...work, currentPublishedId: undefined, editing: true, status: "ready" };
-        if (work.job) throw new Error("Обработка уже запущена.");
-        if (!work.editing) throw new Error("Начните новую версию разбора.");
+        if (work.job) throw new Error("Обработка уже запущена");
+        if (!work.editing) throw new Error("Начните новую версию разбора");
         if (action === "manual")
           return {
             ...work,
@@ -232,7 +235,7 @@ export const localGateway: Gateway = {
           };
         if (!work.demo)
           throw new Error(
-            "В демо ИИ разбирает только учебный пример. Свои файлы здесь можно проверить вручную.",
+            "В демо ИИ разбирает только учебный пример. Свои файлы здесь можно проверить вручную",
           );
         if (uncheckedPages(work.attachments).length) throw new Error(redactionMessage);
         const student = state.students.find((item) => item.id === work.studentId);
@@ -255,7 +258,7 @@ export const localGateway: Gateway = {
   },
   async closure(closure) {
     if (closure.action === "close" && !closure.note.trim())
-      throw new Error("Напишите, почему пробел закрыт.");
+      throw new Error("Напишите, почему пробел закрыт");
     await mutate((state) => ({ ...state, closures: [...state.closures, closure] }));
   },
   async report(id, revisionId) {
@@ -265,14 +268,15 @@ export const localGateway: Gateway = {
     const revision =
       work &&
       (revisionId ? work.published.find((item) => item.id === revisionId) : currentRevision(work));
-    if (!work || !student || !revision) throw new Error("Подтверждённый отчёт не найден.");
+    if (!work || !student || !revision)
+      throw new Error("Опубликованный отчёт не найден. Откройте историю версий");
     return { work, student, revision };
   },
   async attachments(id, attachments) {
     await mutate((state) =>
       updateWork(state, id, (work) => {
         if (!work.editing || work.job)
-          throw new Error("Редактирование оригинала сейчас недоступно.");
+          throw new Error("Редактирование оригинала сейчас недоступно");
         const stored = new Map(work.attachments.map((file) => [file.id, file]));
         const next = attachments.map((file) => {
           const before = stored.get(file.id);
@@ -344,3 +348,5 @@ export const localGateway: Gateway = {
     }
   },
 };
+
+export { openDatabase as openDemoDatabase };

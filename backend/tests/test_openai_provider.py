@@ -15,9 +15,11 @@ from app.analysis.contract import (
     read_review,
 )
 from app.analysis.openai_provider import OpenAiDraftProvider, to_region
+from app.analysis.quality import retry_context
 from app.analysis.variants import get_variant
 from app.provider import ProviderError
 from app.redaction import PageImage
+from tests.test_copy import LEGACY_REASONS
 
 PAGES = [
     PageImage(
@@ -275,3 +277,28 @@ async def test_math_2_marks_the_condition_area_for_recognition(make_provider):
     [_, user] = recorder.body()["messages"]
 
     assert "Область условия: страница 2, bbox [0, 0, 1000, 250]" in user["content"][-1]["text"]
+
+
+@pytest.mark.parametrize("reason", [*LEGACY_REASONS, "unknown"])
+async def test_copy_changes_preserve_the_entire_semantic_retry_request(make_provider, reason):
+    provider, recorder = make_provider(answer(RECOGNITION), answer(RECOGNITION))
+    await provider.recognize(PAGES, TASKS)
+    token = retry_context.set({"stage": "recognition", "reason": reason})
+    try:
+        await provider.recognize(PAGES, TASKS)
+    finally:
+        retry_context.reset(token)
+    original = recorder.body(0)
+    retried = recorder.body(1)
+    messages = retried.pop("messages")
+    assert messages[:-1] == original.pop("messages")
+    assert retried == original
+    fallback = "Разбор не прошёл проверку качества. Сверьте задачу вручную."
+    assert messages[-1] == {
+        "role": "user",
+        "content": "Проверь предыдущий результат этого этапа ещё раз. "
+        + LEGACY_REASONS.get(reason, fallback)
+        + " Исправь ответ по исходным данным. Сохрани все строки и идентификаторы. "
+        "Используй общий номер «Страница N» из подписи, а не номер листа внутри файла. "
+        "Верни только JSON по схеме.",
+    }

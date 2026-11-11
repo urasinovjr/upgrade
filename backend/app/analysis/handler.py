@@ -1,7 +1,9 @@
+import json
 import logging
 import time
 from dataclasses import asdict
 from datetime import UTC, datetime
+from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import select
@@ -10,8 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.analysis.contract import InvalidReply
 from app.analysis.drafting import layout_signature
 from app.analysis.names import student_names
+from app.analysis.openrouter import FINAL_ERRORS
 from app.analysis.pipeline import AnalysisSource, RunRecord, build_draft, elapsed_ms
 from app.analysis.service import accept_draft, mark_failed
+from app.events import provider_source, record_event
 from app.files.storage import Storage, StorageError
 from app.observability import current_request_id
 from app.provider import ProviderError
@@ -25,7 +29,11 @@ from app.works.service import files_of, read_draft
 logger = logging.getLogger("analysis")
 
 INVALID_REPLY = "provider_invalid_response"
-FINAL_PROVIDER_ERRORS = {"provider_auth", "provider_rejected"}
+FINAL_PROVIDER_ERRORS = FINAL_ERRORS
+
+
+class AnalysisStale(Exception):
+    pass
 
 
 async def current_work(session, job: Job) -> Work | None:
@@ -64,6 +72,12 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
             await complete_job(session, job.id)
             await session.commit()
             return None
+        if read_draft(work).input_revision != job.payload["input_revision"]:
+            work.analysis_job_id = None
+            work.status = "needs_input"
+            await complete_job(session, job.id)
+            await session.commit()
+            return None
         work.status = "processing"
         teacher_id = work.teacher_id
         student = await session.get(Student, work.student_id)
@@ -71,6 +85,13 @@ async def begin_analysis(context: WorkerContext, job: Job) -> AnalysisSource | N
         files = await files_of(session, [work.id])
         draft = read_draft(work)
         previous_layout = await last_layout(session, work.id)
+        await record_event(
+            session,
+            teacher_id,
+            "analysis_started",
+            job.id,
+            source=provider_source(context.analysis_variant.name),
+        )
         await session.commit()
     started = time.monotonic()
     try:
@@ -117,18 +138,37 @@ async def save_run(
     async with context.sessions() as session:
         work = await session.get(Work, job.subject_id, with_for_update=True)
         if work is not None:
-            run = AnalysisRun(
-                work_id=work.id,
-                job_id=job.id,
-                input_revision=job.payload["input_revision"],
-                status="failed" if error else "succeeded",
-                error=error,
+            run = None
+            if context.analysis_variant.prompt_version == "math-4":
+                run = await session.scalar(select(AnalysisRun).where(AnalysisRun.job_id == job.id))
+                if run is not None and run.status == "succeeded" and work.analysis_job_id != job.id:
+                    return
+            values = {
+                "work_id": work.id,
+                "job_id": job.id,
+                "input_revision": job.payload["input_revision"],
+                "status": "failed" if error else "succeeded",
+                "error": error,
                 **asdict(record),
-            )
-            session.add(run)
+            }
+            if run is None:
+                run = AnalysisRun(**values)
+                session.add(run)
+            else:
+                for key, value in values.items():
+                    setattr(run, key, value)
+            if draft is not None:
+                run.created_at = datetime.now(UTC)
             await session.flush()
             if draft is not None and work.analysis_job_id == job.id:
                 accept_draft(work, draft, run.id, job.payload["input_revision"])
+                await record_event(
+                    session,
+                    work.teacher_id,
+                    "analysis_ready" if work.status == "ready" else "analysis_stale",
+                    job.id,
+                    source=provider_source(context.analysis_variant.name),
+                )
             logger.info("analysis_run", extra=run_fields(run))
         if draft is not None:
             await complete_job(session, job.id)
@@ -145,9 +185,56 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
         variant=context.analysis_variant.name,
         code_commit=context.code_commit,
     )
+    quality = context.analysis_variant.prompt_version == "math-4"
+    if quality and job.payload.get("analysis_state"):
+        record = RunRecord(**job.payload["analysis_state"])
+        record.cost = Decimal(record.cost)
+        if record.actual_cost_usd is not None:
+            record.actual_cost_usd = Decimal(record.actual_cost_usd)
+
+    async def checkpoint():
+        async with context.sessions() as session:
+            work = await current_work(session, job)
+            if work is None or read_draft(work).input_revision != source.input_revision:
+                raise AnalysisStale
+            stored_job = await session.get(Job, job.id, with_for_update=True)
+            if stored_job.attempts != job.attempts:
+                raise AnalysisStale
+            stored_job.payload = {
+                **stored_job.payload,
+                "analysis_state": json.loads(json.dumps(asdict(record), default=str)),
+            }
+            await session.commit()
+        await save_run(context, job, record, None, "analysis_interrupted")
+
     try:
-        draft = await build_draft(context.analysis_provider, source, context.settings, record)
+        draft = await build_draft(
+            context.analysis_provider,
+            source,
+            context.settings,
+            record,
+            checkpoint if quality else None,
+        )
+    except AnalysisStale:
+        await save_run(context, job, record, source.draft, "analysis_stale")
+        return
     except ProviderError as error:
+        if error.reply is not None:
+            record.note(error.reply)
+            record.provider_calls[-1]["error"] = error.code
+            if quality:
+                record.input.setdefault("quality", {}).setdefault("failures", []).append(
+                    {
+                        "stage": error.reply.processing.get("operation"),
+                        "raw": error.reply.raw,
+                        "error": error.code,
+                        "call": len(record.provider_calls) - 1,
+                    }
+                )
+        if quality:
+            await checkpoint()
+        if record.provider_calls:
+            await save_run(context, job, record, None, error.code)
         raise JobFailure(
             error.code,
             retryable=error.code not in FINAL_PROVIDER_ERRORS,
@@ -159,7 +246,7 @@ async def handle_work_analysis(context: WorkerContext, job: Job) -> None:
             extra={"work_id": str(job.subject_id), "reason": error.reason},
         )
         await save_run(context, job, record, None, INVALID_REPLY)
-        raise JobFailure(INVALID_REPLY) from error
+        raise JobFailure(INVALID_REPLY, retryable=not quality) from error
     await save_run(context, job, record, draft, None)
 
 
@@ -168,4 +255,11 @@ async def mark_analysis_failed(context: WorkerContext, job: Job) -> None:
         work = await current_work(session, job)
         if work is not None:
             mark_failed(work)
+            await record_event(
+                session,
+                work.teacher_id,
+                "analysis_failed",
+                job.id,
+                source=provider_source(context.analysis_variant.name),
+            )
             await session.commit()

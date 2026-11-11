@@ -1,10 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const staticBuild = process.env.VISUAL_STATIC === "1";
+
 export default defineConfig({
   testDir: "./e2e-visual",
   fullyParallel: true,
   timeout: 60_000,
   retries: 0,
+  workers: 2,
   snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
   reporter: [
     ["list"],
@@ -30,12 +33,16 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "npm run dev -- --port 5180",
+      command: staticBuild
+        ? "npm run preview -- --outDir ../output/visual-final-demo --port 5180"
+        : "npm run dev -- --port 5180",
       url: "http://127.0.0.1:5180",
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: "npm run dev:server -- --port 5181",
+      command: staticBuild
+        ? "npm run preview -- --outDir ../output/visual-final-server --port 5181"
+        : "npm run dev:server -- --port 5181",
       url: "http://127.0.0.1:5181",
       reuseExistingServer: !process.env.CI,
     },

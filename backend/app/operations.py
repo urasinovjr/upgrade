@@ -12,6 +12,9 @@ from app.analysis.variants import UnknownVariant, get_variant
 from app.config import Settings
 from app.files import Storage
 from app.files.storage import StorageError
+from app.homework.models import HomeworkFile, HomeworkJob
+from app.mail.mailer import MailError
+from app.mail.unisender import UnisenderMailer
 from app.students.models import Student
 from app.works.models import AnalysisRun, Work, WorkFile
 
@@ -21,6 +24,9 @@ COUNTED = {"users": User, "students": Student, "works": Work, "files": WorkFile}
 
 async def expected_keys(session: AsyncSession) -> set[str]:
     keys = set(await session.scalars(select(WorkFile.storage_key)))
+    keys.update(await session.scalars(select(HomeworkFile.storage_key)))
+    for provenance in await session.scalars(select(HomeworkJob.provenance)):
+        keys.update(page["key"] for page in provenance.get("sentPages", []) if page.get("key"))
     for pages in await session.scalars(select(AnalysisRun.sent_pages)):
         keys |= {page["key"] for page in pages or [] if page.get("key")}
     return keys
@@ -70,6 +76,12 @@ async def provider_problems(settings: Settings) -> list[str]:
 
 
 async def mail_problems(settings: Settings) -> list[str]:
+    if settings.mail_transport == "unisender":
+        try:
+            await UnisenderMailer(settings).check()
+        except MailError:
+            return ["почтовый сервис недоступен"]
+        return []
     client = aiosmtplib.SMTP(
         hostname=settings.smtp_host,
         port=settings.smtp_port,

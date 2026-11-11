@@ -14,8 +14,11 @@ from app.config import Settings
 from app.files import S3Storage
 from loadgen.scenario import CRASH_AT_SECONDS, CRASH_DOWN_SECONDS
 
-COMPOSE_FILE = Path(__file__).resolve().parents[2] / "compose.yaml"
-S3_VOLUME = f"{COMPOSE_FILE.parent.name}_s3_data"
+COMPOSE_FILE = Path(
+    os.environ.get("STAND_COMPOSE_FILE", str(Path(__file__).resolve().parents[2] / "compose.yaml"))
+)
+COMPOSE_PROJECT = os.environ.get("STAND_COMPOSE_PROJECT", "upgrade")
+S3_VOLUME = f"{COMPOSE_PROJECT}_s3_data"
 SETTLE_LIMIT_SECONDS = 600.0
 RESET_ATTEMPTS = 5
 SETTLE_QUIET_CHECKS = 3
@@ -46,17 +49,21 @@ async def docker(*args: str, env: dict[str, str] | None = None) -> None:
         stderr=asyncio.subprocess.DEVNULL,
         env={**os.environ, **(env or {})},
     )
-    await process.wait()
+    code = await process.wait()
+    if code:
+        raise RuntimeError(f"Docker command failed with exit code {code}: {args}")
 
 
 async def compose(*args: str, env: dict[str, str] | None = None) -> None:
-    await docker("compose", "-f", str(COMPOSE_FILE), *args, env=env)
+    await docker("compose", "-p", COMPOSE_PROJECT, "-f", str(COMPOSE_FILE), *args, env=env)
 
 
 async def compose_output(*args: str) -> str:
     process = await asyncio.create_subprocess_exec(
         "docker",
         "compose",
+        "-p",
+        COMPOSE_PROJECT,
         "-f",
         str(COMPOSE_FILE),
         *args,
@@ -64,6 +71,8 @@ async def compose_output(*args: str) -> str:
         stderr=asyncio.subprocess.DEVNULL,
     )
     output, _ = await process.communicate()
+    if process.returncode:
+        raise RuntimeError("Docker compose output failed")
     return output.decode()
 
 

@@ -11,8 +11,8 @@ test.describe("with motion", () => {
     await expect(students.locator("strong")).toHaveText(final);
 
     const menu = page.getByRole("navigation", { name: "Основная навигация" });
-    await menu.getByRole("link", { name: "Работы" }).click();
-    await expect(page.getByRole("heading", { name: "Работы", level: 1 })).toBeAttached();
+    await menu.getByRole("link", { name: "Проверка" }).click();
+    await expect(page.getByRole("heading", { name: "Проверка", level: 1 })).toBeAttached();
     await menu.getByRole("link", { name: "Обзор" }).click();
     await students.locator("strong").waitFor();
     expect(await students.locator("strong").innerText()).toBe(final);
@@ -23,7 +23,7 @@ test.describe("with motion", () => {
     const gap = page.locator(".dp-gap-proposal").first();
     const ink = () => gap.evaluate((element) => getComputedStyle(element, "::after").clipPath);
     await expect.poll(ink).toBe("inset(0px 100% 0px 0px)");
-    await gap.getByRole("button", { name: "Подтвердить пробел" }).click();
+    await gap.getByRole("button", { name: "Подтвердить гипотезу" }).click();
     await expect.poll(ink).toBe("inset(0px)");
   });
 
