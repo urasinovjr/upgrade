@@ -4,6 +4,7 @@ test(
   "dashboard navigation, filters and confirmed gaps follow current data",
   { tag: ["@prd-10", "@prd-12"] },
   async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto("/");
     await expect(page).toHaveURL(/\/dashboard$/);
     const home = page

@@ -98,7 +98,11 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
-      - run: npm ci && npm run e2e:visual
+      - run: |
+          npm ci
+          NODE_ENV=development npx vite build --outDir ../output/visual-final-demo --emptyOutDir
+          NODE_ENV=development npx vite build --mode server --outDir ../output/visual-final-server --emptyOutDir
+          VISUAL_STATIC=1 npm run e2e:visual
         working-directory: frontend
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()
@@ -143,10 +147,10 @@ jobs:
         working-directory: frontend
       - run: docker build --provenance=false --label "org.opencontainers.image.revision=$GITHUB_SHA" --label org.opencontainers.image.source=https://github.com/urasinovjr/upgrade --build-arg "APP_COMMIT=$GITHUB_SHA" -t "ghcr.io/urasinovjr/upgrade-backend:$GITHUB_SHA" backend
       - run: docker build --provenance=false --target production --label "org.opencontainers.image.revision=$GITHUB_SHA" --label org.opencontainers.image.source=https://github.com/urasinovjr/upgrade -t "ghcr.io/urasinovjr/upgrade-frontend:$GITHUB_SHA" frontend
-      - run: npx playwright install --with-deps chromium webkit
-        working-directory: frontend
       - run: python3 -m deployment.production_checks
         working-directory: backend
+        env:
+          UPGRADE_BROWSER_CONTAINER: "1"
       - run: python3 -m deployment.artifacts create ../output/release
         working-directory: backend
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
