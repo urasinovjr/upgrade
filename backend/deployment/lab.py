@@ -11,6 +11,10 @@ HTTP_PORT = int(os.environ.get("LAB_HTTP_PORT", "28080"))
 HTTPS_PORT = int(os.environ.get("LAB_HTTPS_PORT", "28443"))
 MAIL_PORT = int(os.environ.get("LAB_MAIL_PORT", "28025"))
 BASE_URL = f"https://127.0.0.1:{HTTPS_PORT}"
+PLAYWRIGHT_IMAGE = (
+    "mcr.microsoft.com/playwright:v1.63.0-noble@sha256:"
+    "eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27"
+)
 
 
 def run(command, **kwargs):
@@ -134,3 +138,31 @@ def browser_environment() -> dict:
         "E2E_COMPOSE_PROJECT": PROJECT,
         "E2E_COMPOSE_FILE": str(LAB / "compose.json"),
     }
+
+
+def run_browser() -> None:
+    environment = browser_environment()
+    if os.environ.get("UPGRADE_BROWSER_CONTAINER") != "1":
+        run(["npm", "run", "e2e:server"], cwd=ROOT / "frontend", env=environment)
+        return
+    client = shutil.which("docker")
+    if client is None:
+        raise RuntimeError("Docker client is required for browser checks")
+    plugins = run(
+        ["docker", "info", "--format", "{{json .ClientInfo.Plugins}}"],
+        capture_output=True,
+        text=True,
+    )
+    plugin = next(item["Path"] for item in json.loads(plugins.stdout) if item["Name"] == "compose")
+    command = ["docker", "run", "--rm", "--ipc=host", "--network=host", "-e", "CI=1"]
+    for source, target in (
+        (str(ROOT), str(ROOT)),
+        ("/var/run/docker.sock", "/var/run/docker.sock"),
+        (str(Path(client).resolve()), "/usr/local/bin/docker"),
+        (str(Path(plugin).resolve()), "/usr/local/lib/docker/cli-plugins/docker-compose"),
+    ):
+        command += ["-v", f"{source}:{target}" + (":ro" if source != str(ROOT) else "")]
+    for key, value in environment.items():
+        if key.startswith("E2E_"):
+            command += ["-e", f"{key}={value}"]
+    run([*command, "-w", str(ROOT / "frontend"), PLAYWRIGHT_IMAGE, "npm", "run", "e2e:server"])

@@ -5,7 +5,7 @@ import subprocess
 import urllib.error
 import urllib.request
 
-from deployment.lab import BASE_URL, LAB, PROJECT, ROOT, browser_environment, compose, prepare, run
+from deployment.lab import BASE_URL, LAB, PROJECT, ROOT, compose, prepare, run, run_browser
 
 
 def check_http() -> None:
@@ -153,7 +153,7 @@ def main() -> None:
         compose("up", "-d", "--build", "--wait", "--wait-timeout", "180")
         compose("exec", "-T", "frontend", "nginx", "-t")
         check_http()
-        run(["npm", "run", "e2e:server"], cwd=ROOT / "frontend", env=browser_environment())
+        run_browser()
         restore_check()
         failure_checks()
         compose("restart", "api", "worker", "frontend")
