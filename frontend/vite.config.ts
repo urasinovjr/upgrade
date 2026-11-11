@@ -53,5 +53,17 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
     proxy: { "/api": process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8010" },
   },
-  build: { target: "es2022" },
+  build: {
+    target: "es2022",
+    ...(process.env.E2E_STATIC === "1"
+      ? {
+          rolldownOptions: {
+            input: [
+              resolve(import.meta.dirname, "index.html"),
+              resolve(import.meta.dirname, "e2e/fixtures/formula.html"),
+            ],
+          },
+        }
+      : {}),
+  },
 }));

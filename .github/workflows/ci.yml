@@ -79,7 +79,10 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
-      - run: npm ci && npm run e2e
+      - run: |
+          npm ci
+          NODE_ENV=development E2E_STATIC=1 npx vite build --outDir ../output/browser-app --emptyOutDir
+          E2E_STATIC=1 npm run e2e
         working-directory: frontend
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()

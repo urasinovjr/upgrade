@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const staticBuild = process.env.E2E_STATIC === "1";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -9,7 +11,9 @@ export default defineConfig({
   outputDir: "../output/playwright/results",
   use: { baseURL: "http://127.0.0.1:5173", trace: "retain-on-failure" },
   webServer: {
-    command: "npm run dev",
+    command: staticBuild
+      ? "npm run preview -- --outDir ../output/browser-app --port 5173"
+      : "npm run dev",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: !process.env.CI,
   },
