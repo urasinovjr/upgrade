@@ -2,6 +2,15 @@ import { test as base, type Page } from "@playwright/test";
 import { completedOnboarding } from "../src/domain/onboarding";
 import type { StoreState } from "../src/domain/models";
 
+export async function waitForPage(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(
+    () =>
+      !CSS.supports("selector(:active-view-transition)") ||
+      !document.documentElement.matches(":active-view-transition"),
+  );
+}
+
 export async function markOnboarded(page: Page) {
   await page.addInitScript((value) => {
     const request = indexedDB.open("upgrade-demo", 2);
@@ -70,6 +79,9 @@ export const test = base.extend<{ onboarded: boolean }>({
   onboarded: [true, { option: true }],
   page: async ({ page, onboarded }, use) => {
     if (onboarded) await markOnboarded(page);
+    await page.addLocatorHandler(page.locator("body"), () => waitForPage(page), {
+      noWaitAfter: true,
+    });
     await use(page);
   },
 });

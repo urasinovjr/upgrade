@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./onboarding";
+import { expect, test, waitForPage } from "./onboarding";
 
 async function watchTransitions(page: Page) {
   await page.addInitScript(() => {
@@ -41,6 +41,34 @@ test.describe("with motion", () => {
     expect(animations).toContain("::view-transition-new(dp-main)");
     expect(animations).toContain("::view-transition-group(dp-work-title)");
     expect(animations).not.toContain("::view-transition-new(dp-sidebar)");
+  });
+
+  test("navigation settles the transition before the next action", async ({ page }) => {
+    await page.goto("/dashboard");
+    const supported = await page.evaluate(() => "startViewTransition" in document);
+    test.skip(!supported, "this browser has no view transitions");
+    await page.addStyleTag({
+      content: `::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
+        animation-duration: 5s !important;
+        animation-delay: 0s !important;
+      }`,
+    });
+    await page
+      .getByRole("navigation", { name: "Основная навигация" })
+      .getByRole("link", { name: "Ученики", exact: true })
+      .click();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.matches(":active-view-transition")))
+      .toBe(true);
+    await waitForPage(page);
+    expect(
+      await page.evaluate(() => document.documentElement.matches(":active-view-transition")),
+    ).toBe(false);
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /Анна Соколова/ })
+      .click({ timeout: 1_000 });
+    await expect(page).toHaveURL(/\/students\/anna$/, { timeout: 1_000 });
   });
 
   test("navigation still works without view transitions", async ({ page }) => {
