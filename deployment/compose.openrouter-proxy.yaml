@@ -1,0 +1,39 @@
+name: upgrade-openrouter
+
+services:
+  openrouter-proxy:
+    image: ghcr.io/xtls/xray-core:26.11.9@sha256:d42420dca2014cbd06e24daad8a039b455b7d9e905cda1cf871254cfffda2149
+    command: [run, -config, /etc/xray/config.json]
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 64
+    volumes:
+      - type: bind
+        source: ${UPGRADE_OPENROUTER_PROXY_CONFIG:-/opt/upgrade/config/openrouter-proxy.json}
+        target: /etc/xray/config.json
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      outbound:
+        aliases: [openrouter-proxy]
+    healthcheck:
+      test: [CMD, xray, run, -test, -config, /etc/xray/config.json]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "2"
+
+networks:
+  outbound:
+    external: true
+    name: upgrade-production_outbound

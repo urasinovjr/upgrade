@@ -1,6 +1,7 @@
 from typing import Literal, Self
+from urllib.parse import urlsplit
 
-from pydantic import SecretStr, model_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "mailpit"}
@@ -21,6 +22,7 @@ class Settings(BaseSettings):
     analysis_variant: str = "sim"
     analysis_api_key: SecretStr = SecretStr("")
     openrouter_api_key: SecretStr = SecretStr("")
+    openrouter_proxy_url: SecretStr = SecretStr("")
     openrouter_privacy_confirmed: bool = False
     analysis_folder_id: str = ""
     analysis_timeout: float = 180.0
@@ -106,6 +108,29 @@ class Settings(BaseSettings):
     max_files_per_work: int = 20
     max_pages_per_work: int = 40
     max_draft_bytes: int = 512 * 1024
+
+    @field_validator("openrouter_proxy_url")
+    @classmethod
+    def validate_openrouter_proxy_url(cls, value: SecretStr) -> SecretStr:
+        url = value.get_secret_value().strip()
+        if not url:
+            return SecretStr("")
+        try:
+            parsed = urlsplit(url)
+            valid = (
+                parsed.scheme in {"http", "https"}
+                and bool(parsed.hostname)
+                and parsed.path in {"", "/"}
+                and not parsed.query
+                and not parsed.fragment
+                and not any(character.isspace() for character in url)
+                and (parsed.port is None or 0 < parsed.port <= 65535)
+            )
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ValueError("OPENROUTER_PROXY_URL must be an HTTP or HTTPS proxy URL")
+        return SecretStr(url)
 
     def service_problems(self) -> list[str]:
         problems = []

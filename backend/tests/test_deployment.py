@@ -67,3 +67,48 @@ def test_only_the_web_server_is_published(services):
     assert published == {"frontend"}
     assert services["api"]["environment"]["STAND_ENABLED"] == "false"
     assert services["api"]["environment"]["APP_ENV"] == "production"
+
+
+def test_optional_openrouter_proxy_has_no_public_ports_or_privileges():
+    result = subprocess.run(
+        [
+            "docker",
+            "compose",
+            "-f",
+            str(ROOT / "deployment/compose.openrouter-proxy.yaml"),
+            "config",
+            "--format",
+            "json",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    config = json.loads(result.stdout)
+    proxy = config["services"]["openrouter-proxy"]
+
+    assert not proxy.get("ports")
+    assert proxy["user"] == "10001:10001"
+    assert proxy["read_only"] is True
+    assert proxy["cap_drop"] == ["ALL"]
+    assert "@sha256:" in proxy["image"]
+    assert proxy["volumes"][0]["read_only"] is True
+    assert proxy["volumes"][0]["bind"]["create_host_path"] is False
+    assert config["networks"]["outbound"]["external"] is True
+
+
+def test_proxy_example_only_routes_openrouter_to_the_subscription():
+    config = json.loads((ROOT / "deployment/openrouter-proxy.example.json").read_text())
+
+    assert config["log"]["loglevel"] == "none"
+    assert config["routing"]["rules"] == [
+        {
+            "type": "field",
+            "domain": ["full:openrouter.ai"],
+            "port": "443",
+            "outboundTag": "openrouter",
+        },
+        {"type": "field", "network": "tcp,udp", "outboundTag": "blocked"},
+    ]
+    assert config["outbounds"][1]["protocol"] == "blackhole"
+    assert not any(outbound["protocol"] == "freedom" for outbound in config["outbounds"])

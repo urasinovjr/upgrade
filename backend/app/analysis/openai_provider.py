@@ -163,6 +163,8 @@ class OpenAiDraftProvider:
         timeout: float,
         transport: httpx.AsyncBaseTransport | None = None,
         budget_stop_at: Decimal = Decimal("1"),
+        *,
+        proxy_url: str | None = None,
     ):
         self.variant = variant
         self.budget_stop_at = budget_stop_at
@@ -178,6 +180,8 @@ class OpenAiDraftProvider:
             headers=headers,
             timeout=timeout,
             trust_env=False,
+            verify=True,
+            proxy=proxy_url,
             transport=transport,
         )
 

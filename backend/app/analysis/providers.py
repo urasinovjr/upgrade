@@ -22,6 +22,11 @@ def make_provider(variant: Variant, settings: Settings) -> DraftProvider:
         raise ProviderNotConfigured("Confirm OpenRouter logging off, ZDR-only, no Safety Retention")
     if "{folder}" in variant.model_uri and not settings.analysis_folder_id:
         raise ProviderNotConfigured(f"ANALYSIS_FOLDER_ID is required for {variant.name}")
+    proxy_url = settings.openrouter_proxy_url.get_secret_value() if openrouter else ""
     return OpenAiDraftProvider(
-        variant, api_key, settings.analysis_folder_id, settings.analysis_timeout
+        variant,
+        api_key,
+        settings.analysis_folder_id,
+        settings.analysis_timeout,
+        proxy_url=proxy_url or None,
     )
